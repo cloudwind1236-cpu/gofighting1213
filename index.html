@@ -1,0 +1,2572 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>關關難過關關過 - 操場實境解謎互動系統</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- HTML5 QRCode 實機相機掃描套件 -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        /* Kahoot 風格動畫與長條圖過渡效果 */
+        .bar-transition {
+            transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.5s ease;
+        }
+        .row-transition {
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        /* 彈出視窗震動與彈跳動畫 */
+        @keyframes popIn {
+            0% { transform: scale(0.7); opacity: 0; }
+            70% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px) rotate(-1deg); }
+            40%, 80% { transform: translateX(10px) rotate(1deg); }
+        }
+        .animate-pop {
+            animation: popIn 0.35s ease-out forwards;
+        }
+        .animate-shake {
+            animation: shake 0.45s ease-in-out;
+        }
+        /* 自訂捲軸美化 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-slate-950 text-slate-100 select-none">
+
+    <!-- ========================================== -->
+    <!-- 頂部狀態列：顯示目前鎖定身分 & 登出切換按鈕 -->
+    <!-- ========================================== -->
+    <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 shadow-lg">
+        <div class="max-w-6xl mx-auto px-3 py-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <!-- 左側：遊戲標題與計時狀態 -->
+                <div class="flex items-center gap-2">
+                    <span class="bg-amber-500 text-slate-950 font-black px-2.5 py-1 rounded-lg text-xs sm:text-sm tracking-wider uppercase flex items-center gap-1 shadow">
+                        <i class="fa-solid fa-bolt"></i> 關關難過關關過
+                    </span>
+                    <span id="globalTimerBadge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">
+                        <i class="fa-solid fa-clock mr-1"></i>計時進行中
+                    </span>
+                    <span id="cloudSyncStatusBadge" onclick="openCloudConfigModal()" class="cursor-pointer text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 hover:border-sky-500/50 transition">
+                        <i class="fa-solid fa-cloud mr-1"></i>本機模式
+                    </span>
+                </div>
+
+                <!-- 右側：當前登入身分徽章 & 登出/切換身分鈕 -->
+                <div class="flex items-center gap-2">
+                    <div id="currentIdentityBadge" class="text-xs sm:text-sm font-black px-3 py-1 rounded-xl bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-lock text-amber-400"></i>
+                        <span>尚未登入身分</span>
+                    </div>
+                    <button id="logoutSwitchBtn" onclick="requestRoleSwitch()" class="hidden px-3 py-1.5 rounded-xl bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/40 text-xs font-black transition flex items-center gap-1">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>切換身分 / 登出</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================================================== -->
+    <!-- 全螢幕登入閘門：選擇身分別與輸入專屬代號 (預設首頁) -->
+    <!-- ======================================================== -->
+    <div id="loginGatewaySection" class="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div class="max-w-4xl w-full space-y-6">
+            <!-- 標題區 -->
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-2 bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-black px-3.5 py-1 rounded-full">
+                    <i class="fa-solid fa-location-dot"></i> 高中操場實境解謎系統・Cloudflare 連線版
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black tracking-tight text-white">
+                    關關難過關關過
+                </h1>
+                <p class="text-xs sm:text-base text-slate-400 max-w-xl mx-auto">
+                    請先選擇你的身分別進行登入！登入後畫面將<strong class="text-amber-300">自動鎖定在該身分的專屬權限區塊</strong>，無法隨意跳轉至其他區塊。
+                </p>
+            </div>
+
+            <!-- 步驟 A：四大身分別選擇卡片 -->
+            <div id="loginStepRoleCards" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- 1. 闖關小隊代表 -->
+                <button onclick="openLoginSubPanel('team')" class="group text-left bg-gradient-to-br from-indigo-950/90 to-slate-900 hover:from-indigo-900 hover:to-slate-800 border-2 border-indigo-500/40 hover:border-indigo-400 rounded-3xl p-5 sm:p-6 shadow-xl transition transform hover:-translate-y-1 flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-500 text-white flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-indigo-500/30">
+                        <i class="fa-solid fa-person-running"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black bg-indigo-500/30 text-indigo-200 px-2 py-0.5 rounded-full">闖關者入口</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-white group-hover:text-indigo-300 transition">1. 我是闖關小隊</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">每小隊僅限 1 支代表手機登入，選擇第 1 ~ 12 小隊後即鎖定本隊專屬畫面。</p>
+                    </div>
+                </button>
+
+                <!-- 2. 關主端 (7位) -->
+                <button onclick="openLoginSubPanel('boss')" class="group text-left bg-gradient-to-br from-rose-950/90 to-slate-900 hover:from-rose-900 hover:to-slate-800 border-2 border-rose-500/40 hover:border-rose-400 rounded-3xl p-5 sm:p-6 shadow-xl transition transform hover:-translate-y-1 flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-rose-600/30">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black bg-rose-500/30 text-rose-200 px-2 py-0.5 rounded-full">工作人員：關主</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-white group-hover:text-rose-300 transition">2. 我是關主 (7位)</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">需輸入關主專屬代號（B01~B07）或掃描關主 QR 碼，僅能操作自己負責的單一提示。</p>
+                    </div>
+                </button>
+
+                <!-- 3. 隨隊小天使端 (12位) -->
+                <button onclick="openLoginSubPanel('angel')" class="group text-left bg-gradient-to-br from-emerald-950/90 to-slate-900 hover:from-emerald-900 hover:to-slate-800 border-2 border-emerald-500/40 hover:border-emerald-400 rounded-3xl p-5 sm:p-6 shadow-xl transition transform hover:-translate-y-1 flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500 text-slate-950 flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-emerald-500/30">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black bg-emerald-500/30 text-emerald-200 px-2 py-0.5 rounded-full">工作人員：隨隊小天使</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-white group-hover:text-emerald-300 transition">3. 我是小天使 (12位)</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">需輸入專屬代號（A01~A12）綁定單一小隊，內建 1A2B 自動計算機與任務發送鈕。</p>
+                    </div>
+                </button>
+
+                <!-- 4. 總關主端 -->
+                <button onclick="openLoginSubPanel('chief')" class="group text-left bg-gradient-to-br from-amber-950/90 to-slate-900 hover:from-amber-900 hover:to-slate-800 border-2 border-amber-500/40 hover:border-amber-400 rounded-3xl p-5 sm:p-6 shadow-xl transition transform hover:-translate-y-1 flex items-start gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center text-2xl shrink-0 shadow-lg shadow-amber-400/30">
+                        <i class="fa-solid fa-crown"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-black bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full">最高權限控台</span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-white group-hover:text-amber-300 transition">4. 我是總關主</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">需輸入總關主通行密碼，掌控全場 12 隊進度、求救倒數、終點停錶與 Kahoot 排行榜。</p>
+                    </div>
+                </button>
+            </div>
+
+            <!-- 步驟 B-1：小隊選擇登入面板 -->
+            <div id="loginSubPanel-team" class="hidden bg-slate-900 border-2 border-indigo-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-pop">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <span class="text-xs text-indigo-400 font-bold">闖關小隊代表登入</span>
+                        <h3 class="text-xl font-black text-white">請選擇你們是第幾小隊</h3>
+                    </div>
+                    <button onclick="backToRoleCards()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-arrow-left mr-1"></i>返回重選身分
+                    </button>
+                </div>
+                <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3 text-xs text-amber-200">
+                    <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                    <strong>注意：</strong>每個小隊僅限用 1 支手機代表登入！點選小隊後將直接綁定本手機為該小隊專屬畫面。
+                </div>
+                <div id="loginTeamGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <!-- JS 動態生成 1~12 小隊登入卡片 -->
+                </div>
+            </div>
+
+            <!-- 步驟 B-2：關主代號登入面板 (B01~B07) -->
+            <div id="loginSubPanel-boss" class="hidden bg-slate-900 border-2 border-rose-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-pop">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <span class="text-xs text-rose-400 font-bold">關主權限驗證</span>
+                        <h3 class="text-xl font-black text-white">請輸入你的關主專屬代號</h3>
+                    </div>
+                    <button onclick="backToRoleCards()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-arrow-left mr-1"></i>返回重選身分
+                    </button>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-300">
+                    7 位關主代號分別為 <code class="text-rose-300 font-bold">B01</code> ~ <code class="text-rose-300 font-bold">B07</code>。登入後你只會看到自己負責的那 1 個提示與【通過 / 失敗 / 加分題】按鈕，無法跳到其他區塊：
+                </p>
+                <div class="flex gap-2 max-w-md">
+                    <input id="gatewayBossCodeInput" type="text" maxlength="3" placeholder="輸入代號 (如 B01)" onkeydown="if(event.key==='Enter') confirmBossGatewayLogin()" class="flex-1 bg-slate-950 border-2 border-slate-700 focus:border-rose-500 rounded-2xl px-4 py-3 text-lg font-mono font-black uppercase text-center text-white focus:outline-none">
+                    <button onclick="confirmBossGatewayLogin()" class="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 rounded-2xl shadow-lg transition">
+                        確認進入
+                    </button>
+                </div>
+                <!-- 測試用快速填入代號列 -->
+                <div class="pt-2 border-t border-slate-800">
+                    <div class="text-[11px] text-slate-400 mb-2">💡 測試便利貼（點擊下方按鈕可直接帶入代號登入）：</div>
+                    <div id="gatewayBossQuickBtns" class="flex flex-wrap gap-1.5">
+                        <!-- JS 生成 B01~B07 快捷按鈕 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步驟 B-3：小天使代號登入面板 (A01~A12) -->
+            <div id="loginSubPanel-angel" class="hidden bg-slate-900 border-2 border-emerald-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-pop">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <span class="text-xs text-emerald-400 font-bold">隨隊小天使權限驗證</span>
+                        <h3 class="text-xl font-black text-white">請輸入你的小天使專屬代號</h3>
+                    </div>
+                    <button onclick="backToRoleCards()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-arrow-left mr-1"></i>返回重選身分
+                    </button>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-300">
+                    12 位隨隊小天使代號為 <code class="text-emerald-300 font-bold">A01</code>（第 1 小隊）～ <code class="text-emerald-300 font-bold">A12</code>（第 12 小隊）。不同的代號對應不同的組別，登入後僅能操作自己小隊的畫面：
+                </p>
+                <div class="flex gap-2 max-w-md">
+                    <input id="gatewayAngelCodeInput" type="text" maxlength="3" placeholder="輸入代號 (如 A01)" onkeydown="if(event.key==='Enter') confirmAngelGatewayLogin()" class="flex-1 bg-slate-950 border-2 border-slate-700 focus:border-emerald-500 rounded-2xl px-4 py-3 text-lg font-mono font-black uppercase text-center text-white focus:outline-none">
+                    <button onclick="confirmAngelGatewayLogin()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black px-6 rounded-2xl shadow-lg transition">
+                        確認進入
+                    </button>
+                </div>
+                <!-- 測試用快速填入代號列 -->
+                <div class="pt-2 border-t border-slate-800">
+                    <div class="text-[11px] text-slate-400 mb-2">💡 測試便利貼（點擊可直接以該隊小天使身分登入）：</div>
+                    <div id="gatewayAngelQuickBtns" class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                        <!-- JS 生成 A01~A12 快捷按鈕 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 步驟 B-4：總關主密碼登入面板 -->
+            <div id="loginSubPanel-chief" class="hidden bg-slate-900 border-2 border-amber-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 animate-pop">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <div>
+                        <span class="text-xs text-amber-400 font-bold">最高權限驗證</span>
+                        <h3 class="text-xl font-black text-white">請輸入總關主通行代號</h3>
+                    </div>
+                    <button onclick="backToRoleCards()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-xl font-bold">
+                        <i class="fa-solid fa-arrow-left mr-1"></i>返回重選身分
+                    </button>
+                </div>
+                <p class="text-xs sm:text-sm text-slate-300">
+                    請輸入總關主專屬密碼（預設測試密碼：<code class="text-amber-300 font-bold">9999</code>）以開啟全場監控、求救觸發與 Kahoot 排行榜：
+                </p>
+                <div class="flex gap-2 max-w-md">
+                    <input id="gatewayChiefCodeInput" type="password" placeholder="輸入總關主密碼 (9999)" value="9999" onkeydown="if(event.key==='Enter') confirmChiefGatewayLogin()" class="flex-1 bg-slate-950 border-2 border-slate-700 focus:border-amber-400 rounded-2xl px-4 py-3 text-lg font-mono font-black text-center text-white focus:outline-none">
+                    <button onclick="confirmChiefGatewayLogin()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 rounded-2xl shadow-lg transition">
+                        進入總控台
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主內容容器 (登入後才會顯示對應的單一身分區塊) -->
+    <main id="authenticatedMainContainer" class="hidden flex-1 max-w-5xl w-full mx-auto p-3 sm:p-5">
+
+        <!-- ======================================================== -->
+        <!-- 視角 1：🏃 闖關者端（鎖定單一小隊代表手機介面） -->
+        <!-- ======================================================== -->
+        <section id="view-team" class="space-y-4">
+            <!-- 鎖定身分提示橫幅 -->
+            <div class="bg-indigo-950/50 border border-indigo-500/30 rounded-2xl px-3.5 py-2 flex items-center justify-between text-xs text-indigo-200">
+                <span><i class="fa-solid fa-shield-cat mr-1.5 text-indigo-400"></i>本手機已綁定為 <strong id="lockedTeamBannerName" class="text-white underline">第 1 小隊</strong> 代表專用機</span>
+                <span class="text-[11px] opacity-75">關關難過關關過</span>
+            </div>
+
+            <!-- 小隊頂部狀態卡片：隊名、即時總時間、兩個求救按鈕 -->
+            <div id="teamHeaderCard" class="rounded-3xl p-4 sm:p-5 shadow-xl border border-white/10 relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
+                    <!-- 左側：小隊編號與進度 -->
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span id="teamColorDot" class="w-4 h-4 rounded-full inline-block ring-2 ring-white"></span>
+                            <h1 id="teamTitleDisplay" class="text-xl sm:text-2xl font-black tracking-tight">第 1 小隊 - 烈焰破陣隊</h1>
+                            <span id="teamFinishBadge" class="hidden bg-amber-400 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full">已停錶完賽</span>
+                        </div>
+                        <p class="text-xs sm:text-sm text-white/80 mt-1">
+                            已蒐集提示：<strong id="teamClueCountDisplay" class="text-amber-300 font-black">0 / 15</strong> 個
+                        </p>
+                    </div>
+
+                    <!-- 右側：即時闖關時間顯示 -->
+                    <div class="bg-slate-950/70 backdrop-blur px-4 py-2.5 rounded-2xl border border-white/15 text-center sm:text-right">
+                        <div class="text-[11px] text-slate-300 flex items-center justify-center sm:justify-end gap-1">
+                            <span>目前總計時 (含加減秒)</span>
+                        </div>
+                        <div id="teamTotalTimerDisplay" class="text-2xl sm:text-3xl font-mono font-black text-amber-400 tracking-wider">
+                            00:00
+                        </div>
+                        <div id="teamTimeBreakdownDisplay" class="text-[11px] text-slate-400 font-mono">
+                            原始 00:00 | 懲罰 +0s | 加分 -0s
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 求救機會狀態列 (由總關主觸發，每隊各1次機會) -->
+                <div class="mt-4 pt-3 border-t border-white/15">
+                    <div class="text-xs text-white/80 mb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-life-ring mr-1 text-amber-300"></i><strong>總關主求救機會</strong>（請找總關主啟用，用完即變暗）：</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        <!-- 求救 1：使用手機 2 分鐘 -->
+                        <button id="teamLifelinePhoneBtn" onclick="showTeamLifelineInfo('phone')" class="p-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition border">
+                            <i class="fa-solid fa-mobile-screen-button text-base"></i>
+                            <div class="text-left">
+                                <div id="teamLifelinePhoneTitle">使用手機 2 分鐘</div>
+                                <div id="teamLifelinePhoneSub" class="text-[10px] opacity-80">尚可使用 (1次)</div>
+                            </div>
+                        </button>
+                        <!-- 求救 2：提示一個字 -->
+                        <button id="teamLifelineWordBtn" onclick="showTeamLifelineInfo('word')" class="p-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition border">
+                            <i class="fa-solid fa-lightbulb text-base"></i>
+                            <div class="text-left">
+                                <div id="teamLifelineWordTitle">提示一個字</div>
+                                <div id="teamLifelineWordSub" class="text-[10px] opacity-80">尚可使用 (1次)</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 若「使用手機 2 分鐘」正在倒數中，顯示醒目倒數橫幅 -->
+            <div id="phoneCountdownBanner" class="hidden bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 rounded-2xl p-3.5 shadow-lg flex items-center justify-between animate-pulse">
+                <div class="flex items-center gap-3">
+                    <i class="fa-solid fa-stopwatch-20 text-2xl"></i>
+                    <div>
+                        <div class="font-black text-sm sm:text-base">求救特權：合法使用手機搜尋中！</div>
+                        <div class="text-xs font-bold opacity-80">時間到請立即收起其他查資料頁面</div>
+                    </div>
+                </div>
+                <div id="phoneCountdownText" class="font-mono font-black text-2xl sm:text-3xl bg-slate-950 text-amber-400 px-3 py-1 rounded-xl">
+                    02:00
+                </div>
+            </div>
+
+            <!-- 小隊三大功能分頁導覽列 -->
+            <div class="grid grid-cols-3 gap-2 bg-slate-900 p-1.5 rounded-2xl border border-slate-800">
+                <button onclick="switchTeamTab('scan')" id="teamTabBtn-scan" class="py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow">
+                    <i class="fa-solid fa-qrcode"></i>
+                    <span>掃描提示 (15)</span>
+                </button>
+                <button onclick="switchTeamTab('history')" id="teamTabBtn-history" class="py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-folder-open"></i>
+                    <span>提示背包</span>
+                </button>
+                <button onclick="switchTeamTab('answer')" id="teamTabBtn-answer" class="py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white relative">
+                    <i class="fa-solid fa-flag-checkered"></i>
+                    <span>終點答題</span>
+                    <span id="answerUnlockDot" class="hidden w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping absolute top-1.5 right-2"></span>
+                </button>
+            </div>
+
+            <!-- 分頁 1：掃描 15 個提示 QR 碼 -->
+            <div id="teamTab-scan" class="space-y-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h2 class="font-black text-base sm:text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-camera text-indigo-400"></i>
+                                操場 15 個提示 QR 碼掃描器
+                            </h2>
+                            <p class="text-xs text-slate-400 mt-0.5">可使用手機相機直接掃描操場上的 QR 碼，或輸入代碼 / 點擊下方模擬按鈕：</p>
+                        </div>
+                        <button onclick="toggleRealCameraScanner()" id="cameraToggleBtn" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-lg shadow-indigo-600/30 flex items-center gap-2 transition">
+                            <i class="fa-solid fa-camera"></i>
+                            <span>開啟相機掃描 QR 碼</span>
+                        </button>
+                    </div>
+
+                    <!-- 實機相機鏡頭掃描容器 (預設隱藏，點擊開啟) -->
+                    <div id="realCameraScannerContainer" class="hidden bg-slate-950 border-2 border-indigo-500 rounded-2xl p-3 space-y-2">
+                        <div class="flex items-center justify-between text-xs text-indigo-300">
+                            <span><i class="fa-solid fa-video mr-1"></i>請將鏡頭對準操場上的提示 QR 碼（支援 C01 ~ C15 或網址參數）</span>
+                            <button onclick="stopRealCameraScanner()" class="text-rose-400 font-bold hover:underline">關閉鏡頭</button>
+                        </div>
+                        <div id="qr-reader" class="w-full max-w-sm mx-auto overflow-hidden rounded-xl"></div>
+                    </div>
+
+                    <!-- 手動輸入提示代碼備案 + 測試用 15 顆按鈕 -->
+                    <div class="pt-2 border-t border-slate-800/80">
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+                            <span class="text-xs font-bold text-slate-300">👇 點擊下方編號可直接模擬掃描該提示 QR 碼（共 15 個提示）：</span>
+                            <div class="flex gap-2 text-[11px]">
+                                <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">⚔️ 找關主(7)</span>
+                                <span class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">📁 雲端資料夾(4)</span>
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">👼 小天使任務(4)</span>
+                            </div>
+                        </div>
+
+                        <!-- 15 個提示按鈕網格 -->
+                        <div id="qrClueGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-2.5">
+                            <!-- JS 動態生成 15 個 QR 模擬按鈕 -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 掃描後的互動顯示面板 (找關主等待畫面 / 12色雲端資料夾 / 小天使任務卡) -->
+                <div id="activeClueInteractionBox" class="hidden bg-slate-900 border-2 border-indigo-500/50 rounded-3xl p-4 sm:p-6 shadow-2xl">
+                    <!-- JS 動態渲染當前掃描的關卡內容 -->
+                </div>
+            </div>
+
+            <!-- 分頁 2：提示歷史紀錄 (線索背包) -->
+            <div id="teamTab-history" class="hidden space-y-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5 space-y-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="font-black text-base sm:text-lg flex items-center gap-2">
+                                <i class="fa-solid fa-book-open text-amber-400"></i>
+                                已獲得的提示歷史紀錄
+                            </h2>
+                            <p class="text-xs text-slate-400">集齊每題的 5 個提示即可推敲出該題謎底！</p>
+                        </div>
+                    </div>
+                    <div id="clueHistoryContainer" class="space-y-4">
+                        <!-- JS 動態生成 題目一、題目二、題目三 的提示清單 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 分頁 3：終點答題區 -->
+            <div id="teamTab-answer" class="hidden space-y-4">
+                <div id="teamAnswerBox" class="bg-slate-900 border border-slate-800 rounded-3xl p-5 sm:p-6">
+                    <!-- JS 動態根據總關主是否已按下「我要答題(停止計時)」顯示鎖定或作答框 -->
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- 視角 2：⚔️ 關主端（鎖定單一關主專屬判定介面） -->
+        <!-- ======================================================== -->
+        <section id="view-boss" class="hidden space-y-4">
+            <div class="bg-slate-900 border border-rose-500/40 rounded-3xl p-4 sm:p-6 shadow-xl">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-2xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 text-lg">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-bold">權限鎖定：關主專屬區塊 (無法跳至其他關卡)</span>
+                            <h2 id="bossHeaderTitle" class="text-lg sm:text-xl font-black mt-0.5">關主專屬判定控台</h2>
+                        </div>
+                    </div>
+
+                    <div class="bg-rose-950/60 border border-rose-500/40 px-3 py-1.5 rounded-xl text-xs font-mono text-rose-200">
+                        已鎖定代號：<strong id="lockedBossCodeBadge" class="text-white text-sm">B01</strong>
+                    </div>
+                </div>
+
+                <!-- 當前關主負責的單一提示資訊 -->
+                <div id="bossClueInfoCard" class="my-4 bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                    <!-- JS 填入該關主負責的提示編號與內容 -->
+                </div>
+
+                <!-- 步驟 1：選擇面前的小隊 -->
+                <div class="mb-5">
+                    <label class="block text-xs sm:text-sm font-bold text-slate-300 mb-2">
+                        <span class="bg-rose-500 text-white w-5 h-5 inline-flex items-center justify-center rounded-full text-xs mr-1">1</span>
+                        請點選現在站在你面前闖關的小隊：
+                    </label>
+                    <div id="bossTeamSelectorGrid" class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                        <!-- JS 生成 1~12 小隊選擇按鈕 -->
+                    </div>
+                </div>
+
+                <!-- 步驟 2：設定加減秒數與三大按鈕 -->
+                <div class="space-y-3 pt-3 border-t border-slate-800">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label class="text-xs sm:text-sm font-bold text-slate-300">
+                            <span class="bg-rose-500 text-white w-5 h-5 inline-flex items-center justify-center rounded-full text-xs mr-1">2</span>
+                            判定結果（點擊後將直接彈出在 <strong id="bossTargetTeamLabel" class="text-amber-400 underline">第 1 小隊</strong> 的手機畫面上）：
+                        </label>
+                        <div class="flex items-center gap-3 text-xs text-slate-400">
+                            <span>失敗懲罰：<input id="bossPenaltySecInput" type="number" value="30" class="w-14 bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-center text-rose-400 font-bold"> 秒</span>
+                            <span>加分題獎勵：<input id="bossBonusSecInput" type="number" value="20" class="w-14 bg-slate-800 border border-slate-700 rounded px-1.5 py-0.5 text-center text-amber-400 font-bold"> 秒</span>
+                        </div>
+                    </div>
+
+                    <!-- 三大判定按鈕：通過 / 失敗 / 加分題 -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                        <!-- 通過 -->
+                        <button onclick="triggerBossAction('pass')" class="group relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black p-5 rounded-2xl shadow-lg shadow-emerald-600/20 transition transform active:scale-95 flex flex-col items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-check text-3xl"></i>
+                            <span class="text-lg tracking-wide">【 通過 】</span>
+                            <span class="text-xs font-bold opacity-80 text-center">小隊手機跳出「恭喜過關」<br>並直接發送本關提示</span>
+                        </button>
+
+                        <!-- 失敗 -->
+                        <button onclick="triggerBossAction('fail')" class="group relative overflow-hidden bg-gradient-to-br from-rose-600 to-red-700 hover:from-rose-500 hover:to-red-600 text-white font-black p-5 rounded-2xl shadow-lg shadow-rose-600/30 transition transform active:scale-95 flex flex-col items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+                            <span class="text-lg tracking-wide">【 失敗 +懲罰秒數 】</span>
+                            <span class="text-xs font-bold opacity-90 text-center">小隊手機跳出「大大紅字失敗」<br>增加秒數，隨後仍給予提示</span>
+                        </button>
+
+                        <!-- 加分題 -->
+                        <button onclick="triggerBossAction('bonus')" class="group relative overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black p-5 rounded-2xl shadow-lg shadow-amber-500/20 transition transform active:scale-95 flex flex-col items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-star text-3xl"></i>
+                            <span class="text-lg tracking-wide">【 加分題 -扣秒數 】</span>
+                            <span class="text-xs font-bold opacity-80 text-center">完成現場額外指定挑戰<br>直接幫該小隊扣除秒數！</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+        <!-- 視角 3：👼 小天使端（鎖定單一小隊 + 1A2B 計算器 + 發提示） -->
+        <!-- ======================================================== -->
+        <section id="view-angel" class="hidden space-y-4">
+            <!-- 小天使代號登入與綁定狀態列 -->
+            <div class="bg-slate-900 border border-emerald-500/40 rounded-3xl p-4 sm:p-6 shadow-xl space-y-5">
+                <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-lg">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold">權限鎖定：1對1隨隊小天使專屬區塊</span>
+                            <h2 class="text-lg sm:text-xl font-black mt-0.5">隨隊小天使專屬控台</h2>
+                        </div>
+                    </div>
+
+                    <div class="bg-emerald-950/60 border border-emerald-500/40 px-3 py-1.5 rounded-xl text-xs font-mono text-emerald-200">
+                        已綁定代號：<strong id="lockedAngelCodeBadge" class="text-white text-sm">A01</strong>
+                    </div>
+                </div>
+
+                <!-- 目前綁定的小隊橫幅 -->
+                <div class="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-3.5 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-emerald-300">目前綁定保護的小隊（無法誤觸其他隊伍）：</div>
+                        <div id="angelBoundTeamTitle" class="text-lg sm:text-xl font-black text-white mt-0.5">第 1 小隊 - 烈焰破陣隊 (代號 A01)</div>
+                    </div>
+                    <span class="text-xs bg-emerald-500 text-slate-950 font-black px-3 py-1 rounded-full">專屬頻道連線中</span>
+                </div>
+
+                <!-- 雙欄設計：左欄 1A2B 防呆自動計算機 / 右欄 小天使任務卡發送區 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- 左欄：1A2B 防呆自動計算機 -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h3 class="font-black text-base text-amber-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-calculator"></i>
+                                    1A2B 防緊張自動計算機
+                                </h3>
+                                <p class="text-xs text-slate-400">小隊喊出 4 個不重複數字，輸入後立即幫你算出幾 A 幾 B！</p>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-[11px] text-slate-400 block">本隊正確謎底</span>
+                                <span id="angelSecretAnswerDisplay" class="font-mono font-black text-lg text-emerald-400 tracking-widest bg-slate-900 px-2.5 py-0.5 rounded border border-slate-700">5280</span>
+                            </div>
+                        </div>
+
+                        <!-- 輸入小隊猜測的數字 -->
+                        <div class="flex gap-2">
+                            <input id="angelGuessInput" type="text" maxlength="4" placeholder="輸入小隊猜的4位數 (例 1234)" oninput="this.value = this.value.replace(/[^0-9]/g, '')" onkeydown="if(event.key==='Enter') calculate1A2B()" class="flex-1 bg-slate-900 border-2 border-slate-700 focus:border-amber-400 rounded-xl px-4 py-3 text-lg font-mono font-black tracking-widest text-center text-white focus:outline-none">
+                            <button onclick="calculate1A2B()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 rounded-xl transition shadow-lg shadow-amber-500/20">
+                                計算
+                            </button>
+                        </div>
+
+                        <!-- 大字顯示計算結果 (幾A幾B) -->
+                        <div id="angel1A2BResultBox" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 text-center">
+                            <div class="text-xs text-slate-400 mb-1">請直接照著念給小隊聽：</div>
+                            <div id="angel1A2BBigText" class="text-4xl sm:text-5xl font-mono font-black text-amber-400 tracking-wider">
+                                -- A -- B
+                            </div>
+                            <div id="angel1A2BSubText" class="text-xs text-slate-400 mt-1">等待輸入數字...</div>
+                        </div>
+
+                        <!-- 該小隊猜過的歷史紀錄 -->
+                        <div>
+                            <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                                <span>本隊猜測紀錄：</span>
+                                <button onclick="clearAngel1A2BHistory()" class="text-slate-500 hover:text-slate-300 underline">清空紀錄</button>
+                            </div>
+                            <div id="angelGuessHistoryList" class="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+                                <!-- JS 動態顯示歷史猜測 -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右欄：小天使負責的任務卡與「任務完成」發送提示按鈕 -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+                        <div>
+                            <h3 class="font-black text-base text-emerald-400 flex items-center gap-1.5">
+                                <i class="fa-solid fa-paper-plane"></i>
+                                小天使判定任務 & 發送提示
+                            </h3>
+                            <p class="text-xs text-slate-400">當小隊通過 1A2B 或完成任務卡要求時，按下【任務完成】即可把提示直接跳出在小隊手機上：</p>
+                        </div>
+
+                        <div id="angelMissionCardsList" class="space-y-2.5">
+                            <!-- JS 動態生成 #4 (1A2B)、#5、#10、#15 四張小天使任務卡發送鈕 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ======================================================== -->
+            <!-- 總關主子分頁切換：全場監控控台 vs Kahoot 動態翻盤排行榜 vs Cloudflare 部署與 QR 碼 -->
+            <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-900 p-2 rounded-2xl border border-amber-500/40">
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="switchChiefSubTab('control')" id="chiefTabBtn-control" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-amber-500 text-slate-950 shadow">
+                        <i class="fa-solid fa-sliders mr-1"></i>全場 12 小隊控台
+                    </button>
+                    <button onclick="switchChiefSubTab('kahoot')" id="chiefTabBtn-kahoot" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-slate-800 text-slate-300 hover:text-white">
+                        <i class="fa-solid fa-trophy mr-1 text-amber-400"></i>Kahoot 翻盤排行榜
+                    </button>
+                    <button onclick="openCloudConfigModal()" class="px-3.5 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-sky-600/20 text-sky-300 border border-sky-500/40 hover:bg-sky-600/30">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i>Cloudflare 部署 & 多機連線設定
+                    </button>
+                </div>
+
+                <!-- 總關主全局計時與快速測試工具 -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button onclick="toggleGlobalTimer()" id="globalTimerToggleBtn" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-pause"></i> 暫停全場計時
+                    </button>
+                    <button onclick="simulateAllTeamsFinished()" class="px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center gap-1 shadow-md shadow-purple-600/30">
+                        <i class="fa-solid fa-wand-sparkles"></i> 一鍵模擬12隊完賽數據 (測排行榜)
+                    </button>
+                    <button onclick="resetAllGameData()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-900 text-slate-300 text-xs font-bold">
+                        <i class="fa-solid fa-rotate-left"></i> 重置
+                    </button>
+                </div>
+            </div>
+
+            <!-- 子分頁 A：全場 12 小隊即時監控與操作面板 -->
+            <div id="chiefSubTab-control" class="space-y-4">
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 sm:p-5">
+                    <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h3 class="font-black text-base sm:text-lg text-amber-400">
+                                <i class="fa-solid fa-tower-broadcast mr-1.5"></i>各小隊任務進度、求救按鈕與終點停錶控台
+                            </h3>
+                            <p class="text-xs text-slate-400">
+                                當小隊來找總關主求救時，在此按下對應按鈕；當小隊跑回終點喊「我要答題」時，按下【停止計時並開放答題】！
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 12 小隊監控卡片網格 -->
+                    <div id="chiefTeamsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- JS 動態生成 12 隊即時控制卡 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 子分頁 B：Kahoot 風格三階段滾動式排行榜 + 真實總時間長條圖 -->
+            <div id="chiefSubTab-kahoot" class="hidden space-y-4">
+                <div class="bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 border-2 border-amber-500/50 rounded-3xl p-4 sm:p-6 shadow-2xl">
+                    <!-- 排行榜標題與三階段揭曉按鈕 -->
+                    <div class="text-center max-w-3xl mx-auto space-y-3 mb-6">
+                        <div class="inline-flex items-center gap-2 bg-amber-400/20 border border-amber-400/40 text-amber-300 text-xs font-black px-3 py-1 rounded-full">
+                            <i class="fa-solid fa-bolt"></i> KAHOOT 風格動態翻盤結算系統
+                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                            🏆 關關難過關關過・總錦標風雲榜
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-300">
+                            點擊下方階段按鈕，長條圖與名次將自動滾動洗牌！先抵達終點不一定贏，加上「真正闖關總時間」瞬間大翻盤！
+                        </p>
+
+                        <!-- 四個階段/視圖切換按鈕 -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
+                            <button onclick="setKahootStage(1)" id="kahootBtn-1" class="p-2.5 rounded-2xl font-black text-xs sm:text-sm border transition bg-indigo-600 text-white border-indigo-400 shadow-lg">
+                                第一階段<br><span class="text-[11px] font-normal opacity-90">① 抵達總關順序分</span>
+                            </button>
+                            <button onclick="setKahootStage(2)" id="kahootBtn-2" class="p-2.5 rounded-2xl font-black text-xs sm:text-sm border transition bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800">
+                                第二階段<br><span class="text-[11px] font-normal opacity-90">①順序 + ②答題正確分</span>
+                            </button>
+                            <button onclick="setKahootStage(3)" id="kahootBtn-3" class="p-2.5 rounded-2xl font-black text-xs sm:text-sm border transition bg-slate-800/80 text-amber-300 border-amber-500/40 hover:bg-slate-800">
+                                🔥 最終大翻盤<br><span class="text-[11px] font-normal opacity-90">疊加 ③真正總時間積分</span>
+                            </button>
+                            <button onclick="setKahootStage(4)" id="kahootBtn-4" class="p-2.5 rounded-2xl font-black text-xs sm:text-sm border transition bg-slate-800/80 text-emerald-300 border-emerald-500/40 hover:bg-slate-800">
+                                ⏱️ 真實時間榜<br><span class="text-[11px] font-normal opacity-90">檢視高高低低總秒數</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 目前計分規則說明條 -->
+                    <div id="kahootStageBanner" class="bg-slate-900/90 border border-white/10 rounded-2xl p-3 mb-4 text-xs sm:text-sm text-center font-bold text-amber-300">
+                        <!-- JS 動態更新階段說明 -->
+                    </div>
+
+                    <!-- 動態滾動排名長條圖容器 -->
+                    <div id="kahootBarsContainer" class="space-y-2.5">
+                        <!-- JS 動態渲染 12 小隊的高低長條圖與分數拆解 -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ======================================================== -->
+    <!-- Cloudflare Pages 部署教學 & 多手機雲端同步設定視窗 -->
+    <!-- ======================================================== -->
+    <div id="cloudConfigModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+        <div class="bg-slate-900 border-2 border-sky-500/50 max-w-2xl w-full rounded-3xl p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-cloud text-sky-400 text-xl"></i>
+                    <h3 class="text-lg sm:text-xl font-black text-white">Cloudflare 空間部署 & 多手機即時連線設定</h3>
+                </div>
+                <button onclick="closeCloudConfigModal()" class="text-slate-400 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- 步驟 1：如何放到 Cloudflare Pages -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs sm:text-sm">
+                <div class="font-black text-amber-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-rocket"></i>
+                    步驟一：如何把這個檔案放到你的 Cloudflare Pages 讓手機掃描？
+                </div>
+                <ol class="list-decimal list-inside space-y-1.5 text-slate-300 leading-relaxed">
+                    <li>將本程式碼存成一個名為 <code class="bg-slate-800 px-1.5 py-0.5 rounded text-amber-300 font-mono">index.html</code> 的檔案，並放進一個空的資料夾（例如命名為 <code class="bg-slate-800 px-1.5 py-0.5 rounded text-white">game</code>）。</li>
+                    <li>登入你的 <strong>Cloudflare Dashboard</strong> ➔ 左側選單點選 <strong>Workers & Pages（工作者與頁面）</strong>。</li>
+                    <li>切換到 <strong>Pages</strong> 分頁 ➔ 點擊 <strong>Upload assets（上傳資產 / Direct Upload）</strong>。</li>
+                    <li>輸入專案名稱（例如 <code class="bg-slate-800 px-1.5 py-0.5 rounded text-emerald-300">highschool-game</code>），把包含 <code class="text-amber-300">index.html</code> 的資料夾拖曳進去並點擊 <strong>Deploy site</strong>！</li>
+                    <li>不到 10 秒鐘，你就會獲得一個專屬網址（如 <code class="bg-slate-800 px-1.5 py-0.5 rounded text-sky-300">https://highschool-game.pages.dev</code>），把這個網址做成 QR Code 就能讓全場手機掃描進入登入大廳！</li>
+                </ol>
+            </div>
+
+            <!-- 步驟 2：跨手機即時同步 URL 設定 (支援 Cloudflare Worker KV 或 Firebase REST URL) -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs sm:text-sm">
+                <div class="font-black text-sky-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-satellite-dish"></i>
+                    步驟二：多支手機跨裝置即時同步端點（選填）
+                </div>
+                <p class="text-slate-400 text-xs leading-relaxed">
+                    若要在同一支手機/電腦測試，直接用預設的「本機同步模式」即可。若在操場讓 30 支不同手機即時連動，可貼上你的 <strong>Cloudflare Worker KV JSON 端點網址</strong> 或 <strong>Firebase Realtime Database 網址</strong>（如 <code class="text-emerald-300">https://你的專案.firebaseio.com/game2026.json</code>）：
+                </p>
+                <div class="flex gap-2">
+                    <input id="cloudEndpointInput" type="text" placeholder="貼上 Cloudflare Worker URL 或 https://xxx.firebaseio.com/game.json" class="flex-1 bg-slate-900 border border-slate-700 focus:border-sky-400 rounded-xl px-3 py-2 text-xs sm:text-sm font-mono text-white focus:outline-none">
+                    <button onclick="saveCloudEndpointConfig()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-black px-4 py-2 rounded-xl text-xs sm:text-sm shrink-0">
+                        儲存並連線
+                    </button>
+                </div>
+            </div>
+
+            <!-- 步驟 3：網址參數直接帶入提示 (印製 15 張提示 QR 碼用) -->
+            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-2 text-xs">
+                <div class="font-black text-emerald-400">
+                    <i class="fa-solid fa-qrcode mr-1"></i>印製操場 15 個提示 QR 碼的小撇步：
+                </div>
+                <p class="text-slate-400">
+                    除了在網頁內按編號，操場上的 15 張實體 QR 碼內容只要印成 <code class="text-white font-mono">C01</code>、`C02` ... 到 `C15`（或是 `https://你的網址.pages.dev/?clue=1` ~ `?clue=15`），小隊用手機相機一掃就會自動跳出對應的關主/雲端資料夾/小天使任務！
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- 全螢幕特效彈出視窗 (恭喜過關 / 大紅字失敗 / 偷看雲端資料夾懲罰) -->
+    <!-- ======================================================== -->
+    <div id="dramaticModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
+        <div id="dramaticModalCard" class="max-w-md w-full rounded-3xl p-6 text-center shadow-2xl border-2 animate-pop">
+            <div id="dramaticModalIcon" class="text-6xl mb-3"></div>
+            <div id="dramaticModalBadge" class="inline-block text-xs font-black px-3 py-1 rounded-full mb-2"></div>
+            <h3 id="dramaticModalTitle" class="text-2xl sm:text-3xl font-black mb-2"></h3>
+            <p id="dramaticModalDesc" class="text-sm sm:text-base mb-4 leading-relaxed"></p>
+            <!-- 獲得的提示內容區 -->
+            <div id="dramaticModalClueBox" class="hidden bg-slate-950/80 border border-white/20 rounded-2xl p-4 mb-5 text-left">
+                <div class="text-xs text-amber-300 font-bold mb-1"><i class="fa-solid fa-key mr-1"></i>已解鎖並存入「提示背包」：</div>
+                <div id="dramaticModalClueText" class="text-base sm:text-lg font-black text-white"></div>
+            </div>
+            <button onclick="closeDramaticModal()" class="w-full py-3.5 rounded-2xl font-black text-base bg-white text-slate-950 hover:bg-slate-200 transition shadow-lg">
+                收到！繼續破關
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部簡易操作提示 -->
+    <footer class="text-center text-xs text-slate-500 py-4 border-t border-slate-900">
+        關關難過關關過・高中操場實境解謎系統原型 | 支援即時連動測試
+    </footer>
+
+    <script>
+        // ============================================================================
+        // 2. 全局狀態管理 (State) + 本機與雲端儲存同步
+        // ============================================================================
+        const LOCAL_STORAGE_KEY = 'obstacle_game_state_v2';
+        const CLOUD_URL_STORAGE_KEY = 'obstacle_game_cloud_url_v2';
+
+        let gameState = {
+            isAuthenticated: false,      // 是否已通過登入大廳驗證
+            currentRole: 'team',         // 'team' | 'boss' | 'angel' | 'chief'
+            activeTeamId: 1,             // 小隊端目前鎖定哪一隊 (1~12)
+            activeTeamTab: 'scan',       // 'scan' | 'history' | 'answer'
+            activeScannedClueId: null,   // 小隊目前點開的 QR 碼編號 (1~15)
+            activeBossCode: 'B01',       // 關主端目前鎖定哪一位關主 (B01~B07)
+            bossSelectedTeamId: 1,       // 關主端目前選中的面前小隊 (1~12)
+            activeAngelTeamId: 1,        // 小天使端目前鎖定的小隊 (1~12)
+            chiefSubTab: 'control',      // 'control' | 'kahoot'
+            kahootStage: 1,              // 1: 順序分, 2: +答題分, 3: +時間排名積分, 4: 純秒數高低圖
+            isGlobalTimerRunning: true,
+            finishedCount: 0,            // 目前已經按「我要答題」停錶的隊伍數
+            lastEventPopup: null,        // 跨裝置彈窗廣播事件 { id, targetTeamId, theme, icon, badge, title, desc, clueText }
+            teams: []                    // 12 小隊的完整狀態
+        };
+
+        let lastHandledPopupId = null;
+        let cloudSyncUrl = localStorage.getItem(CLOUD_URL_STORAGE_KEY) || '';
+        let html5QrScanner = null;
+
+        // 初始化 12 小隊資料
+        function initTeamsData() {
+            gameState.finishedCount = 0;
+            gameState.teams = TEAM_PRESETS.map(preset => ({
+                id: preset.id,
+                name: preset.name,
+                subName: preset.subName,
+                color: preset.color,
+                hex: preset.hex,
+                folderBg: preset.folderBg,
+                secret1A2B: preset.secret1A2B,
+                baseSeconds: 120,           // 預設已進行 2 分鐘方便立刻看到數字
+                penaltySeconds: 0,          // 失敗或偷看增加的秒數 (+秒)
+                bonusSeconds: 0,            // 加分題減少的秒數 (-秒)
+                collectedClues: [],         // 已獲得的提示 ID 陣列
+                usedPhone2Min: false,       // 是否已用掉「使用手機2分鐘」
+                phoneCountdownRemaining: 0, // 手機 2 分鐘剩餘秒數 (120 -> 0)
+                usedOneWordHint: false,     // 是否已用掉「提示一個字」
+                unlockedWordHintText: "",   // 已獲得的一字提示內容
+                isTimerStopped: false,      // 總關主是否已按下「我要答題」停止計時
+                finishOrder: null,          // 第幾個回到總關主處 (1~12)
+                submittedAnswers: false,    // 是否已送出三題答案
+                answers: ["", "", ""],      // 小隊填寫的三題答案
+                correctCount: 0,            // 答對題數 (0~3)
+                quizPoints: 0,              // 答題得分 (0 / 3 / 5 / 10)
+                guessHistory1A2B: []        // 1A2B 猜測歷史 [{guess: '1234', result: '1A2B'}]
+            }));
+        }
+
+        // 儲存並同步共享狀態（讓不同分頁或雲端裝置即時連動）
+        function persistSharedState() {
+            const sharedPayload = {
+                isGlobalTimerRunning: gameState.isGlobalTimerRunning,
+                finishedCount: gameState.finishedCount,
+                lastEventPopup: gameState.lastEventPopup,
+                teams: gameState.teams,
+                updatedAt: Date.now()
+            };
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(sharedPayload));
+            } catch (e) {}
+
+            if (cloudSyncUrl) {
+                fetch(cloudSyncUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sharedPayload)
+                }).catch(() => {});
+            }
+        }
+
+        // 讀取外部同步進來的狀態
+        function applySharedState(payload) {
+            if (!payload || !Array.isArray(payload.teams)) return;
+            gameState.isGlobalTimerRunning = payload.isGlobalTimerRunning ?? true;
+            gameState.finishedCount = payload.finishedCount ?? 0;
+            gameState.teams = payload.teams.map(t => ({
+                ...t,
+                collectedClues: t.collectedClues || [],
+                answers: t.answers || ["", "", ""],
+                guessHistory1A2B: t.guessHistory1A2B || []
+            }));
+
+            // 若有針對本小隊的最新過關/失敗彈窗通知，立即在小隊手機跳出！
+            if (payload.lastEventPopup && payload.lastEventPopup.id !== lastHandledPopupId) {
+                lastHandledPopupId = payload.lastEventPopup.id;
+                if (gameState.isAuthenticated && gameState.currentRole === 'team' && payload.lastEventPopup.targetTeamId === gameState.activeTeamId) {
+                    showDramaticModal(payload.lastEventPopup);
+                }
+            }
+            updateGlobalTimerButtonUI();
+            if (gameState.isAuthenticated) {
+                renderAllViews();
+            }
+        }
+
+        // 監聽同瀏覽器跨分頁即時連動
+        window.addEventListener('storage', (e) => {
+            if (e.key === LOCAL_STORAGE_KEY && e.newValue) {
+                try {
+                    applySharedState(JSON.parse(e.newValue));
+                } catch (err) {}
+            }
+        });
+
+        // 若有設定雲端同步 URL，每 2 秒自動拉取最新狀態
+        setInterval(() => {
+            if (!cloudSyncUrl) return;
+            fetch(cloudSyncUrl)
+                .then(r => r.json())
+                .then(data => {
+                    if (data && data.teams) applySharedState(data);
+                })
+                .catch(() => {});
+        }, 2000);
+
+        // ============================================================================
+        // 2-B. 登入閘門（選擇身分別、輸入代號與鎖定權限）
+        // ============================================================================
+        function renderLoginGatewayOptions() {
+            // 1. 渲染 12 小隊選擇按鈕
+            const teamGrid = document.getElementById('loginTeamGrid');
+            teamGrid.innerHTML = gameState.teams.map(t => `
+                <button onclick="confirmTeamGatewayLogin(${t.id})" class="p-3.5 rounded-2xl border-2 text-left transition transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-3 ${t.folderBg}">
+                    <span class="w-4 h-4 rounded-full ${t.color} ring-2 ring-white shrink-0"></span>
+                    <div class="overflow-hidden">
+                        <div class="font-black text-sm text-white truncate">${t.name}</div>
+                        <div class="text-[11px] opacity-85 truncate">${t.subName}</div>
+                    </div>
+                </button>
+            `).join('');
+
+            // 2. 渲染 7 位關主快速測試按鈕 (B01~B07)
+            const bossClues = CLUES_DATA.filter(c => c.type === 'boss');
+            const bossBtns = document.getElementById('gatewayBossQuickBtns');
+            bossBtns.innerHTML = bossClues.map(c => `
+                <button onclick="document.getElementById('gatewayBossCodeInput').value='${c.bossCode}'; confirmBossGatewayLogin();" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white text-xs font-mono font-bold border border-slate-700 transition">
+                    ${c.bossCode} (${c.bossName})
+                </button>
+            `).join('');
+
+            // 3. 渲染 12 位小天使快速測試按鈕 (A01~A12)
+            const angelBtns = document.getElementById('gatewayAngelQuickBtns');
+            angelBtns.innerHTML = gameState.teams.map(t => {
+                const code = `A${String(t.id).padStart(2, '0')}`;
+                return `
+                    <button onclick="document.getElementById('gatewayAngelCodeInput').value='${code}'; confirmAngelGatewayLogin();" class="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-emerald-500 text-slate-200 hover:text-slate-950 text-xs font-mono font-bold border border-slate-700 transition">
+                        ${code} (${t.name})
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function openLoginSubPanel(roleType) {
+            document.getElementById('loginStepRoleCards').classList.add('hidden');
+            ['team', 'boss', 'angel', 'chief'].forEach(r => {
+                const panel = document.getElementById(`loginSubPanel-${r}`);
+                if (r === roleType) panel.classList.remove('hidden');
+                else panel.classList.add('hidden');
+            });
+        }
+
+        function backToRoleCards() {
+            ['team', 'boss', 'angel', 'chief'].forEach(r => {
+                document.getElementById(`loginSubPanel-${r}`).classList.add('hidden');
+            });
+            document.getElementById('loginStepRoleCards').classList.remove('hidden');
+        }
+
+        // 小隊確認登入並鎖定該隊
+        function confirmTeamGatewayLogin(teamId) {
+            gameState.activeTeamId = Number(teamId);
+            gameState.activeScannedClueId = null;
+            completeAuthentication('team');
+        }
+
+        // 關主輸入代號 B01~B07 確認登入並鎖定該關主
+        function confirmBossGatewayLogin() {
+            const raw = (document.getElementById('gatewayBossCodeInput').value || '').trim().toUpperCase();
+            const match = raw.match(/^B?0?([1-7])$/);
+            if (!match) {
+                showDramaticModal({
+                    theme: 'danger',
+                    icon: '🔒',
+                    badge: '關主代號錯誤',
+                    title: '請輸入正確的關主代號 (B01 ~ B07)',
+                    desc: '7 位關主分別對應 B01 至 B07，請確認代號後再試一次！'
+                });
+                return;
+            }
+            const bossCode = `B0${match[1]}`;
+            gameState.activeBossCode = bossCode;
+            completeAuthentication('boss');
+        }
+
+        // 小天使輸入代號 A01~A12 確認登入並鎖定該小隊
+        function confirmAngelGatewayLogin() {
+            const raw = (document.getElementById('gatewayAngelCodeInput').value || '').trim().toUpperCase();
+            const match = raw.match(/^A?(0?[1-9]|1[0-2])$/);
+            if (!match) {
+                showDramaticModal({
+                    theme: 'danger',
+                    icon: '🔒',
+                    badge: '小天使代號錯誤',
+                    title: '請輸入正確的小天使代號 (A01 ~ A12)',
+                    desc: '12 位隨隊小天使分別對應 A01（第 1 小隊）至 A12（第 12 小隊）！'
+                });
+                return;
+            }
+            const teamId = parseInt(match[1], 10);
+            gameState.activeAngelTeamId = teamId;
+            completeAuthentication('angel');
+        }
+
+        // 總關主輸入密碼確認登入
+        function confirmChiefGatewayLogin() {
+            const pwd = (document.getElementById('gatewayChiefCodeInput').value || '').trim().toUpperCase();
+            if (pwd !== '9999' && pwd !== 'GM888') {
+                showDramaticModal({
+                    theme: 'danger',
+                    icon: '🔒',
+                    badge: '密碼錯誤',
+                    title: '總關主通行密碼不正確',
+                    desc: '測試預設密碼為 9999。'
+                });
+                return;
+            }
+            completeAuthentication('chief');
+        }
+
+        // 完成登入，隱藏登入大廳、顯示該角色唯一區塊、鎖定頂部徽章
+        function completeAuthentication(role) {
+            gameState.isAuthenticated = true;
+            gameState.currentRole = role;
+
+            document.getElementById('loginGatewaySection').classList.add('hidden');
+            document.getElementById('authenticatedMainContainer').classList.remove('hidden');
+            document.getElementById('logoutSwitchBtn').classList.remove('hidden');
+
+            // 隱藏所有非當前身分的區塊，確保無法隨意跳轉
+            ['team', 'boss', 'angel', 'chief'].forEach(r => {
+                const sec = document.getElementById(`view-${r}`);
+                if (r === role) sec.classList.remove('hidden');
+                else sec.classList.add('hidden');
+            });
+
+            updateTopIdentityBadge();
+            renderAllViews();
+        }
+
+        function updateTopIdentityBadge() {
+            const badge = document.getElementById('currentIdentityBadge');
+            if (!gameState.isAuthenticated) {
+                badge.innerHTML = `<i class="fa-solid fa-lock text-amber-400"></i><span>尚未登入身分</span>`;
+                return;
+            }
+            if (gameState.currentRole === 'team') {
+                const t = getTeamById(gameState.activeTeamId);
+                badge.innerHTML = `<i class="fa-solid fa-person-running text-indigo-400"></i><span>闖關者：${t.name} (${t.subName})</span>`;
+            } else if (gameState.currentRole === 'boss') {
+                const c = CLUES_DATA.find(x => x.bossCode === gameState.activeBossCode);
+                badge.innerHTML = `<i class="fa-solid fa-shield-halved text-rose-400"></i><span>關主：${c.bossCode} ${c.bossName}</span>`;
+            } else if (gameState.currentRole === 'angel') {
+                const t = getTeamById(gameState.activeAngelTeamId);
+                const code = `A${String(t.id).padStart(2, '0')}`;
+                badge.innerHTML = `<i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i><span>小天使 ${code}（綁定${t.name}）</span>`;
+            } else if (gameState.currentRole === 'chief') {
+                badge.innerHTML = `<i class="fa-solid fa-crown text-amber-400"></i><span>總關主最高權限</span>`;
+            }
+        }
+
+        // 登出並返回身分選擇大廳（方便測試時切換角色）
+        function requestRoleSwitch() {
+            stopRealCameraScanner();
+            gameState.isAuthenticated = false;
+            document.getElementById('authenticatedMainContainer').classList.add('hidden');
+            document.getElementById('logoutSwitchBtn').classList.add('hidden');
+            document.getElementById('loginGatewaySection').classList.remove('hidden');
+            backToRoleCards();
+            updateTopIdentityBadge();
+        }
+
+        // 計算某小隊的「真正闖關總秒數」（原始秒數 + 懲罰秒數 - 加分秒數，最低不低於 10 秒）
+        function getTeamTotalSeconds(team) {
+            return Math.max(10, team.baseSeconds + team.penaltySeconds - team.bonusSeconds);
+        }
+
+        // 計算抵達順序加分 (第1名 +9, 第2名 +8 ... 第9名 +1, 第10~12名 +0)
+        function getArrivalPoints(finishOrder) {
+            if (!finishOrder) return 0;
+            return Math.max(0, 10 - finishOrder);
+        }
+
+        // 計算所有小隊的「真正闖關總時間排名積分」（時間越短名次越高，第1名 +15分，依序遞減）
+        function getTimeRankPointsMap() {
+            // 複製一份依真實總秒數由小到大排序
+            const sorted = [...gameState.teams].sort((a, b) => getTeamTotalSeconds(a) - getTeamTotalSeconds(b));
+            const timePointsTable = [15, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
+            const map = {};
+            sorted.forEach((team, idx) => {
+                map[team.id] = {
+                    rank: idx + 1,
+                    points: timePointsTable[idx] || 1
+                };
+            });
+            return map;
+        }
+
+        // 格式化秒數為 MM:SS
+        function formatMMSS(sec) {
+            const s = Math.max(0, Math.floor(sec));
+            const mins = Math.floor(s / 60);
+            const rem = s % 60;
+            return `${String(mins).padStart(2, '0')}:${String(rem).padStart(2, '0')}`;
+        }
+
+        // ============================================================================
+        // 3. 計時器每秒更新迴圈
+        // ============================================================================
+        setInterval(() => {
+            if (!gameState.isGlobalTimerRunning) return;
+
+            let needRefreshUI = false;
+            gameState.teams.forEach(team => {
+                // 未停錶的小隊每秒 +1 秒
+                if (!team.isTimerStopped) {
+                    team.baseSeconds += 1;
+                    needRefreshUI = true;
+                }
+                // 若該小隊正在使用「手機 2 分鐘」倒數
+                if (team.phoneCountdownRemaining > 0) {
+                    team.phoneCountdownRemaining -= 1;
+                    needRefreshUI = true;
+                }
+            });
+
+            if (needRefreshUI) {
+                updateLiveTimersOnly();
+            }
+        }, 1000);
+
+        // 僅更新畫面上的秒數文字，避免打斷使用者輸入框
+        function updateLiveTimersOnly() {
+            const currentTeam = getTeamById(gameState.activeTeamId);
+            if (currentTeam) {
+                const totalSec = getTeamTotalSeconds(currentTeam);
+                document.getElementById('teamTotalTimerDisplay').textContent = formatMMSS(totalSec);
+                document.getElementById('teamTimeBreakdownDisplay').textContent =
+                    `原始 ${formatMMSS(currentTeam.baseSeconds)} | 懲罰 +${currentTeam.penaltySeconds}s | 加分 -${currentTeam.bonusSeconds}s`;
+
+                // 手機 2 分鐘倒數橫幅
+                const banner = document.getElementById('phoneCountdownBanner');
+                if (currentTeam.phoneCountdownRemaining > 0) {
+                    banner.classList.remove('hidden');
+                    document.getElementById('phoneCountdownText').textContent = formatMMSS(currentTeam.phoneCountdownRemaining);
+                } else {
+                    banner.classList.add('hidden');
+                }
+            }
+
+            // 若目前在總關主端，同步更新總關主卡片上的秒數
+            if (gameState.currentRole === 'chief' && gameState.chiefSubTab === 'control') {
+                gameState.teams.forEach(t => {
+                    const el = document.getElementById(`chief-team-timer-${t.id}`);
+                    if (el) {
+                        el.textContent = formatMMSS(getTeamTotalSeconds(t));
+                    }
+                    const phoneEl = document.getElementById(`chief-phone-cd-${t.id}`);
+                    if (phoneEl) {
+                        if (t.phoneCountdownRemaining > 0) {
+                            phoneEl.textContent = `倒數 ${formatMMSS(t.phoneCountdownRemaining)}`;
+                        } else if (t.usedPhone2Min) {
+                            phoneEl.textContent = `已使用完畢`;
+                        }
+                    }
+                });
+            }
+        }
+
+        function getTeamById(id) {
+            return gameState.teams.find(t => t.id === Number(id));
+        }
+
+        // ============================================================================
+        // 4. 角色視角切換與初始化渲染
+        // ============================================================================
+        function switchRole(role) {
+            // 相容內部測試捷徑：直接以該身分完成驗證並切換畫面
+            completeAuthentication(role);
+        }
+
+        function renderAllViews() {
+            renderTeamView();
+            renderBossView();
+            renderAngelView();
+            renderChiefView();
+        }
+
+        // ============================================================================
+        // 5. 視角 1：🏃 闖關小隊端邏輯與畫面渲染
+        // ============================================================================
+        function populateTeamSelectDropdowns() {
+            renderLoginGatewayOptions();
+        }
+
+        function changeActiveTeam(teamId) {
+            gameState.activeTeamId = Number(teamId);
+            gameState.activeScannedClueId = null;
+            document.getElementById('activeClueInteractionBox').classList.add('hidden');
+            renderTeamView();
+        }
+
+        function switchTeamTab(tab) {
+            gameState.activeTeamTab = tab;
+            ['scan', 'history', 'answer'].forEach(t => {
+                const section = document.getElementById(`teamTab-${t}`);
+                const btn = document.getElementById(`teamTabBtn-${t}`);
+                if (t === tab) {
+                    section.classList.remove('hidden');
+                    btn.className = "py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 bg-indigo-600 text-white shadow relative";
+                } else {
+                    section.classList.add('hidden');
+                    btn.className = "py-2.5 px-2 rounded-xl font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 text-slate-400 hover:text-white relative";
+                }
+            });
+            renderTeamView();
+        }
+
+        function renderTeamView() {
+            const team = getTeamById(gameState.activeTeamId);
+            if (!team) return;
+
+            const lockedBanner = document.getElementById('lockedTeamBannerName');
+            if (lockedBanner) lockedBanner.textContent = `${team.name}（${team.subName}）`;
+
+            // 頂部卡片背景與文字
+            const headerCard = document.getElementById('teamHeaderCard');
+            headerCard.className = `rounded-3xl p-4 sm:p-5 shadow-xl border border-white/15 relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800`;
+            document.getElementById('teamColorDot').className = `w-4 h-4 rounded-full inline-block ring-2 ring-white ${team.color}`;
+            document.getElementById('teamTitleDisplay').textContent = `${team.name} - ${team.subName}`;
+            document.getElementById('teamClueCountDisplay').textContent = `${team.collectedClues.length} / 15`;
+
+            // 是否已停錶
+            const finishBadge = document.getElementById('teamFinishBadge');
+            const unlockDot = document.getElementById('answerUnlockDot');
+            if (team.isTimerStopped) {
+                finishBadge.classList.remove('hidden');
+                finishBadge.textContent = `第 ${team.finishOrder} 名抵達停錶`;
+                if (!team.submittedAnswers) unlockDot.classList.remove('hidden');
+                else unlockDot.classList.add('hidden');
+            } else {
+                finishBadge.classList.add('hidden');
+                unlockDot.classList.add('hidden');
+            }
+
+            // 更新時間
+            updateLiveTimersOnly();
+
+            // 更新兩個求救按鈕狀態 (一旦總關主按下使用後就變暗色)
+            const phoneBtn = document.getElementById('teamLifelinePhoneBtn');
+            const phoneSub = document.getElementById('teamLifelinePhoneSub');
+            if (team.usedPhone2Min) {
+                phoneBtn.className = "p-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition border bg-slate-950/90 border-slate-800 text-slate-600 cursor-not-allowed";
+                phoneSub.textContent = team.phoneCountdownRemaining > 0 ? `倒數中 (${formatMMSS(team.phoneCountdownRemaining)})` : "已使用完畢 (變暗鎖定)";
+            } else {
+                phoneBtn.className = "p-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition border bg-amber-500/20 border-amber-400/50 text-amber-200 hover:bg-amber-500/30";
+                phoneSub.textContent = "尚可使用 (找總關主啟用)";
+            }
+
+            const wordBtn = document.getElementById('teamLifelineWordBtn');
+            const wordSub = document.getElementById('teamLifelineWordSub');
+            if (team.usedOneWordHint) {
+                wordBtn.className = "p-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition border bg-slate-950/90 border-slate-800 text-slate-500";
+                wordSub.textContent = `已用：${team.unlockedWordHintText}`;
+            } else {
+                wordBtn.className = "p-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition border bg-sky-500/20 border-sky-400/50 text-sky-200 hover:bg-sky-500/30";
+                wordSub.textContent = "尚可使用 (找總關主啟用)";
+            }
+
+            // 渲染 15 個 QR 碼按鈕
+            const qrGrid = document.getElementById('qrClueGrid');
+            qrGrid.innerHTML = CLUES_DATA.map(clue => {
+                const isCollected = team.collectedClues.includes(clue.id);
+                const isSelected = gameState.activeScannedClueId === clue.id;
+                let typeBadge = '';
+                if (clue.type === 'boss') typeBadge = `<span class="text-[10px] text-rose-300">⚔️找關主</span>`;
+                if (clue.type === 'cloud') typeBadge = `<span class="text-[10px] text-sky-300">📁雲端夾</span>`;
+                if (clue.type === 'angel') typeBadge = `<span class="text-[10px] text-emerald-300">👼小天使</span>`;
+
+                return `
+                    <button onclick="simulateScanQR(${clue.id})" class="p-2.5 rounded-2xl border text-left transition flex flex-col justify-between relative overflow-hidden ${
+                        isSelected ? 'ring-2 ring-indigo-400 bg-indigo-950/70 border-indigo-400' :
+                        isCollected ? 'bg-emerald-950/30 border-emerald-500/40 hover:bg-emerald-950/50' :
+                        'bg-slate-950 border-slate-800 hover:border-slate-600'
+                    }">
+                        <div class="flex items-center justify-between w-full mb-1">
+                            <span class="font-mono font-black text-xs sm:text-sm ${isCollected ? 'text-emerald-400' : 'text-white'}">#${String(clue.id).padStart(2, '0')}</span>
+                            ${isCollected
+                                ? `<span class="text-[10px] bg-emerald-500 text-slate-950 font-black px-1.5 py-0.2 rounded">已獲</span>`
+                                : `<i class="fa-solid fa-qrcode text-slate-500 text-xs"></i>`
+                            }
+                        </div>
+                        <div class="text-[11px] font-bold text-slate-300 truncate">第 ${clue.qId} 題線索</div>
+                        <div class="mt-1">${typeBadge}</div>
+                    </button>
+                `;
+            }).join('');
+
+            // 如果有正在互動中的 QR 碼面板，更新它
+            if (gameState.activeScannedClueId) {
+                renderActiveClueInteraction(gameState.activeScannedClueId);
+            }
+
+            // 渲染「提示背包 (歷史紀錄)」
+            renderTeamClueHistory(team);
+
+            // 渲染「終點答題區」
+            renderTeamAnswerZone(team);
+        }
+
+        // 點擊求救按鈕的提示說明
+        function showTeamLifelineInfo(type) {
+            const team = getTeamById(gameState.activeTeamId);
+            if (type === 'phone') {
+                if (team.usedPhone2Min) {
+                    showDramaticModal({
+                        theme: 'neutral',
+                        icon: '📱',
+                        badge: '求救機會已用完',
+                        title: '「使用手機 2 分鐘」已使用過',
+                        desc: '每隊全場僅限使用一次！按鈕已變為暗色鎖定狀態。'
+                    });
+                } else {
+                    showDramaticModal({
+                        theme: 'info',
+                        icon: '👑',
+                        badge: '求救說明',
+                        title: '如何啟用「使用手機 2 分鐘」？',
+                        desc: '請小隊跑到「總關主」面前提出求救申請！當總關主在控台按下按鈕後，你們的手機就會立刻啟動 02:00 倒數計時，使用後此按鈕會變為暗色。'
+                    });
+                }
+            } else {
+                if (team.usedOneWordHint) {
+                    showDramaticModal({
+                        theme: 'info',
+                        icon: '💡',
+                        badge: '已解鎖的一字提示',
+                        title: team.unlockedWordHintText,
+                        desc: '這是總關主給予你們的一字提示（按鈕已變為暗色）。'
+                    });
+                } else {
+                    showDramaticModal({
+                        theme: 'info',
+                        icon: '💡',
+                        badge: '求救說明',
+                        title: '如何啟用「提示一個字」？',
+                        desc: '請找「總關主」申請！總關主按下按鈕後，系統會直接透露其中一題謎底的關鍵字給你們，同時此按鈕會變為暗色。'
+                    });
+                }
+            }
+        }
+
+        // 模擬掃描 15 個提示 QR 碼後的 3 種情境分流
+        function simulateScanQR(clueId) {
+            gameState.activeScannedClueId = Number(clueId);
+            renderTeamView();
+            const box = document.getElementById('activeClueInteractionBox');
+            box.classList.remove('hidden');
+            box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // 實機相機掃描 QR 碼控制 (支援掃描 C01~C15、#01~#15 或含 ?clue= 的網址)
+        function toggleRealCameraScanner() {
+            const container = document.getElementById('realCameraScannerContainer');
+            if (!container.classList.contains('hidden')) {
+                stopRealCameraScanner();
+                return;
+            }
+            container.classList.remove('hidden');
+            if (!window.Html5Qrcode) {
+                showDramaticModal({
+                    theme: 'neutral',
+                    icon: '📷',
+                    badge: '相機元件載入中',
+                    title: '無法啟動相機鏡頭',
+                    desc: '請確認網路連線正常，或直接使用下方的 15 個提示按鈕進行操作。'
+                });
+                return;
+            }
+            html5QrScanner = new Html5Qrcode("qr-reader");
+            html5QrScanner.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 220, height: 220 } },
+                (decodedText) => {
+                    handleDecodedQrString(decodedText);
+                },
+                () => {}
+            ).catch(() => {
+                container.classList.add('hidden');
+                showDramaticModal({
+                    theme: 'info',
+                    icon: '📷',
+                    badge: '相機權限提示',
+                    title: '請允許瀏覽器使用相機權限',
+                    desc: '在 Cloudflare Pages (HTTPS) 網址上打開時，允許相機權限即可直接掃描實體 QR 碼！目前亦可直接點擊下方 #01~#15 按鈕測試。'
+                });
+            });
+        }
+
+        function stopRealCameraScanner() {
+            const container = document.getElementById('realCameraScannerContainer');
+            container.classList.add('hidden');
+            if (html5QrScanner) {
+                html5QrScanner.stop().then(() => {
+                    html5QrScanner.clear();
+                    html5QrScanner = null;
+                }).catch(() => {});
+            }
+        }
+
+        function handleDecodedQrString(rawText) {
+            const text = (rawText || '').trim().toUpperCase();
+            // 支援格式: C01~C15, #01~#15, CLUE1~CLUE15, 或是網址 ?clue=5
+            const urlMatch = text.match(/[?&]CLUE=([0-9]{1,2})/);
+            const codeMatch = text.match(/(?:C|CLUE|#)?0?([1-9]|1[0-5])$/);
+            const clueNum = urlMatch ? parseInt(urlMatch[1], 10) : (codeMatch ? parseInt(codeMatch[1], 10) : null);
+
+            if (clueNum && clueNum >= 1 && clueNum <= 15) {
+                stopRealCameraScanner();
+                simulateScanQR(clueNum);
+            } else {
+                showDramaticModal({
+                    theme: 'neutral',
+                    icon: '🔍',
+                    badge: 'QR 碼識別結果',
+                    title: `掃描到內容：${rawText}`,
+                    desc: '請掃描編號 C01 ~ C15 的提示 QR 碼！'
+                });
+            }
+        }
+
+        function renderActiveClueInteraction(clueId) {
+            const team = getTeamById(gameState.activeTeamId);
+            const clue = CLUES_DATA.find(c => c.id === clueId);
+            const box = document.getElementById('activeClueInteractionBox');
+            if (!clue || !team) return;
+
+            const isCollected = team.collectedClues.includes(clue.id);
+
+            // 情況 1：找關主 (Type 1)
+            if (clue.type === 'boss') {
+                box.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-0.5 rounded-full font-bold">
+                                ⚔️ 類型 1：尋找關主挑戰 (${clue.bossCode})
+                            </span>
+                            <h3 class="text-lg sm:text-xl font-black mt-1.5">${clue.title} — 請尋找【${clue.bossName}】</h3>
+                        </div>
+                        ${isCollected ? `<span class="bg-emerald-500 text-slate-950 text-xs font-black px-3 py-1 rounded-full">✅ 本提示已獲得</span>` : ''}
+                    </div>
+                    <div class="my-4 bg-slate-950 border border-slate-800 rounded-2xl p-4 text-center space-y-3">
+                        <div class="w-14 h-14 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center text-2xl mx-auto animate-bounce">
+                            <i class="fa-solid fa-user-shield"></i>
+                        </div>
+                        <p class="text-sm sm:text-base font-bold text-slate-200">
+                            請全隊前往尋找「<span class="text-amber-400">${clue.bossName}</span>」進行關卡考驗！
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            當關主在關主手機按下【通過】或【失敗】後，你們的手機畫面會立刻跳出結果與提示！
+                        </p>
+                        ${isCollected ? `
+                            <div class="bg-emerald-950/50 border border-emerald-500/40 rounded-xl p-3 text-emerald-200 text-sm font-bold">
+                                已獲得提示：${clue.content}
+                            </div>
+                        ` : ''}
+                        <div class="pt-2">
+                            <button onclick="quickJumpToBoss('${clue.bossCode}', ${team.id})" class="bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white border border-rose-500/40 text-xs font-bold px-3.5 py-2 rounded-xl transition">
+                                🔧 測試員快速通道：切換至「${clue.bossName} (${clue.bossCode})」幫 ${team.name} 按判定
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 情況 2：12小隊偽雲端資料夾 (Type 2 - 點自己拿提示，點別人跳趣味懲罰)
+            else if (clue.type === 'cloud') {
+                box.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs bg-sky-500/20 text-sky-300 border border-sky-500/30 px-2.5 py-0.5 rounded-full font-bold">
+                                📁 類型 2：雲端硬碟共享資料夾
+                            </span>
+                            <h3 class="text-lg sm:text-xl font-black mt-1.5">${clue.title} — 操場機密雲端硬碟</h3>
+                            <p class="text-xs text-amber-300 mt-0.5">
+                                ⚠️ 警告：請務必只點開「自己小隊（${team.name}）」的專屬資料夾！若好奇心太重偷點別隊的資料夾，將會觸發全隊懲罰！
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-4">
+                        ${gameState.teams.map(folderTeam => {
+                            const isOwnFolder = folderTeam.id === team.id;
+                            return `
+                                <button onclick="handleCloudFolderClick(${clue.id}, ${folderTeam.id})" class="p-3 rounded-2xl border-2 text-left transition transform hover:-translate-y-0.5 active:scale-95 flex items-center gap-2.5 ${folderTeam.folderBg}">
+                                    <i class="fa-solid fa-folder text-2xl"></i>
+                                    <div class="overflow-hidden">
+                                        <div class="font-black text-xs sm:text-sm truncate">${folderTeam.name}</div>
+                                        <div class="text-[10px] opacity-80 truncate">${folderTeam.subName}</div>
+                                    </div>
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+            }
+
+            // 情況 3：隨隊小天使任務卡 & 1A2B (Type 3)
+            else if (clue.type === 'angel') {
+                const angelCode = `A${String(team.id).padStart(2, '0')}`;
+                box.innerHTML = `
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
+                                👼 類型 3：隨隊小天使任務卡
+                            </span>
+                            <h3 class="text-lg sm:text-xl font-black mt-1.5">${clue.title} — ${clue.missionTitle}</h3>
+                        </div>
+                        ${isCollected ? `<span class="bg-emerald-500 text-slate-950 text-xs font-black px-3 py-1 rounded-full">✅ 本提示已獲得</span>` : ''}
+                    </div>
+
+                    <div class="my-4 bg-slate-950 border border-emerald-500/30 rounded-2xl p-5 space-y-3">
+                        <div class="text-xs text-emerald-400 font-bold uppercase tracking-wider">任務卡說明：</div>
+                        <p class="text-base sm:text-lg font-black text-white leading-relaxed">
+                            ${clue.missionDesc}
+                        </p>
+                        <p class="text-xs text-slate-400">
+                            完成後請隨隊小天使（代號 ${angelCode}）在手機上按下【任務完成】，提示就會立刻跳出來！
+                        </p>
+                        ${isCollected ? `
+                            <div class="bg-emerald-950/50 border border-emerald-500/40 rounded-xl p-3 text-emerald-200 text-sm font-bold">
+                                已獲得提示：${clue.content}
+                            </div>
+                        ` : ''}
+                        <div class="pt-2">
+                            <button onclick="quickJumpToAngel(${team.id})" class="bg-slate-800 hover:bg-emerald-500 text-slate-300 hover:text-slate-950 border border-emerald-500/40 text-xs font-bold px-3.5 py-2 rounded-xl transition">
+                                🔧 測試員快速通道：切換至「${team.name} 隨隊小天使 (${angelCode})」畫面操作
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // 處理點擊 12 個雲端資料夾的邏輯 (點自己拿提示 / 點別人跳趣味懲罰 +20秒)
+        function handleCloudFolderClick(clueId, clickedFolderTeamId) {
+            const team = getTeamById(gameState.activeTeamId);
+            const clickedTeam = getTeamById(clickedFolderTeamId);
+            const clue = CLUES_DATA.find(c => c.id === clueId);
+
+            if (clickedFolderTeamId === team.id) {
+                // 點開正確的自己小隊資料夾！
+                unlockClueForTeam(team.id, clue.id);
+                persistSharedState();
+                showDramaticModal({
+                    theme: 'success',
+                    icon: '📂',
+                    badge: `${team.name} 專屬雲端資料夾`,
+                    title: '成功打開資料夾！獲得提示',
+                    desc: '你們非常守規矩地打開了自己的資料夾！提示已自動存入「提示背包」。',
+                    clueText: `${clue.title}：${clue.content}`
+                });
+                renderAllViews();
+            } else {
+                // 點到別人的資料夾！觸發好奇心趣味懲罰 +20 秒
+                const penalty = 20;
+                team.penaltySeconds += penalty;
+                persistSharedState();
+                const randomFunnyTask = CLOUD_PEEK_PUNISHMENTS[Math.floor(Math.random() * CLOUD_PEEK_PUNISHMENTS.length)];
+
+                showDramaticModal({
+                    theme: 'danger',
+                    icon: '🚨',
+                    badge: `偷看警報！你們是 ${team.name} 卻點了 ${clickedTeam.name}`,
+                    title: `抓到偷看別隊資料夾！計時 +${penalty} 秒！`,
+                    desc: `【趣味懲罰任務】${randomFunnyTask}`
+                });
+                renderAllViews();
+            }
+        }
+
+        // 將提示存入小隊歷史紀錄
+        function unlockClueForTeam(teamId, clueId) {
+            const team = getTeamById(teamId);
+            if (!team.collectedClues.includes(clueId)) {
+                team.collectedClues.push(clueId);
+                team.collectedClues.sort((a, b) => a - b);
+            }
+        }
+
+        // 渲染小隊的「提示歷史紀錄 (線索背包)」
+        function renderTeamClueHistory(team) {
+            const container = document.getElementById('clueHistoryContainer');
+            container.innerHTML = QUESTIONS_CONFIG.map(q => {
+                const qClues = CLUES_DATA.filter(c => c.qId === q.id);
+                const collectedInQ = qClues.filter(c => team.collectedClues.includes(c.id)).length;
+
+                return `
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-slate-800">
+                            <h3 class="font-black text-sm sm:text-base text-indigo-300">
+                                📌 ${q.title}
+                            </h3>
+                            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${collectedInQ === 5 ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}">
+                                已集齊 ${collectedInQ} / 5 個提示
+                            </span>
+                        </div>
+                        <div class="space-y-2">
+                            ${qClues.map(c => {
+                                const hasClue = team.collectedClues.includes(c.id);
+                                return hasClue ? `
+                                    <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-xl p-3 flex items-start gap-2.5">
+                                        <span class="bg-emerald-500 text-slate-950 font-mono font-black text-xs px-2 py-0.5 rounded mt-0.5">#${String(c.id).padStart(2, '0')}</span>
+                                        <div class="text-xs sm:text-sm font-bold text-emerald-100">${c.content}</div>
+                                    </div>
+                                ` : `
+                                    <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-2.5 flex items-center justify-between text-xs text-slate-500">
+                                        <span>🔒 ${c.title}（尚未獲得）</span>
+                                        <button onclick="switchTeamTab('scan'); simulateScanQR(${c.id});" class="text-indigo-400 hover:underline">去掃描 &rarr;</button>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 渲染小隊的「終點答題區」
+        function renderTeamAnswerZone(team) {
+            const box = document.getElementById('teamAnswerBox');
+
+            // 尚未找總關主停錶時：鎖定狀態
+            if (!team.isTimerStopped) {
+                box.innerHTML = `
+                    <div class="text-center py-6 space-y-4">
+                        <div class="w-16 h-16 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-3xl mx-auto text-slate-400">
+                            <i class="fa-solid fa-lock"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg sm:text-xl font-black text-white">終點答題區目前鎖定中</h3>
+                            <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto mt-1">
+                                當你們集齊提示並推敲出三個題目的最終答案後，請全隊衝回<strong>總關主處</strong>喊出「我要答題」！<br>
+                                總關主按下確認後，你們的計時將立刻停止，並解鎖此處的三個答案輸入框！
+                            </p>
+                        </div>
+                        <div class="pt-2">
+                            <button onclick="quickTriggerChiefStopTimer(${team.id})" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg transition">
+                                ⚡ 測試捷徑：模擬總關主幫「${team.name}」按下【我要答題 (停錶並開放作答)】
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 已送出答案後：顯示批改結果與得分明細
+            if (team.submittedAnswers) {
+                const arrivalPts = getArrivalPoints(team.finishOrder);
+                box.innerHTML = `
+                    <div class="text-center space-y-5 py-3">
+                        <div class="inline-block bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-black px-3 py-1 rounded-full">
+                            🎉 作答完成！成績已送入總關主排行榜
+                        </div>
+                        <h3 class="text-2xl sm:text-3xl font-black text-white">
+                            答對 <span class="text-amber-400">${team.correctCount}</span> 題，獲得答題積分 <span class="text-emerald-400">+${team.quizPoints} 分</span>！
+                        </h3>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left max-w-2xl mx-auto">
+                            ${QUESTIONS_CONFIG.map((q, idx) => {
+                                const userAns = team.answers[idx];
+                                const isRight = userAns === q.answer;
+                                return `
+                                    <div class="p-3.5 rounded-2xl border ${isRight ? 'bg-emerald-950/40 border-emerald-500/40' : 'bg-rose-950/40 border-rose-500/40'}">
+                                        <div class="text-xs text-slate-400">${q.title}</div>
+                                        <div class="font-black text-sm mt-1">你們填寫：${userAns || '(未填)'}</div>
+                                        <div class="text-xs mt-1 ${isRight ? 'text-emerald-400' : 'text-rose-400'}">
+                                            ${isRight ? '✅ 答對！' : `❌ 正解：${q.answer}`}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-4 max-w-xl mx-auto text-xs sm:text-sm space-y-1.5">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">① 回到總關主順序：</span>
+                                <span class="font-bold text-amber-300">第 ${team.finishOrder} 名抵達 (+${arrivalPts} 分)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">② 三題回答正確率：</span>
+                                <span class="font-bold text-emerald-400">答對 ${team.correctCount} 題 (+${team.quizPoints} 分)</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">③ 真正闖關總時間：</span>
+                                <span class="font-mono font-bold text-sky-300">${formatMMSS(getTeamTotalSeconds(team))} (${getTeamTotalSeconds(team)}秒)</span>
+                            </div>
+                        </div>
+
+                        <button onclick="switchRole('chief'); switchChiefSubTab('kahoot');" class="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs sm:text-sm px-5 py-2.5 rounded-xl">
+                            🏆 前往總關主觀看 Kahoot 動態排行榜
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // 已停錶、等待小隊輸入三個題目的答案
+            box.innerHTML = `
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                        <div>
+                            <span class="bg-emerald-500 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full">
+                                ⏱️ 計時已停止！第 ${team.finishOrder} 名抵達終點 (+${getArrivalPoints(team.finishOrder)}分)
+                            </span>
+                            <h3 class="text-lg sm:text-xl font-black mt-1.5">請輸入三個題目的最終答案</h3>
+                            <p class="text-xs text-slate-400">計分規則：答對 1 題 +3 分、答對 2 題 +5 分、答對 3 題 +10 分！</p>
+                        </div>
+                        <button onclick="fillDefaultCorrectAnswers()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-xl border border-amber-500/30 font-bold">
+                            🪄 填入預設正確答案 (測試用)
+                        </button>
+                    </div>
+
+                    <div class="space-y-3">
+                        ${QUESTIONS_CONFIG.map((q, idx) => `
+                            <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5">
+                                <label class="block text-xs sm:text-sm font-bold text-indigo-300 mb-1.5">
+                                    ${q.title}（預設測試謎底：${q.answer}）
+                                </label>
+                                <input id="teamAnsInput-${idx}" type="text" placeholder="請輸入四字答案..." value="${team.answers[idx] || ''}" class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-base font-black text-white focus:outline-none">
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <button onclick="submitTeamFinalAnswers()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-base sm:text-lg shadow-xl shadow-emerald-600/20 transition">
+                        🚀 確認送出答案並結算成績！
+                    </button>
+                </div>
+            `;
+        }
+
+        function fillDefaultCorrectAnswers() {
+            QUESTIONS_CONFIG.forEach((q, idx) => {
+                const input = document.getElementById(`teamAnsInput-${idx}`);
+                if (input) input.value = q.answer;
+            });
+        }
+
+        function submitTeamFinalAnswers() {
+            const team = getTeamById(gameState.activeTeamId);
+            const ans0 = (document.getElementById('teamAnsInput-0')?.value || '').trim();
+            const ans1 = (document.getElementById('teamAnsInput-1')?.value || '').trim();
+            const ans2 = (document.getElementById('teamAnsInput-2')?.value || '').trim();
+
+            team.answers = [ans0, ans1, ans2];
+            let rightCount = 0;
+            QUESTIONS_CONFIG.forEach((q, idx) => {
+                if (team.answers[idx] === q.answer) rightCount++;
+            });
+
+            team.correctCount = rightCount;
+            // 答對 1 題 +3 分、2 題 +5 分、3 題 +10 分
+            if (rightCount === 1) team.quizPoints = 3;
+            else if (rightCount === 2) team.quizPoints = 5;
+            else if (rightCount === 3) team.quizPoints = 10;
+            else team.quizPoints = 0;
+
+            team.submittedAnswers = true;
+            persistSharedState();
+
+            showDramaticModal({
+                theme: 'success',
+                icon: '🏆',
+                badge: `${team.name} 答題批改結果`,
+                title: `答對 ${rightCount} 題！獲得 +${team.quizPoints} 分！`,
+                desc: `你們是第 ${team.finishOrder} 個回到總關主處的小隊（順序分 +${getArrivalPoints(team.finishOrder)} 分），快看總關主大螢幕的最終時間大翻盤！`
+            });
+
+            renderAllViews();
+        }
+
+
+        // ============================================================================
+        // 6. 視角 2：⚔️ 關主端邏輯與畫面渲染 (7 位關主各負責 1 個提示，權限鎖定)
+        // ============================================================================
+        function changeActiveBoss(bossCode) {
+            gameState.activeBossCode = bossCode;
+            renderBossView();
+        }
+
+        function selectBossTargetTeam(teamId) {
+            gameState.bossSelectedTeamId = Number(teamId);
+            renderBossView();
+        }
+
+        function renderBossView() {
+            const clue = CLUES_DATA.find(c => c.bossCode === gameState.activeBossCode);
+            if (!clue) return;
+
+            const codeBadge = document.getElementById('lockedBossCodeBadge');
+            if (codeBadge) codeBadge.textContent = `${clue.bossCode} (${clue.bossName})`;
+            const headerTitle = document.getElementById('bossHeaderTitle');
+            if (headerTitle) headerTitle.textContent = `${clue.bossName} 專屬判定控台`;
+
+            // 顯示該關主負責的唯一提示
+            document.getElementById('bossClueInfoCard').innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <span class="text-xs text-rose-400 font-bold">本關負責發送的唯一提示：</span>
+                        <h3 class="text-base sm:text-lg font-black text-white mt-0.5">${clue.title}（屬於第 ${clue.qId} 題）</h3>
+                    </div>
+                    <span class="text-xs bg-slate-900 border border-slate-700 px-3 py-1 rounded-xl text-amber-300 font-mono">
+                        提示內容：${clue.content}
+                    </span>
+                </div>
+            `;
+
+            // 渲染 1~12 小隊選擇按鈕
+            const grid = document.getElementById('bossTeamSelectorGrid');
+            grid.innerHTML = gameState.teams.map(t => {
+                const isSelected = t.id === gameState.bossSelectedTeamId;
+                const hasThisClue = t.collectedClues.includes(clue.id);
+                return `
+                    <button onclick="selectBossTargetTeam(${t.id})" class="p-2.5 rounded-xl border text-center transition relative ${
+                        isSelected
+                            ? 'bg-rose-600 text-white border-white font-black shadow-lg scale-105'
+                            : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-600 font-bold'
+                    }">
+                        <div class="text-xs sm:text-sm">${t.name}</div>
+                        <div class="text-[10px] opacity-75">${ hasThisClue ? '✅已拿提示' : '未拿提示' }</div>
+                    </button>
+                `;
+            }).join('');
+
+            const targetTeam = getTeamById(gameState.bossSelectedTeamId);
+            document.getElementById('bossTargetTeamLabel').textContent = `${targetTeam.name} (${targetTeam.subName})`;
+        }
+
+        // 關主按下【通過】、【失敗】或【加分題】
+        function triggerBossAction(actionType) {
+            const clue = CLUES_DATA.find(c => c.bossCode === gameState.activeBossCode);
+            const team = getTeamById(gameState.bossSelectedTeamId);
+            const penaltySec = Math.max(1, Number(document.getElementById('bossPenaltySecInput').value) || 30);
+            const bonusSec = Math.max(1, Number(document.getElementById('bossBonusSecInput').value) || 20);
+
+            let popupEvent = null;
+
+            if (actionType === 'pass') {
+                unlockClueForTeam(team.id, clue.id);
+                popupEvent = {
+                    id: Date.now(),
+                    targetTeamId: team.id,
+                    theme: 'success',
+                    icon: '🎉',
+                    badge: `${clue.bossName} 判定結果`,
+                    title: `恭喜 ${team.name} 挑戰過關！`,
+                    desc: '表現太精彩了！沒有增加任何懲罰秒數，這是給你們的過關提示：',
+                    clueText: `${clue.title}：${clue.content}`
+                };
+            } else if (actionType === 'fail') {
+                team.penaltySeconds += penaltySec;
+                unlockClueForTeam(team.id, clue.id);
+                popupEvent = {
+                    id: Date.now(),
+                    targetTeamId: team.id,
+                    theme: 'danger',
+                    icon: '💥',
+                    badge: `${clue.bossName} 判定結果`,
+                    title: `挑戰失敗！懲罰 +${penaltySec} 秒！`,
+                    desc: `很遺憾闖關失敗，總計時已增加 ${penaltySec} 秒！但關主依然把這題提示交給你們：`,
+                    clueText: `${clue.title}：${clue.content}`
+                };
+            } else if (actionType === 'bonus') {
+                team.bonusSeconds += bonusSec;
+                popupEvent = {
+                    id: Date.now(),
+                    targetTeamId: team.id,
+                    theme: 'bonus',
+                    icon: '🌟',
+                    badge: `${clue.bossName} 加分題獎勵`,
+                    title: `加分挑戰成功！總時間 -${bonusSec} 秒！`,
+                    desc: `太猛了！成功完成關主現場指定的加分任務，直接幫 ${team.name} 扣減 ${bonusSec} 秒！`
+                };
+            }
+
+            gameState.lastEventPopup = popupEvent;
+            lastHandledPopupId = popupEvent.id;
+            persistSharedState();
+            renderAllViews();
+
+            // 在關主自己手機上顯示已成功發送給小隊的確認視窗（同時提供一鍵切過去看小隊畫面的測試鈕）
+            showDramaticModal({
+                theme: popupEvent.theme,
+                icon: popupEvent.icon,
+                badge: `已發送至 ${team.name} 手機`,
+                title: popupEvent.title,
+                desc: `已同步更新 ${team.name} 的秒數與提示紀錄！（若在單機測試，可點右上角「切換身分」登入 ${team.name} 查看，或開啟兩個無痕視窗同步看效果）`,
+                clueText: popupEvent.clueText
+            });
+        }
+
+        function quickJumpToBoss(bossCode, teamId) {
+            gameState.activeBossCode = bossCode;
+            gameState.bossSelectedTeamId = teamId;
+            completeAuthentication('boss');
+        }
+
+
+        // ============================================================================
+        // 7. 視角 3：👼 小天使端邏輯（代號鎖定 + 1A2B 計算器 + 發送提示）
+        // ============================================================================
+        function changeAngelTeam(teamId) {
+            gameState.activeAngelTeamId = Number(teamId);
+            document.getElementById('angel1A2BBigText').textContent = '-- A -- B';
+            document.getElementById('angel1A2BSubText').textContent = '等待輸入小隊猜測的 4 位數...';
+            renderAngelView();
+        }
+
+        function renderAngelView() {
+            const team = getTeamById(gameState.activeAngelTeamId);
+            if (!team) return;
+
+            const code = `A${String(team.id).padStart(2, '0')}`;
+            const badgeEl = document.getElementById('lockedAngelCodeBadge');
+            if (badgeEl) badgeEl.textContent = `${code} (${team.name})`;
+            document.getElementById('angelBoundTeamTitle').textContent = `${team.name} - ${team.subName} (專屬代號 ${code})`;
+            document.getElementById('angelSecretAnswerDisplay').textContent = team.secret1A2B;
+
+            // 渲染該隊 1A2B 歷史猜測紀錄
+            const historyList = document.getElementById('angelGuessHistoryList');
+            if (team.guessHistory1A2B.length === 0) {
+                historyList.innerHTML = `<div class="text-xs text-slate-600 text-center py-3">尚無猜測紀錄</div>`;
+            } else {
+                historyList.innerHTML = team.guessHistory1A2B.map((item, idx) => `
+                    <div class="flex items-center justify-between bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800 text-xs">
+                        <span class="text-slate-400">第 ${team.guessHistory1A2B.length - idx} 次猜：<strong class="font-mono text-white text-sm ml-1">${item.guess}</strong></span>
+                        <span class="font-mono font-black px-2 py-0.5 rounded ${item.result === '4A0B' ? 'bg-emerald-500 text-slate-950' : 'bg-amber-500/20 text-amber-300'}">${item.result}</span>
+                    </div>
+                `).join('');
+            }
+
+            // 渲染小天使負責的 4 個任務提示卡 (#4, #5, #10, #15)
+            const angelClues = CLUES_DATA.filter(c => c.type === 'angel');
+            const listEl = document.getElementById('angelMissionCardsList');
+            listEl.innerHTML = angelClues.map(clue => {
+                const isUnlocked = team.collectedClues.includes(clue.id);
+                return `
+                    <div class="p-3.5 rounded-2xl border ${isUnlocked ? 'bg-emerald-950/30 border-emerald-500/40' : 'bg-slate-900 border-slate-800'} flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded bg-slate-800 text-emerald-400">${clue.title}</span>
+                                <span class="font-bold text-sm text-white">${clue.missionTitle}</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-1">${clue.missionDesc}</p>
+                        </div>
+                        <button onclick="triggerAngelCompleteMission(${team.id}, ${clue.id})" class="shrink-0 px-4 py-2.5 rounded-xl font-black text-xs sm:text-sm transition shadow ${
+                            isUnlocked
+                                ? 'bg-slate-800 text-emerald-400 border border-emerald-500/30 hover:bg-slate-700'
+                                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950'
+                        }">
+                            ${isUnlocked ? '✅ 已發送 (可重發)' : '🎯 任務完成！發送提示'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 1A2B 防呆計算器核心邏輯
+        function calculate1A2B() {
+            const team = getTeamById(gameState.activeAngelTeamId);
+            const guess = (document.getElementById('angelGuessInput').value || '').trim();
+            const secret = team.secret1A2B;
+
+            if (guess.length !== 4) {
+                document.getElementById('angel1A2BBigText').textContent = '請輸入4位數';
+                document.getElementById('angel1A2BSubText').textContent = '必須剛好是 4 個阿拉伯數字喔！';
+                return;
+            }
+
+            let A = 0;
+            let B = 0;
+            for (let i = 0; i < 4; i++) {
+                if (guess[i] === secret[i]) {
+                    A++;
+                } else if (secret.includes(guess[i])) {
+                    B++;
+                }
+            }
+
+            const resultStr = `${A}A${B}B`;
+            const bigText = document.getElementById('angel1A2BBigText');
+            const subText = document.getElementById('angel1A2BSubText');
+
+            bigText.textContent = `${A} A ${B} B`;
+            if (A === 4) {
+                bigText.className = "text-4xl sm:text-5xl font-mono font-black text-emerald-400 tracking-wider animate-bounce";
+                subText.textContent = "🎉 4A0B 完全猜中！請按右方【提示 #04 任務完成】發送提示給小隊！";
+            } else {
+                bigText.className = "text-4xl sm:text-5xl font-mono font-black text-amber-400 tracking-wider";
+                subText.textContent = `小隊猜「${guess}」 ➔ 請回答他們「${A}A ${B}B」`;
+            }
+
+            team.guessHistory1A2B.unshift({ guess, result: resultStr });
+            document.getElementById('angelGuessInput').value = '';
+            persistSharedState();
+            renderAngelView();
+        }
+
+        function clearAngel1A2BHistory() {
+            const team = getTeamById(gameState.activeAngelTeamId);
+            team.guessHistory1A2B = [];
+            persistSharedState();
+            renderAngelView();
+        }
+
+        // 小天使按下【任務完成】把提示跳到小隊手機上
+        function triggerAngelCompleteMission(teamId, clueId) {
+            const team = getTeamById(teamId);
+            const clue = CLUES_DATA.find(c => c.id === clueId);
+            unlockClueForTeam(team.id, clue.id);
+
+            const popupEvent = {
+                id: Date.now(),
+                targetTeamId: team.id,
+                theme: 'success',
+                icon: '👼',
+                badge: `隨隊小天使認證通過`,
+                title: `完成「${clue.missionTitle}」！`,
+                desc: `隨隊小天使已確認你們完成任務，這是解鎖的提示內容：`,
+                clueText: `${clue.title}：${clue.content}`
+            };
+
+            gameState.lastEventPopup = popupEvent;
+            lastHandledPopupId = popupEvent.id;
+            persistSharedState();
+            renderAllViews();
+
+            showDramaticModal({
+                theme: 'success',
+                icon: '👼',
+                badge: `已同步傳送至 ${team.name} 手機`,
+                title: `已解鎖 ${team.name} 的 ${clue.title}！`,
+                desc: `${team.name} 的手機已跳出過關提示並存入提示背包！`,
+                clueText: `${clue.title}：${clue.content}`
+            });
+        }
+
+        function quickJumpToAngel(teamId) {
+            changeAngelTeam(teamId);
+            completeAuthentication('angel');
+        }
+
+
+        // ============================================================================
+        // 8. 視角 4：👑 總關主端邏輯（全場監控 + 2個求救按鈕 + 停錶 + Kahoot 排行榜）
+        // ============================================================================
+        function switchChiefSubTab(subTab) {
+            gameState.chiefSubTab = subTab;
+            const ctrlSec = document.getElementById('chiefSubTab-control');
+            const kahootSec = document.getElementById('chiefSubTab-kahoot');
+            const ctrlBtn = document.getElementById('chiefTabBtn-control');
+            const kahootBtn = document.getElementById('chiefTabBtn-kahoot');
+
+            if (subTab === 'control') {
+                ctrlSec.classList.remove('hidden');
+                kahootSec.classList.add('hidden');
+                ctrlBtn.className = "px-4 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-amber-500 text-slate-950 shadow";
+                kahootBtn.className = "px-4 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-slate-800 text-slate-300 hover:text-white";
+            } else {
+                ctrlSec.classList.add('hidden');
+                kahootSec.classList.remove('hidden');
+                ctrlBtn.className = "px-4 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-slate-800 text-slate-300 hover:text-white";
+                kahootBtn.className = "px-4 py-2 rounded-xl font-black text-xs sm:text-sm transition bg-amber-500 text-slate-950 shadow";
+            }
+            renderChiefView();
+        }
+
+        function renderChiefView() {
+            if (gameState.chiefSubTab === 'control') {
+                renderChiefControlGrid();
+            } else {
+                renderKahootLeaderboard();
+            }
+        }
+
+        function renderChiefControlGrid() {
+            const grid = document.getElementById('chiefTeamsGrid');
+            grid.innerHTML = gameState.teams.map(team => {
+                const totalSec = getTeamTotalSeconds(team);
+                const arrivalPts = getArrivalPoints(team.finishOrder);
+
+                return `
+                    <div class="bg-slate-950 border ${team.isTimerStopped ? 'border-emerald-500/50' : 'border-slate-800'} rounded-2xl p-4 flex flex-col justify-between space-y-3">
+                        <!-- 隊名與總時間 -->
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="flex items-center gap-1.5">
+                                    <span class="w-3 h-3 rounded-full ${team.color}"></span>
+                                    <h4 class="font-black text-sm sm:text-base text-white">${team.name} <span class="text-xs font-normal text-slate-400">(${team.subName})</span></h4>
+                                </div>
+                                <div class="text-xs text-slate-400 mt-1">
+                                    已獲提示：<strong class="text-amber-300">${team.collectedClues.length}/15</strong>
+                                    | 懲罰 <span class="text-rose-400">+${team.penaltySeconds}s</span> / 加分 <span class="text-emerald-400">-${team.bonusSeconds}s</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div id="chief-team-timer-${team.id}" class="font-mono font-black text-lg sm:text-xl ${team.isTimerStopped ? 'text-emerald-400' : 'text-amber-400'}">
+                                    ${formatMMSS(totalSec)}
+                                </div>
+                                <div class="text-[10px] text-slate-400">
+                                    ${team.isTimerStopped ? `🏁 第 ${team.finishOrder} 名抵達 (+${arrivalPts}分)` : '🏃 闖關計時中'}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 兩個求救觸發器（總關主按下後，小隊手機同步變暗） -->
+                        <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                            <button onclick="chiefTriggerLifeline(${team.id}, 'phone')" ${team.usedPhone2Min ? 'disabled' : ''} class="p-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center ${
+                                team.usedPhone2Min
+                                    ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
+                                    : 'bg-amber-500/15 border-amber-500/40 text-amber-300 hover:bg-amber-500/30'
+                            }">
+                                <span>📱 手機 2 分鐘</span>
+                                <span id="chief-phone-cd-${team.id}" class="text-[10px] opacity-80">
+                                    ${team.phoneCountdownRemaining > 0 ? `倒數 ${formatMMSS(team.phoneCountdownRemaining)}` : (team.usedPhone2Min ? '已使用完畢' : '點擊啟用倒數')}
+                                </span>
+                            </button>
+
+                            <button onclick="chiefTriggerLifeline(${team.id}, 'word')" ${team.usedOneWordHint ? 'disabled' : ''} class="p-2 rounded-xl text-xs font-bold border transition flex flex-col items-center justify-center ${
+                                team.usedOneWordHint
+                                    ? 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'
+                                    : 'bg-sky-500/15 border-sky-500/40 text-sky-300 hover:bg-sky-500/30'
+                            }">
+                                <span>💡 提示一個字</span>
+                                <span class="text-[10px] opacity-80">${team.usedOneWordHint ? '已使用完畢' : '點擊派發一字'}</span>
+                            </button>
+                        </div>
+
+                        <!-- 終點「我要答題 (停止計時)」按鈕 -->
+                        <div>
+                            ${team.isTimerStopped ? `
+                                <div class="w-full py-2.5 px-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-bold flex items-center justify-between">
+                                    <span>✅ 已停錶 (${team.submittedAnswers ? `已作答 +${team.quizPoints}分` : '等待小隊填答'})</span>
+                                    <button onclick="gameState.activeTeamId=${team.id}; switchRole('team'); switchTeamTab('answer');" class="underline text-white">看小隊作答</button>
+                                </div>
+                            ` : `
+                                <button onclick="chiefStopTeamTimer(${team.id})" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-500 hover:to-orange-500 text-white font-black text-xs sm:text-sm shadow transition">
+                                    🛑 我要答題！(停止計時 & 開放小隊作答)
+                                </button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 總關主觸發小隊的求救功能（手機 2 分鐘 / 提示一個字）
+        function chiefTriggerLifeline(teamId, type) {
+            const team = getTeamById(teamId);
+            if (!team) return;
+
+            if (type === 'phone' && !team.usedPhone2Min) {
+                team.usedPhone2Min = true;
+                team.phoneCountdownRemaining = 120; // 2分鐘 = 120秒
+                gameState.lastEventPopup = {
+                    id: Date.now(),
+                    targetTeamId: team.id,
+                    theme: 'info',
+                    icon: '⏱️',
+                    badge: `總關主已啟用求救特權`,
+                    title: `${team.name} 啟動「使用手機 2 分鐘」！`,
+                    desc: `倒數計時 02:00 已經開始！時間結束後按鈕將變為暗色鎖定。`
+                };
+                persistSharedState();
+                showDramaticModal(gameState.lastEventPopup);
+            } else if (type === 'word' && !team.usedOneWordHint) {
+                team.usedOneWordHint = true;
+                team.unlockedWordHintText = "第一題第1字「合」/ 第二題第3字「放」";
+                gameState.lastEventPopup = {
+                    id: Date.now(),
+                    targetTeamId: team.id,
+                    theme: 'info',
+                    icon: '💡',
+                    badge: `總關主已啟用求救特權`,
+                    title: `已發送「提示一個字」給 ${team.name}！`,
+                    desc: `小隊手機上的求救按鈕已變為暗色，並顯示關鍵字提示：${team.unlockedWordHintText}`
+                };
+                persistSharedState();
+                showDramaticModal(gameState.lastEventPopup);
+            }
+            renderAllViews();
+        }
+
+        // 總關主按下「我要答題」：停止該小隊計時、記錄抵達順序、解鎖該小隊答題框
+        function chiefStopTeamTimer(teamId) {
+            const team = getTeamById(teamId);
+            if (!team || team.isTimerStopped) return;
+
+            gameState.finishedCount += 1;
+            team.isTimerStopped = true;
+            team.finishOrder = gameState.finishedCount;
+            const arrivalPts = getArrivalPoints(team.finishOrder);
+
+            gameState.lastEventPopup = {
+                id: Date.now(),
+                targetTeamId: team.id,
+                theme: 'success',
+                icon: '🏁',
+                badge: `終點停錶確認`,
+                title: `${team.name} 計時停止！第 ${team.finishOrder} 名抵達 (+${arrivalPts}分)`,
+                desc: `真正闖關總時間鎖定為 ${formatMMSS(getTeamTotalSeconds(team))}！現在請到「終點答題」分頁輸入三個題目的最終答案！`
+            };
+
+            persistSharedState();
+            showDramaticModal(gameState.lastEventPopup);
+            renderAllViews();
+        }
+
+        function quickTriggerChiefStopTimer(teamId) {
+            chiefStopTeamTimer(teamId);
+            renderTeamView();
+        }
+
+        // ============================================================================
+        // 9. Kahoot 風格三階段滾動式排行榜 & 真實時間長條圖
+        // ============================================================================
+        function setKahootStage(stage) {
+            gameState.kahootStage = stage;
+            [1, 2, 3, 4].forEach(s => {
+                const btn = document.getElementById(`kahootBtn-${s}`);
+                if (s === stage) {
+                    btn.className = "p-2.5 rounded-2xl font-black text-xs sm:text-sm border-2 transition bg-amber-500 text-slate-950 border-white shadow-xl scale-105";
+                } else {
+                    btn.className = "p-2.5 rounded-2xl font-black text-xs sm:text-sm border transition bg-slate-800/80 text-slate-300 border-slate-700 hover:bg-slate-800";
+                }
+            });
+            renderKahootLeaderboard();
+        }
+
+        function renderKahootLeaderboard() {
+            const stage = gameState.kahootStage;
+            const timeRankMap = getTimeRankPointsMap();
+            const banner = document.getElementById('kahootStageBanner');
+            const container = document.getElementById('kahootBarsContainer');
+
+            if (stage === 1) {
+                banner.innerHTML = `📢 <strong>第一階段揭曉：【回到總關主順序分】</strong>（第 1 名抵達 +9 分、第 2 名 +8 分... 依此類推）`;
+            } else if (stage === 2) {
+                banner.innerHTML = `🧠 <strong>第二階段揭曉：疊加【三題回答正確率得分】</strong>（答對 1 題 +3 分、2 題 +5 分、3 題 +10 分！名次開始洗牌！）`;
+            } else if (stage === 3) {
+                banner.innerHTML = `🔥 <strong>最終大翻盤：疊加【真正闖關總時間排名積分】</strong>（扣除加分、加上懲罰後的真實秒數排名，最快 +15 分！見證總冠軍誕生！）`;
+            } else {
+                banner.innerHTML = `⏱️ <strong>各隊【真正闖關總時間】高低比較圖</strong>（公式：原始耗時 ＋ 失敗懲罰秒數 － 加分題獎勵秒數，越短越強！）`;
+            }
+
+            // 計算每隊在當前階段的顯示數值並排序
+            const enrichedTeams = gameState.teams.map(team => {
+                const arrivalPts = getArrivalPoints(team.finishOrder);
+                const quizPts = team.quizPoints;
+                const timeRankObj = timeRankMap[team.id];
+                const timePts = timeRankObj.points;
+                const totalSec = getTeamTotalSeconds(team);
+
+                let stageScore = 0;
+                if (stage === 1) stageScore = arrivalPts;
+                else if (stage === 2) stageScore = arrivalPts + quizPts;
+                else if (stage === 3) stageScore = arrivalPts + quizPts + timePts;
+                else stageScore = totalSec;
+
+                return {
+                    ...team,
+                    arrivalPts,
+                    quizPts,
+                    timePts,
+                    timeRank: timeRankObj.rank,
+                    totalSec,
+                    stageScore
+                };
+            });
+
+            // 排序：階段 1~3 分數由高到低；階段 4 (真實時間圖) 可依秒數由短到長排列並呈現高低落差
+            if (stage === 4) {
+                enrichedTeams.sort((a, b) => a.totalSec - b.totalSec);
+            } else {
+                enrichedTeams.sort((a, b) => b.stageScore - a.stageScore || a.totalSec - b.totalSec);
+            }
+
+            const maxScore = stage === 4
+                ? Math.max(...enrichedTeams.map(t => t.totalSec), 300)
+                : Math.max(...enrichedTeams.map(t => t.stageScore), 34);
+
+            container.innerHTML = enrichedTeams.map((t, idx) => {
+                const rank = idx + 1;
+                const widthPercent = Math.max(12, Math.min(100, Math.round((t.stageScore / maxScore) * 100)));
+
+                let medal = `<span class="w-7 h-7 rounded-full bg-slate-800 text-slate-300 font-mono font-black text-xs flex items-center justify-center">${rank}</span>`;
+                if (rank === 1) medal = `<span class="w-7 h-7 rounded-full bg-amber-400 text-slate-950 font-black text-sm flex items-center justify-center shadow">🥇</span>`;
+                if (rank === 2) medal = `<span class="w-7 h-7 rounded-full bg-slate-300 text-slate-950 font-black text-sm flex items-center justify-center shadow">🥈</span>`;
+                if (rank === 3) medal = `<span class="w-7 h-7 rounded-full bg-amber-700 text-white font-black text-sm flex items-center justify-center shadow">🥉</span>`;
+
+                return `
+                    <div class="row-transition bg-slate-900/90 border ${rank <= 3 ? 'border-amber-500/40' : 'border-slate-800'} rounded-2xl p-3 flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between text-xs sm:text-sm">
+                            <div class="flex items-center gap-2">
+                                ${medal}
+                                <span class="font-black text-white">${t.name}</span>
+                                <span class="text-xs text-slate-400 hidden sm:inline">(${t.subName})</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${stage === 4 ? `
+                                    <span class="text-xs text-slate-400">原始 ${formatMMSS(t.baseSeconds)} | 懲罰+${t.penaltySeconds}s | 加分-${t.bonusSeconds}s</span>
+                                    <span class="font-mono font-black text-base sm:text-lg text-emerald-400">${formatMMSS(t.totalSec)} (${t.totalSec}秒)</span>
+                                ` : `
+                                    <div class="text-[11px] text-slate-400 space-x-1.5">
+                                        <span>①順序:+${t.arrivalPts}</span>
+                                        ${stage >= 2 ? `<span class="text-emerald-400">②答題:+${t.quizPts}</span>` : ''}
+                                        ${stage >= 3 ? `<span class="text-amber-300">③時間(第${t.timeRank}快):+${t.timePts}</span>` : ''}
+                                    </div>
+                                    <span class="font-mono font-black text-lg sm:text-xl text-amber-400 bg-slate-950 px-2.5 py-0.5 rounded-lg border border-white/10">
+                                        ${t.stageScore} 分
+                                    </span>
+                                `}
+                            </div>
+                        </div>
+
+                        <!-- 動態伸縮長條圖 -->
+                        <div class="w-full bg-slate-950 rounded-full h-4 overflow-hidden p-0.5 border border-slate-800">
+                            <div class="bar-transition h-full rounded-full ${t.color}" style="width: ${widthPercent}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 一鍵模擬 12 隊完賽數據，方便立刻體驗 Kahoot 三階段翻盤效果！
+        function simulateAllTeamsFinished() {
+            // 設計刻意有「早回來但被罰很多秒」與「較晚回來但加分扣秒+全對」的戲劇性翻盤數據
+            const mockArrivalOrder = [3, 1, 5, 2, 8, 4, 10, 6, 12, 7, 9, 11];
+            const mockBaseSec =      [950, 910, 980, 920, 1060, 960, 1120, 1010, 1180, 1040, 1090, 1150];
+            const mockPenalty =      [0,   180, 30,  150, 0,    60,  30,   0,    60,   20,   90,   0];
+            const mockBonus =        [60,  0,   40,  0,   80,   20,  0,    60,   0,    40,   0,    60];
+            const mockCorrectCnt =   [3,   1,   3,   2,   3,    2,   2,    3,    1,    2,    2,    3];
+
+            gameState.finishedCount = 12;
+            gameState.isGlobalTimerRunning = false;
+            updateGlobalTimerButtonUI();
+
+            gameState.teams.forEach((team, i) => {
+                team.isTimerStopped = true;
+                team.finishOrder = mockArrivalOrder[i];
+                team.baseSeconds = mockBaseSec[i];
+                team.penaltySeconds = mockPenalty[i];
+                team.bonusSeconds = mockBonus[i];
+                team.collectedClues = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+                team.submittedAnswers = true;
+                team.correctCount = mockCorrectCnt[i];
+                team.quizPoints = team.correctCount === 3 ? 10 : (team.correctCount === 2 ? 5 : (team.correctCount === 1 ? 3 : 0));
+                team.answers = [
+                    QUESTIONS_CONFIG[0].answer,
+                    team.correctCount >= 2 ? QUESTIONS_CONFIG[1].answer : "猜錯答案",
+                    team.correctCount === 3 ? QUESTIONS_CONFIG[2].answer : "猜錯答案"
+                ];
+            });
+
+            switchRole('chief');
+            switchChiefSubTab('kahoot');
+            setKahootStage(1);
+            persistSharedState();
+
+            showDramaticModal({
+                theme: 'success',
+                icon: '🎬',
+                badge: '模擬數據載入完成',
+                title: '已生成 12 小隊完賽數據！',
+                desc: '現在請依序點擊「第一階段」➔「第二階段」➔「🔥最終大翻盤」，體驗第 2 小隊雖然第一個衝回終點，卻因為懲罰秒數過多被第 1 小隊逆轉奪冠的 Kahoot 動畫效果！'
+            });
+        }
+
+        function toggleGlobalTimer() {
+            gameState.isGlobalTimerRunning = !gameState.isGlobalTimerRunning;
+            updateGlobalTimerButtonUI();
+            persistSharedState();
+        }
+
+        function updateGlobalTimerButtonUI() {
+            const btn = document.getElementById('globalTimerToggleBtn');
+            const badge = document.getElementById('globalTimerBadge');
+            if (gameState.isGlobalTimerRunning) {
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> 暫停全場計時`;
+                btn.className = "px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-clock mr-1"></i>遊戲計時進行中`;
+                badge.className = "text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono";
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> 恢復全場計時`;
+                btn.className = "px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold flex items-center gap-1";
+                badge.innerHTML = `<i class="fa-solid fa-circle-pause mr-1"></i>全場計時已暫停`;
+                badge.className = "text-xs px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 font-mono";
+            }
+        }
+
+        function resetAllGameData() {
+            initTeamsData();
+            gameState.isGlobalTimerRunning = true;
+            gameState.activeScannedClueId = null;
+            gameState.lastEventPopup = null;
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            persistSharedState();
+            updateGlobalTimerButtonUI();
+            renderAllViews();
+        }
+
+        // ============================================================================
+        // 9-B. Cloudflare 部署教學 & 雲端同步設定視窗控制
+        // ============================================================================
+        function openCloudConfigModal() {
+            document.getElementById('cloudEndpointInput').value = cloudSyncUrl;
+            const modal = document.getElementById('cloudConfigModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeCloudConfigModal() {
+            const modal = document.getElementById('cloudConfigModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function saveCloudEndpointConfig() {
+            cloudSyncUrl = (document.getElementById('cloudEndpointInput').value || '').trim();
+            localStorage.setItem(CLOUD_URL_STORAGE_KEY, cloudSyncUrl);
+            updateCloudStatusBadge();
+            persistSharedState();
+            closeCloudConfigModal();
+            showDramaticModal({
+                theme: 'success',
+                icon: '☁️',
+                badge: '連線設定已更新',
+                title: cloudSyncUrl ? '已啟用跨裝置雲端同步！' : '已切換回本機同步模式',
+                desc: cloudSyncUrl ? `系統將自動與 ${cloudSyncUrl} 即時同步所有小隊秒數與過關狀態。` : '目前使用瀏覽器本機儲存，可開多個分頁連動測試。'
+            });
+        }
+
+        function updateCloudStatusBadge() {
+            const badge = document.getElementById('cloudSyncStatusBadge');
+            if (!badge) return;
+            if (cloudSyncUrl) {
+                badge.innerHTML = `<i class="fa-solid fa-cloud-bolt text-emerald-400 mr-1"></i>雲端連線中`;
+                badge.className = "cursor-pointer text-[11px] px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-500/40";
+            } else {
+                badge.innerHTML = `<i class="fa-solid fa-cloud mr-1"></i>Cloudflare / 連線設定`;
+                badge.className = "cursor-pointer text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700 hover:border-sky-500/50 transition";
+            }
+        }
+
+        // 支援網址參數自動登入（例如關主掃描 ?role=boss&code=B01 或小隊掃描 ?clue=5）
+        function checkUrlParamsAutoLogin() {
+            const params = new URLSearchParams(window.location.search);
+            const roleParam = (params.get('role') || '').toLowerCase();
+            const codeParam = (params.get('code') || '').toUpperCase();
+            const teamParam = params.get('team');
+            const clueParam = params.get('clue');
+
+            if (roleParam === 'boss' && /^B0[1-7]$/.test(codeParam)) {
+                gameState.activeBossCode = codeParam;
+                completeAuthentication('boss');
+            } else if (roleParam === 'angel' && /^A(0[1-9]|1[0-2])$/.test(codeParam)) {
+                gameState.activeAngelTeamId = parseInt(codeParam.slice(1), 10);
+                completeAuthentication('angel');
+            } else if (roleParam === 'team' && teamParam) {
+                const tId = parseInt(teamParam, 10);
+                if (tId >= 1 && tId <= 12) {
+                    confirmTeamGatewayLogin(tId);
+                    if (clueParam) simulateScanQR(parseInt(clueParam, 10));
+                }
+            }
+        }
+
+        // ============================================================================
+        // 10. 全螢幕特效彈出視窗控制 (取代原生 alert)
+        // ============================================================================
+        function showDramaticModal({ theme, icon, badge, title, desc, clueText }) {
+            const modal = document.getElementById('dramaticModal');
+            const card = document.getElementById('dramaticModalCard');
+            const iconEl = document.getElementById('dramaticModalIcon');
+            const badgeEl = document.getElementById('dramaticModalBadge');
+            const titleEl = document.getElementById('dramaticModalTitle');
+            const descEl = document.getElementById('dramaticModalDesc');
+            const clueBox = document.getElementById('dramaticModalClueBox');
+            const clueTextEl = document.getElementById('dramaticModalClueText');
+
+            iconEl.textContent = icon || '✨';
+            badgeEl.textContent = badge || '系統通知';
+            titleEl.textContent = title || '';
+            descEl.textContent = desc || '';
+
+            if (clueText) {
+                clueBox.classList.remove('hidden');
+                clueTextEl.textContent = clueText;
+            } else {
+                clueBox.classList.add('hidden');
+            }
+
+            // 根據主題切換配色與震動特效
+            if (theme === 'danger') {
+                card.className = "max-w-md w-full rounded-3xl p-6 text-center shadow-2xl border-4 bg-gradient-to-b from-rose-950 to-slate-950 border-rose-500 animate-shake";
+                badgeEl.className = "inline-block text-xs font-black px-3 py-1 rounded-full mb-2 bg-rose-500 text-white";
+                titleEl.className = "text-2xl sm:text-3xl font-black mb-2 text-rose-400";
+            } else if (theme === 'success') {
+                card.className = "max-w-md w-full rounded-3xl p-6 text-center shadow-2xl border-2 bg-gradient-to-b from-emerald-950 to-slate-950 border-emerald-400 animate-pop";
+                badgeEl.className = "inline-block text-xs font-black px-3 py-1 rounded-full mb-2 bg-emerald-400 text-slate-950";
+                titleEl.className = "text-2xl sm:text-3xl font-black mb-2 text-emerald-300";
+            } else if (theme === 'bonus') {
+                card.className = "max-w-md w-full rounded-3xl p-6 text-center shadow-2xl border-2 bg-gradient-to-b from-amber-950 to-slate-950 border-amber-400 animate-pop";
+                badgeEl.className = "inline-block text-xs font-black px-3 py-1 rounded-full mb-2 bg-amber-400 text-slate-950";
+                titleEl.className = "text-2xl sm:text-3xl font-black mb-2 text-amber-300";
+            } else {
+                card.className = "max-w-md w-full rounded-3xl p-6 text-center shadow-2xl border-2 bg-slate-900 border-indigo-500/50 animate-pop";
+                badgeEl.className = "inline-block text-xs font-black px-3 py-1 rounded-full mb-2 bg-indigo-500/30 text-indigo-200";
+                titleEl.className = "text-xl sm:text-2xl font-black mb-2 text-white";
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDramaticModal() {
+            const modal = document.getElementById('dramaticModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // 啟動初始化
+        window.onload = function () {
+            initTeamsData();
+            // 載入既有的本機同步紀錄
+            try {
+                const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+                if (saved) applySharedState(JSON.parse(saved));
+            } catch (e) {}
+
+            updateCloudStatusBadge();
+            populateTeamSelectDropdowns();
+            renderAllViews();
+            checkUrlParamsAutoLogin();
+        };
+    </script>
+</body>
+</html>
