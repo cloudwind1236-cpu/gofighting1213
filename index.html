@@ -16,11 +16,11 @@
   <script src="config.js"></script>
   <style>
     body { font-family: 'Noto Sans TC', sans-serif; }
-    @keyframes bounce-short {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-6px); }
+    @keyframes pop-in {
+      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
     }
-    .animate-bounce-short { animation: bounce-short 1s ease-in-out infinite; }
+    .animate-pop-in { animation: pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .bar-transition { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.5s ease; }
     @media print {
       body * { visibility: hidden; }
@@ -60,103 +60,126 @@
           <i class="fa-solid fa-flag-checkered"></i> 高中生操場實境團隊挑戰賽
         </div>
         <h2 class="text-3xl sm:text-4xl font-black text-white tracking-tight">請選擇你的現場身分</h2>
-        <p class="text-slate-400 text-sm">每一小隊僅限使用一支代表手機登入，請勿隨意進入工作人員專區</p>
+        <p class="text-slate-400 text-sm">點選下方身分卡片後，將直接彈出登入視窗</p>
       </div>
 
       <!-- 四大身分入口卡片 -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <!-- 1. 闖關小隊 -->
-        <button onclick="openLoginPanel('team')" class="group text-left bg-gradient-to-br from-blue-950/90 to-slate-900 hover:from-blue-900/90 border-2 border-blue-500/40 hover:border-blue-400 rounded-2xl p-5 transition shadow-lg">
+        <button onclick="openLoginPanel('team')" class="group text-left bg-gradient-to-br from-blue-950/90 to-slate-900 hover:from-blue-900/90 active:scale-[0.98] border-2 border-blue-500/40 hover:border-blue-400 rounded-2xl p-5 transition shadow-lg">
           <div class="flex items-center justify-between mb-3">
             <span class="w-12 h-12 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl">🏃</span>
-            <span class="text-xs font-bold bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full">1~12 小隊代表</span>
+            <span class="text-xs font-bold bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-full">點擊選擇小隊 <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></span>
           </div>
           <h3 class="text-xl font-black text-white group-hover:text-blue-300 transition">1. 我是闖關小隊</h3>
           <p class="text-xs text-slate-400 mt-1">掃描操場 15 個提示 QR 碼、查看線索背包、呼叫總關主求救與最終答題</p>
         </button>
 
         <!-- 2. 關主端 -->
-        <button onclick="openLoginPanel('boss')" class="group text-left bg-gradient-to-br from-rose-950/90 to-slate-900 hover:from-rose-900/90 border-2 border-rose-500/40 hover:border-rose-400 rounded-2xl p-5 transition shadow-lg">
+        <button onclick="openLoginPanel('boss')" class="group text-left bg-gradient-to-br from-rose-950/90 to-slate-900 hover:from-rose-900/90 active:scale-[0.98] border-2 border-rose-500/40 hover:border-rose-400 rounded-2xl p-5 transition shadow-lg">
           <div class="flex items-center justify-between mb-3">
             <span class="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl">⚔️</span>
-            <span class="text-xs font-bold bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full">需輸入關主代號</span>
+            <span class="text-xs font-bold bg-rose-500/20 text-rose-300 px-2.5 py-1 rounded-full">點擊輸入代號 <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></span>
           </div>
           <h3 class="text-xl font-black text-white group-hover:text-rose-300 transition">2. 我是關主</h3>
           <p class="text-xs text-slate-400 mt-1">7 位關主專屬審核面板：判定各小隊【通過】、【失敗+秒】或【加分題-秒】</p>
         </button>
 
         <!-- 3. 小天使端 -->
-        <button onclick="openLoginPanel('angel')" class="group text-left bg-gradient-to-br from-emerald-950/90 to-slate-900 hover:from-emerald-900/90 border-2 border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-5 transition shadow-lg">
+        <button onclick="openLoginPanel('angel')" class="group text-left bg-gradient-to-br from-emerald-950/90 to-slate-900 hover:from-emerald-900/90 active:scale-[0.98] border-2 border-emerald-500/40 hover:border-emerald-400 rounded-2xl p-5 transition shadow-lg">
           <div class="flex items-center justify-between mb-3">
             <span class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl">👼</span>
-            <span class="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">需輸入小天使代號</span>
+            <span class="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full">點擊輸入代號 <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></span>
           </div>
           <h3 class="text-xl font-black text-white group-hover:text-emerald-300 transition">3. 我是隨隊小天使</h3>
           <p class="text-xs text-slate-400 mt-1">綁定單一小隊：內建 1A2B 防呆自動計算機、隨隊任務完成提示發送器</p>
         </button>
 
         <!-- 4. 總關主端 -->
-        <button onclick="openLoginPanel('master')" class="group text-left bg-gradient-to-br from-amber-950/90 to-slate-900 hover:from-amber-900/90 border-2 border-amber-500/40 hover:border-amber-400 rounded-2xl p-5 transition shadow-lg">
+        <button onclick="openLoginPanel('master')" class="group text-left bg-gradient-to-br from-amber-950/90 to-slate-900 hover:from-amber-900/90 active:scale-[0.98] border-2 border-amber-500/40 hover:border-amber-400 rounded-2xl p-5 transition shadow-lg">
           <div class="flex items-center justify-between mb-3">
             <span class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl">👑</span>
-            <span class="text-xs font-bold bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full">最高權限密碼</span>
+            <span class="text-xs font-bold bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full">最高權限密碼 <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i></span>
           </div>
           <h3 class="text-xl font-black text-white group-hover:text-amber-300 transition">4. 我是總關主 / 控台</h3>
           <p class="text-xs text-slate-400 mt-1">全場開賽計時、求救2分鐘倒數、終點停錶開放答題、Kahoot 翻盤排行榜</p>
         </button>
       </div>
-
-      <!-- 登入子面板：小隊選擇 -->
-      <div id="login-panel-team" class="hidden bg-slate-900 border border-blue-500/40 rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-black text-lg text-blue-300"><i class="fa-solid fa-users mr-2"></i>請選擇你們是第幾小隊</h3>
-          <button onclick="closeLoginPanels()" class="text-xs text-slate-400 hover:text-white">返回</button>
-        </div>
-        <p class="text-xs text-slate-400">點選後這支手機將鎖定為該小隊專屬代表機：</p>
-        <div id="lobby-team-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5"></div>
-      </div>
-
-      <!-- 登入子面板：關主代號 -->
-      <div id="login-panel-boss" class="hidden bg-slate-900 border border-rose-500/40 rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-black text-lg text-rose-300"><i class="fa-solid fa-shield-halved mr-2"></i>關主專屬登入</h3>
-          <button onclick="closeLoginPanels()" class="text-xs text-slate-400 hover:text-white">返回</button>
-        </div>
-        <p class="text-xs text-slate-400">請輸入你的關主代號（預設為 <code class="text-rose-300 font-bold">B01</code> ～ <code class="text-rose-300 font-bold">B07</code>）：</p>
-        <div class="flex gap-2">
-          <input id="input-boss-code" type="text" placeholder="例如：B01" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black uppercase tracking-widest">
-          <button onclick="loginAsBoss()" class="bg-rose-600 hover:bg-rose-500 text-white font-black px-6 py-3 rounded-xl">進入關卡</button>
-        </div>
-        <div class="flex flex-wrap gap-1.5 pt-1" id="quick-boss-btns"></div>
-      </div>
-
-      <!-- 登入子面板：小天使代號 -->
-      <div id="login-panel-angel" class="hidden bg-slate-900 border border-emerald-500/40 rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-black text-lg text-emerald-300"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>隨隊小天使登入</h3>
-          <button onclick="closeLoginPanels()" class="text-xs text-slate-400 hover:text-white">返回</button>
-        </div>
-        <p class="text-xs text-slate-400">請輸入小天使代號（預設 <code class="text-emerald-300 font-bold">A01</code> ～ <code class="text-emerald-300 font-bold">A12</code> 對應第 1~12 小隊）：</p>
-        <div class="flex gap-2">
-          <input id="input-angel-code" type="text" placeholder="例如：A01" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black uppercase tracking-widest">
-          <button onclick="loginAsAngel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-3 rounded-xl">綁定小隊</button>
-        </div>
-        <div class="flex flex-wrap gap-1.5 pt-1" id="quick-angel-btns"></div>
-      </div>
-
-      <!-- 登入子面板：總關主密碼 -->
-      <div id="login-panel-master" class="hidden bg-slate-900 border border-amber-500/40 rounded-2xl p-5 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-black text-lg text-amber-300"><i class="fa-solid fa-crown mr-2"></i>總關主最高權限驗證</h3>
-          <button onclick="closeLoginPanels()" class="text-xs text-slate-400 hover:text-white">返回</button>
-        </div>
-        <p class="text-xs text-slate-400">請輸入總關主密碼（預設：<code class="text-amber-300 font-bold">9999</code>）：</p>
-        <div class="flex gap-2">
-          <input id="input-master-pin" type="password" placeholder="輸入密碼 9999" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black tracking-widest">
-          <button onclick="loginAsMaster()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-xl">進入總控台</button>
-        </div>
-      </div>
     </section>
+
+    <!-- ==========================================
+         彈出式角色登入對話框 (Modal) - 點擊卡片直接跳出，免往下滑！
+    =========================================== -->
+    <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-full max-w-lg animate-pop-in">
+
+        <!-- 彈窗 1：小隊選擇 -->
+        <div id="login-panel-team" class="hidden bg-slate-900 border-2 border-blue-500 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-xl text-blue-300"><i class="fa-solid fa-users mr-2"></i>請選擇你們是第幾小隊</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-base">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <p class="text-xs text-slate-300">點選後這支手機將鎖定為該小隊專屬代表機：</p>
+          <div id="lobby-team-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-2.5 max-h-[60vh] overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- 彈窗 2：關主代號 -->
+        <div id="login-panel-boss" class="hidden bg-slate-900 border-2 border-rose-500 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-xl text-rose-300"><i class="fa-solid fa-shield-halved mr-2"></i>關主專屬登入</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-base">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <p class="text-xs text-slate-300">請輸入你的關主代號（預設為 <code class="text-rose-300 font-bold">B01</code> ～ <code class="text-rose-300 font-bold">B07</code>）：</p>
+          <div class="flex gap-2">
+            <input id="input-boss-code" type="text" placeholder="例如：B01" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black uppercase tracking-widest text-base">
+            <button onclick="loginAsBoss()" class="bg-rose-600 hover:bg-rose-500 text-white font-black px-5 py-3 rounded-xl whitespace-nowrap">進入關卡</button>
+          </div>
+          <div class="space-y-1.5 pt-1">
+            <div class="text-[11px] text-slate-400">快速點選測試代號：</div>
+            <div class="flex flex-wrap gap-1.5" id="quick-boss-btns"></div>
+          </div>
+        </div>
+
+        <!-- 彈窗 3：小天使代號 -->
+        <div id="login-panel-angel" class="hidden bg-slate-900 border-2 border-emerald-500 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-xl text-emerald-300"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>隨隊小天使登入</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-base">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <p class="text-xs text-slate-300">請輸入小天使代號（預設 <code class="text-emerald-300 font-bold">A01</code> ～ <code class="text-emerald-300 font-bold">A12</code> 對應第 1~12 小隊）：</p>
+          <div class="flex gap-2">
+            <input id="input-angel-code" type="text" placeholder="例如：A01" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black uppercase tracking-widest text-base">
+            <button onclick="loginAsAngel()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-3 rounded-xl whitespace-nowrap">綁定小隊</button>
+          </div>
+          <div class="space-y-1.5 pt-1">
+            <div class="text-[11px] text-slate-400">快速點選測試代號：</div>
+            <div class="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto" id="quick-angel-btns"></div>
+          </div>
+        </div>
+
+        <!-- 彈窗 4：總關主密碼 -->
+        <div id="login-panel-master" class="hidden bg-slate-900 border-2 border-amber-500 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-xl text-amber-300"><i class="fa-solid fa-crown mr-2"></i>總關主最高權限驗證</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-base">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <p class="text-xs text-slate-300">請輸入總關主密碼（預設：<code class="text-amber-300 font-bold">9999</code>）：</p>
+          <div class="flex gap-2">
+            <input id="input-master-pin" type="password" inputmode="numeric" placeholder="輸入密碼 9999" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black tracking-widest text-base">
+            <button onclick="loginAsMaster()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-5 py-3 rounded-xl whitespace-nowrap">進入總控台</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
     <!-- ==========================================
          1. 闖關小隊端 (Team View)
@@ -201,9 +224,16 @@
               </div>
             </div>
           </div>
-          <!-- 手機 2 分鐘倒數橫幅 -->
-          <div id="team-phone-countdown-box" class="hidden mt-3 bg-amber-500 text-slate-950 font-black p-3 rounded-xl text-center animate-pulse">
-            📱 手機搜尋求救倒數中：<span id="team-phone-countdown-timer" class="text-2xl font-mono">02:00</span>
+
+          <!-- 手機 2 分鐘倒數橫幅 (含提前停止按鈕) -->
+          <div id="team-phone-countdown-box" class="hidden mt-3 bg-amber-500 text-slate-950 font-black p-3.5 rounded-xl flex flex-wrap items-center justify-between gap-2 shadow-lg">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">📱 手機搜尋倒數：</span>
+              <span id="team-phone-countdown-timer" class="text-2xl font-mono bg-slate-950 text-amber-400 px-3 py-0.5 rounded-lg">02:00</span>
+            </div>
+            <button onclick="stopPhoneLifelineCountdown(currentSession.teamId)" class="bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-lg shadow transition">
+              <i class="fa-solid fa-stop mr-1"></i>已查到答案，提前結束倒數
+            </button>
           </div>
         </div>
       </div>
@@ -331,7 +361,7 @@
         </div>
 
         <div class="flex gap-2">
-          <input id="angel-1a2b-input" type="text" maxlength="4" placeholder="輸入小隊猜的 4 位數 (如 1234)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-xl font-mono font-black text-white tracking-widest text-center">
+          <input id="angel-1a2b-input" type="text" inputmode="numeric" maxlength="4" placeholder="輸入小隊猜的 4 位數 (如 1234)" class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-xl font-mono font-black text-white tracking-widest text-center">
           <button onclick="checkAngel1A2B()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-6 py-3 rounded-xl">計算</button>
         </div>
 
@@ -404,12 +434,20 @@
 
       <!-- 頁籤 1：12 小隊即時監控、求救觸發、終點停錶 -->
       <div id="master-tab-monitor" class="space-y-4">
-        <!-- 總關主端 2分鐘手機求救大倒數視窗 -->
-        <div id="master-phone-timer-banner" class="hidden bg-amber-500 text-slate-950 p-4 rounded-2xl font-black flex items-center justify-between">
-          <div>
-            <span id="master-phone-team-label" class="text-lg">第一小隊</span> 正在使用【手機搜尋 2 分鐘】求救！
+        <!-- 總關主端 2分鐘手機求救大倒數視窗 (含提前停止按鈕) -->
+        <div id="master-phone-timer-banner" class="hidden bg-amber-500 text-slate-950 p-4 rounded-2xl font-black flex flex-wrap items-center justify-between gap-3 shadow-xl">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">📱</span>
+            <div>
+              <span id="master-phone-team-label" class="text-lg underline">第一小隊</span> 正在使用【手機搜尋 2 分鐘】求救！
+            </div>
           </div>
-          <div id="master-phone-timer-digits" class="text-3xl font-mono">02:00</div>
+          <div class="flex items-center gap-3">
+            <div id="master-phone-timer-digits" class="text-3xl font-mono bg-slate-950 text-amber-400 px-3.5 py-1 rounded-xl">02:00</div>
+            <button id="master-phone-stop-btn" onclick="stopAllPhoneLifelines()" class="bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-xl shadow transition">
+              <i class="fa-solid fa-stop mr-1"></i>提前停止倒數
+            </button>
+          </div>
         </div>
 
         <div id="master-teams-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
@@ -630,7 +668,7 @@
     });
 
     // =========================================================
-    // 2. 登入大廳與角色鎖定邏輯
+    // 2. 登入大廳與彈出對話框邏輯 (Modal)
     // =========================================================
     function initLobby() {
       // 產生 12 小隊選擇鈕
@@ -638,7 +676,7 @@
       grid.innerHTML = "";
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const btn = document.createElement("button");
-        btn.className = "bg-slate-950 hover:bg-blue-600 border border-slate-700 hover:border-blue-400 text-white font-black py-3 rounded-xl text-sm transition";
+        btn.className = "bg-slate-950 hover:bg-blue-600 active:scale-95 border border-slate-700 hover:border-blue-400 text-white font-black py-3.5 rounded-xl text-sm transition shadow";
         btn.textContent = `第 ${i} 小隊`;
         btn.onclick = () => loginAsTeam(i);
         grid.appendChild(btn);
@@ -649,7 +687,7 @@
       bossQuick.innerHTML = "";
       CONFIG.clues.filter(c => c.type === "boss").forEach(c => {
         const b = document.createElement("button");
-        b.className = "text-xs bg-slate-800 hover:bg-rose-700 text-slate-300 px-2.5 py-1 rounded-lg";
+        b.className = "text-xs bg-slate-800 hover:bg-rose-700 text-slate-300 px-2.5 py-1.5 rounded-lg";
         b.textContent = `${c.bossCode} (${c.bossName})`;
         b.onclick = () => {
           document.getElementById("input-boss-code").value = c.bossCode;
@@ -663,7 +701,7 @@
       angelQuick.innerHTML = "";
       Object.keys(CONFIG.angelCodes).forEach(code => {
         const b = document.createElement("button");
-        b.className = "text-xs bg-slate-800 hover:bg-emerald-700 text-slate-300 px-2.5 py-1 rounded-lg";
+        b.className = "text-xs bg-slate-800 hover:bg-emerald-700 text-slate-300 px-2.5 py-1.5 rounded-lg";
         b.textContent = `${code} (第${CONFIG.angelCodes[code].teamId}隊)`;
         b.onclick = () => {
           document.getElementById("input-angel-code").value = code;
@@ -695,17 +733,37 @@
     }
 
     function openLoginPanel(type) {
-      closeLoginPanels();
-      document.getElementById(`login-panel-${type}`).classList.remove("hidden");
+      ["team", "boss", "angel", "master"].forEach(t => {
+        document.getElementById(`login-panel-${t}`).classList.add("hidden");
+      });
+      const backdrop = document.getElementById("login-modal-backdrop");
+      const targetPanel = document.getElementById(`login-panel-${type}`);
+      backdrop.classList.remove("hidden");
+      targetPanel.classList.remove("hidden");
+
+      // 自動聚焦輸入框方便手機直接打字
+      setTimeout(() => {
+        if (type === "boss") document.getElementById("input-boss-code").focus();
+        if (type === "angel") document.getElementById("input-angel-code").focus();
+        if (type === "master") document.getElementById("input-master-pin").focus();
+      }, 100);
     }
 
     function closeLoginPanels() {
+      document.getElementById("login-modal-backdrop").classList.add("hidden");
       ["team", "boss", "angel", "master"].forEach(t => {
         document.getElementById(`login-panel-${t}`).classList.add("hidden");
       });
     }
 
+    function handleBackdropClick(e) {
+      if (e.target.id === "login-modal-backdrop") {
+        closeLoginPanels();
+      }
+    }
+
     function loginAsTeam(teamId) {
+      closeLoginPanels();
       currentSession = { role: "team", teamId };
       sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
       lastSeenEventTs = Date.now();
@@ -719,6 +777,7 @@
         alert("找不到此關主代號！請輸入 B01 ~ B07");
         return;
       }
+      closeLoginPanels();
       currentSession = { role: "boss", bossCode: code, clueId: clue.id };
       sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
       applySessionRole();
@@ -731,6 +790,7 @@
         alert("找不到此小天使代號！請輸入 A01 ~ A12");
         return;
       }
+      closeLoginPanels();
       currentSession = { role: "angel", angelCode: code, teamId: info.teamId };
       sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
       applySessionRole();
@@ -742,6 +802,7 @@
         alert("總關主密碼錯誤！");
         return;
       }
+      closeLoginPanels();
       currentSession = { role: "master" };
       sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
       applySessionRole();
@@ -783,11 +844,12 @@
         badge.textContent = `👑 總關主控台`;
         document.getElementById("view-master").classList.remove("hidden");
       }
+      window.scrollTo({ top: 0, behavior: "smooth" });
       renderCurrentView();
     }
 
     // =========================================================
-    // 3. 畫面渲染與計時器計算
+    // 3. 畫面渲染與計時器計算 (含提前結束 2 分鐘倒數邏輯)
     // =========================================================
     function formatSeconds(sec) {
       const s = Math.max(0, Math.floor(sec));
@@ -800,6 +862,26 @@
       const end = team.stopTime || Date.now();
       const rawSec = Math.floor((end - team.startTime) / 1000);
       return Math.max(0, rawSec + (team.penaltySec || 0));
+    }
+
+    // 提前結束指定小隊的手機 2 分鐘倒數
+    function stopPhoneLifelineCountdown(teamId) {
+      const team = STATE.teams[teamId];
+      if (!team) return;
+      team.lifelinePhoneUntil = 0;
+      saveState();
+      updateLiveTimers();
+    }
+
+    // 總關主一鍵停止目前倒數中的手機求救
+    function stopAllPhoneLifelines() {
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        if (STATE.teams[i].lifelinePhoneUntil > Date.now()) {
+          STATE.teams[i].lifelinePhoneUntil = 0;
+        }
+      }
+      saveState();
+      updateLiveTimers();
     }
 
     function updateLiveTimers() {
@@ -964,7 +1046,6 @@
           }
         `;
       } else if (clue.type === "folder") {
-        // 12 小隊不同顏色雲端資料夾
         let foldersHtml = "";
         for (let i = 1; i <= CONFIG.teamCount; i++) {
           const colorCls = TEAM_COLORS[(i - 1) % TEAM_COLORS.length];
@@ -1098,7 +1179,6 @@
 
     function triggerClueByCode(rawCode) {
       let clean = rawCode.trim().toUpperCase();
-      // 支援掃描完整網址帶有 ?clue=CLUE01
       if (clean.includes("CLUE=")) {
         const m = clean.match(/CLUE=(CLUE\d+)/i);
         if (m) clean = m[1].toUpperCase();
@@ -1364,6 +1444,7 @@
 
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const t = STATE.teams[i];
+        const isCountingPhone = (t.lifelinePhoneUntil - Date.now()) > 0;
         const card = document.createElement("div");
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3";
         card.innerHTML = `
@@ -1378,15 +1459,21 @@
             </div>
           </div>
 
-          <!-- 兩個求救按鈕 -->
+          <!-- 兩個求救按鈕 (若手機2分鐘正在倒數中，直接顯示停止鈕) -->
           <div class="grid grid-cols-2 gap-2 pt-1">
-            <button onclick="masterTriggerLifeline(${i}, 'phone')" ${t.lifelinePhoneUsed ? "disabled" : ""} class="${
-              t.lifelinePhoneUsed
-                ? "bg-slate-800 text-slate-500 cursor-not-allowed"
-                : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40"
-            } py-2 px-3 rounded-xl text-xs font-bold transition">
-              📱 ${t.lifelinePhoneUsed ? "手機2分鐘(已用)" : "啟用：手機 2 分鐘"}
-            </button>
+            ${
+              isCountingPhone
+                ? `<button onclick="stopPhoneLifelineCountdown(${i})" class="bg-rose-600 hover:bg-rose-500 text-white py-2 px-3 rounded-xl text-xs font-black animate-pulse">
+                     ⏹️ 停止手機倒數
+                   </button>`
+                : `<button onclick="masterTriggerLifeline(${i}, 'phone')" ${t.lifelinePhoneUsed ? "disabled" : ""} class="${
+                     t.lifelinePhoneUsed
+                       ? "bg-slate-800 text-slate-500 cursor-not-allowed"
+                       : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40"
+                   } py-2 px-3 rounded-xl text-xs font-bold transition">
+                     📱 ${t.lifelinePhoneUsed ? "手機2分鐘(已用)" : "啟用：手機 2 分鐘"}
+                   </button>`
+            }
             <button onclick="masterTriggerLifeline(${i}, 'word')" ${t.lifelineWordUsed ? "disabled" : ""} class="${
               t.lifelineWordUsed
                 ? "bg-slate-800 text-slate-500 cursor-not-allowed"
@@ -1424,7 +1511,7 @@
           ts: Date.now(),
           type: "bonus",
           title: "📱 已啟用【使用手機 2 分鐘】！",
-          message: "總關主已為你們開啟 2 分鐘手機查詢時間，畫面頂部開始倒數計時！",
+          message: "總關主已為你們開啟 2 分鐘手機查詢時間，若提前查到答案可直接按下「提前結束倒數」！",
           hint: null
         };
       } else {
@@ -1486,7 +1573,6 @@
         t.unlockedClues = CONFIG.clues.map(c => c.id);
         t.startTime = now - (1200 + i * 55) * 1000;
         t.stopTime = now;
-        // 故意製造「早回來但被罰很多秒」與「晚一點回來但零失誤扣秒」的刺激翻盤感
         t.penaltySec = (i % 3 === 0) ? -90 : (i % 2 === 0 ? 180 : 30);
         t.finishOrder = i;
         t.answerSubmitted = true;
@@ -1513,7 +1599,6 @@
         descEl.textContent = "🔥【階段 3：最終大翻盤！計入加減秒後的真正總時間積分】真正耗時最短的第 1 名直接 +15 分、第 2 名 +13 分... 最終總冠軍誕生！";
       }
 
-      // 計算各隊真實總秒數排名
       const teamArr = Object.values(STATE.teams);
       const timeSorted = [...teamArr].sort((a, b) => getTeamTotalSeconds(a) - getTeamTotalSeconds(b));
       const timeRankPointsMap = {};
@@ -1641,9 +1726,7 @@
       const baseUrl = window.location.origin + window.location.pathname;
 
       let html = "";
-      // 15 個提示 QR Code
       CONFIG.clues.forEach(c => {
-        const targetUrl = `${baseUrl}?clue=${c.code}`;
         const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(c.code)}`;
         html += `
           <div class="border-2 border-slate-800 rounded-xl p-4 text-center space-y-2 flex flex-col items-center">
