@@ -43,8 +43,8 @@
     </div>
     <div id="role-status-bar" class="hidden items-center gap-2 shrink-0">
       <span id="current-role-badge" class="text-xs font-bold bg-slate-800 text-amber-400 px-3 py-1.5 rounded-full border border-slate-700"></span>
-      <button onclick="requestLogout()" class="text-xs bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">
-        <i class="fa-solid fa-right-from-bracket mr-1"></i>切換身分
+      <button onclick="requestLogout()" class="text-xs bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-400 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="需工作人員密碼才可解鎖切換">
+        <i class="fa-solid fa-lock mr-1"></i>切換
       </button>
     </div>
   </header>
@@ -100,7 +100,7 @@
     </section>
 
     <!-- ==========================================
-         彈出式角色登入對話框 (w-[92vw] max-w-sm 完美適配手機寬度)
+         彈出式角色登入對話框 (無測試捷徑按鈕、嚴格綁定鎖定)
     =========================================== -->
     <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="w-[92vw] max-w-sm animate-pop-in">
@@ -116,50 +116,49 @@
           <div id="lobby-team-grid" class="grid grid-cols-3 gap-2.5 max-h-[60vh] overflow-y-auto"></div>
         </div>
 
-        <!-- 彈窗 2：關主代號 (上下滿版排列，絕不超出手機寬度) -->
+        <!-- 彈窗 2：關主代號 (無任何快速按鈕，僅限輸入專屬代號) -->
         <div id="login-panel-boss" class="hidden bg-slate-900 border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="font-black text-lg text-rose-300">我是關主 — 輸入代號</h3>
+            <h3 class="font-black text-lg text-rose-300">我是關主</h3>
             <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
-            <input id="input-boss-code" type="text" placeholder="請輸入關主代號 (B01~B07)" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black uppercase tracking-widest text-center text-base">
+            <input id="input-boss-code" type="text" placeholder="請輸入你的關主專屬代號" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black uppercase tracking-widest text-center text-base">
             <button onclick="loginAsBoss()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認進入
             </button>
           </div>
-          <div class="flex flex-wrap gap-1.5 pt-1" id="quick-boss-btns"></div>
         </div>
 
-        <!-- 彈窗 3：小天使代號 (上下滿版排列，絕不超出手機寬度) -->
+        <!-- 彈窗 3：隨隊小天使 (與小隊一致顯示「第 1~12 小隊」＋代號驗證，點選後嚴格綁定) -->
         <div id="login-panel-angel" class="hidden bg-slate-900 border-2 border-emerald-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="font-black text-lg text-emerald-300">我是隨隊小天使 — 輸入代號</h3>
+            <h3 class="font-black text-lg text-emerald-300">我是隨隊小天使</h3>
             <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
-            <input id="input-angel-code" type="text" placeholder="請輸入小天使代號 (A01~A12)" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black uppercase tracking-widest text-center text-base">
+            <select id="select-angel-team" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black text-center text-base"></select>
+            <input id="input-angel-code" type="password" placeholder="請輸入小天使代號" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black uppercase tracking-widest text-center text-base">
             <button onclick="loginAsAngel()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
-              確認進入
+              確認綁定小隊
             </button>
           </div>
-          <div class="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto pt-1" id="quick-angel-btns"></div>
         </div>
 
-        <!-- 彈窗 4：總關主密碼 (上下滿版排列，絕不超出手機寬度) -->
+        <!-- 彈窗 4：總關主密碼 -->
         <div id="login-panel-master" class="hidden bg-slate-900 border-2 border-amber-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="font-black text-lg text-amber-300">我是總關主 — 請輸入密碼</h3>
+            <h3 class="font-black text-lg text-amber-300">我是總關主</h3>
             <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
-            <input id="input-master-pin" type="password" inputmode="numeric" placeholder="請輸入總關主密碼" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black tracking-widest text-center text-base">
+            <input id="input-master-pin" type="password" inputmode="numeric" placeholder="請輸入密碼" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black tracking-widest text-center text-base">
             <button onclick="loginAsMaster()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認進入
             </button>
@@ -173,11 +172,10 @@
          1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- 頂部計時與小隊資訊卡 -->
       <div class="bg-gradient-to-r from-slate-900 to-blue-950 border border-blue-500/40 rounded-2xl p-4 shadow-lg">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <span class="text-xs text-blue-300 font-bold">目前小隊</span>
+            <span class="text-xs text-blue-300 font-bold">目前綁定隊伍</span>
             <h2 id="team-header-name" class="text-2xl font-black text-white">第 1 小隊</h2>
           </div>
           <div class="text-right">
@@ -206,7 +204,7 @@
             </div>
           </div>
 
-          <!-- 手機 2 分鐘倒數橫幅 (含提前停止按鈕) -->
+          <!-- 手機 2 分鐘倒數橫幅 -->
           <div id="team-phone-countdown-box" class="hidden mt-3 bg-amber-500 text-slate-950 font-black p-3 rounded-xl space-y-2 shadow-lg">
             <div class="flex items-center justify-between">
               <span class="text-sm">📱 手機搜尋倒數：</span>
@@ -233,14 +231,9 @@
         </div>
 
         <div class="flex gap-2">
-          <input id="input-clue-code" type="text" placeholder="輸入代碼 (CLUE01~15)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white uppercase">
+          <input id="input-clue-code" type="text" placeholder="輸入提示代碼 (如 CLUE01)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white uppercase">
           <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-sm shrink-0">送出</button>
         </div>
-
-        <details class="text-xs text-slate-400 pt-1">
-          <summary class="cursor-pointer hover:text-slate-200 font-bold">👉 展開 15 個提示測試按鈕</summary>
-          <div id="team-quick-clue-btns" class="grid grid-cols-5 gap-1.5 mt-2"></div>
-        </details>
       </div>
 
       <!-- 當前觸發的關卡互動區 -->
@@ -264,8 +257,8 @@
     =========================================== -->
     <section id="view-boss" class="hidden space-y-4">
       <div class="bg-gradient-to-r from-rose-950 to-slate-900 border border-rose-500/40 rounded-2xl p-4 space-y-2">
-        <span id="boss-badge-code" class="bg-rose-500 text-white text-xs font-black px-3 py-1 rounded-full">關主 B01</span>
-        <h2 id="boss-header-title" class="text-xl font-black text-white pt-1">第一關主</h2>
+        <span id="boss-badge-code" class="bg-rose-500 text-white text-xs font-black px-3 py-1 rounded-full">關主</span>
+        <h2 id="boss-header-title" class="text-xl font-black text-white pt-1">關主審核專區</h2>
         <p id="boss-task-desc" class="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800"></p>
         <div class="text-xs text-amber-300 font-bold">
           🎁 本關提示：<span id="boss-hint-preview" class="text-white"></span>
@@ -298,12 +291,12 @@
     </section>
 
     <!-- ==========================================
-         3. 小天使端 (Angel View)
+         3. 小天使端 (Angel View - 綁定單一小隊)
     =========================================== -->
     <section id="view-angel" class="hidden space-y-4">
       <div class="bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500/40 rounded-2xl p-4 flex items-center justify-between">
         <div>
-          <span id="angel-badge-code" class="bg-emerald-500 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full">小天使 A01</span>
+          <span id="angel-badge-code" class="bg-emerald-500 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full">隨隊小天使</span>
           <h2 id="angel-header-title" class="text-xl font-black text-white mt-1">第 1 小隊專區</h2>
         </div>
         <div class="text-right bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
@@ -443,7 +436,8 @@
       gameTitle: "關關難過關關過",
       teamCount: 12,
       masterPin: "9999",
-      switchPin: "1234",
+      angelPin: "8888",    // 小天使統一驗證代號 (也可接受 A01~A12 或直接輸入小隊編號)
+      switchPin: "1234",   // 切換身分/登出防弊密碼
       bossFailPenaltySec: 60,
       bossBonusRewardSec: 30,
       folderPeekPenaltySec: 45,
@@ -498,7 +492,7 @@
     ];
 
     const STORAGE_KEY = "GOFIGHTING_STATE_V2";
-    const SESSION_ROLE_KEY = "GOFIGHTING_SESSION_ROLE";
+    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V2";
     let firebaseUrl = localStorage.getItem("GOFIGHTING_FB_URL") || "";
 
     function createInitialState() {
@@ -528,7 +522,8 @@
     }
 
     let STATE = loadState();
-    let currentSession = JSON.parse(sessionStorage.getItem(SESSION_ROLE_KEY) || "null");
+    // 使用 localStorage 永久綁定身分，重整網頁也不會跳回大廳
+    let currentSession = JSON.parse(localStorage.getItem(LOCKED_ROLE_KEY) || "null");
     let lastSeenEventTs = Date.now();
     let html5QrScanner = null;
 
@@ -582,60 +577,33 @@
     });
 
     function initLobby() {
+      // 1. 產生闖關小隊 1~12 隊按鈕
       const grid = document.getElementById("lobby-team-grid");
       grid.innerHTML = "";
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const btn = document.createElement("button");
         btn.className = "bg-slate-950 hover:bg-blue-600 active:scale-95 border border-slate-700 text-white font-black py-3.5 rounded-xl text-sm transition shadow";
         btn.textContent = `第 ${i} 小隊`;
-        btn.onclick = () => loginAsTeam(i);
+        btn.onclick = () => {
+          if (confirm(`確認將這支手機綁定為【第 ${i} 小隊】嗎？綁定後將鎖定無法隨意切換！`)) {
+            loginAsTeam(i);
+          }
+        };
         grid.appendChild(btn);
       }
 
-      const bossQuick = document.getElementById("quick-boss-btns");
-      bossQuick.innerHTML = "";
-      CONFIG.clues.filter(c => c.type === "boss").forEach(c => {
-        const b = document.createElement("button");
-        b.className = "text-xs bg-slate-800 hover:bg-rose-700 text-slate-300 px-2.5 py-1.5 rounded-lg";
-        b.textContent = c.bossCode;
-        b.onclick = () => {
-          document.getElementById("input-boss-code").value = c.bossCode;
-          loginAsBoss();
-        };
-        bossQuick.appendChild(b);
-      });
-
-      const angelQuick = document.getElementById("quick-angel-btns");
-      angelQuick.innerHTML = "";
-      Object.keys(CONFIG.angelCodes).forEach(code => {
-        const b = document.createElement("button");
-        b.className = "text-xs bg-slate-800 hover:bg-emerald-700 text-slate-300 px-2.5 py-1.5 rounded-lg";
-        b.textContent = code;
-        b.onclick = () => {
-          document.getElementById("input-angel-code").value = code;
-          loginAsAngel();
-        };
-        angelQuick.appendChild(b);
-      });
-
-      const params = new URLSearchParams(window.location.search);
-      const urlRole = params.get("role");
-      const urlCode = params.get("code");
-      const urlClue = params.get("clue");
-
-      if (urlRole === "boss" && urlCode) {
-        document.getElementById("input-boss-code").value = urlCode;
-        loginAsBoss();
-      } else if (urlRole === "angel" && urlCode) {
-        document.getElementById("input-angel-code").value = urlCode;
-        loginAsAngel();
+      // 2. 產生小天使「第 1 小隊 ~ 第 12 小隊」選單 (不再顯示 A01)
+      const angelSelect = document.getElementById("select-angel-team");
+      angelSelect.innerHTML = `<option value="">-- 請選擇你負責的小隊 --</option>`;
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `第 ${i} 小隊`;
+        angelSelect.appendChild(opt);
       }
 
       if (currentSession) {
         applySessionRole();
-        if (urlClue && currentSession.role === "team") {
-          triggerClueByCode(urlClue);
-        }
       }
     }
 
@@ -667,34 +635,58 @@
     function loginAsTeam(teamId) {
       closeLoginPanels();
       currentSession = { role: "team", teamId };
-      sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
       lastSeenEventTs = Date.now();
       applySessionRole();
     }
 
     function loginAsBoss() {
-      const code = document.getElementById("input-boss-code").value.trim().toUpperCase();
-      const clue = CONFIG.clues.find(c => c.type === "boss" && c.bossCode.toUpperCase() === code);
+      const code = document.getElementById("input-boss-code").value.trim();
+      if (!code) {
+        alert("請輸入關主代號！");
+        return;
+      }
+      const clue = CONFIG.clues.find(c => c.type === "boss" && c.bossCode.toUpperCase() === code.toUpperCase());
       if (!clue) {
-        alert("找不到此關主代號！請輸入 B01 ~ B07");
+        alert("關主代號錯誤！請確認輸入的代號是否正確。");
         return;
       }
       closeLoginPanels();
-      currentSession = { role: "boss", bossCode: code, clueId: clue.id };
-      sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
+      currentSession = { role: "boss", bossCode: clue.bossCode, clueId: clue.id };
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
       applySessionRole();
     }
 
     function loginAsAngel() {
+      const teamId = parseInt(document.getElementById("select-angel-team").value, 10);
       const code = document.getElementById("input-angel-code").value.trim().toUpperCase();
-      const info = CONFIG.angelCodes[code];
-      if (!info) {
-        alert("找不到此小天使代號！請輸入 A01 ~ A12");
+      if (!teamId) {
+        alert("請先選擇你是第幾小隊的小天使！");
         return;
       }
+      if (!code) {
+        alert("請輸入小天使代號！");
+        return;
+      }
+
+      // 支援輸入統一密碼 (預設 8888)、或是對應小隊的代號 (如 A01 或自訂代號)
+      const expectedKey = `A${String(teamId).padStart(2, "0")}`;
+      const customAngel = CONFIG.angelCodes && CONFIG.angelCodes[code];
+      const validPin = CONFIG.angelPin || "8888";
+
+      const isPassValid =
+        code === validPin.toUpperCase() ||
+        code === expectedKey ||
+        (customAngel && customAngel.teamId === teamId);
+
+      if (!isPassValid) {
+        alert("小天使驗證代號錯誤！");
+        return;
+      }
+
       closeLoginPanels();
-      currentSession = { role: "angel", angelCode: code, teamId: info.teamId };
-      sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
+      currentSession = { role: "angel", teamId };
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
       applySessionRole();
     }
 
@@ -706,13 +698,22 @@
       }
       closeLoginPanels();
       currentSession = { role: "master" };
-      sessionStorage.setItem(SESSION_ROLE_KEY, JSON.stringify(currentSession));
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
       applySessionRole();
     }
 
+    // 登出與切換身分受密碼保護，防止小隊或小天使自行切換偷看
     function requestLogout() {
+      if (currentSession && currentSession.role !== "master") {
+        const pin = prompt("【防切換鎖定】請輸入工作人員解鎖密碼才可切換身分：");
+        if (pin === null) return;
+        if (pin.trim() !== CONFIG.switchPin && pin.trim() !== CONFIG.masterPin) {
+          alert("解鎖密碼錯誤！身分已鎖定無法切換。");
+          return;
+        }
+      }
       stopCameraScanner();
-      sessionStorage.removeItem(SESSION_ROLE_KEY);
+      localStorage.removeItem(LOCKED_ROLE_KEY);
       currentSession = null;
       ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
         document.getElementById(id).classList.add("hidden");
@@ -740,7 +741,7 @@
         badge.textContent = `關主 ${currentSession.bossCode}`;
         document.getElementById("view-boss").classList.remove("hidden");
       } else if (currentSession.role === "angel") {
-        badge.textContent = `小天使 ${currentSession.angelCode}`;
+        badge.textContent = `第 ${currentSession.teamId} 小隊小天使`;
         document.getElementById("view-angel").classList.remove("hidden");
       } else if (currentSession.role === "master") {
         badge.textContent = `總關主`;
@@ -864,21 +865,6 @@
         wordTxt.textContent = "剩 1 次";
       }
 
-      const quickContainer = document.getElementById("team-quick-clue-btns");
-      quickContainer.innerHTML = "";
-      CONFIG.clues.forEach(c => {
-        const unlocked = team.unlockedClues.includes(c.id);
-        const btn = document.createElement("button");
-        btn.className = `py-2 rounded-lg font-bold text-xs border transition ${
-          unlocked
-            ? "bg-emerald-950/80 border-emerald-500/50 text-emerald-300"
-            : "bg-slate-950 border-slate-700 text-slate-300"
-        }`;
-        btn.textContent = `#${String(c.id).padStart(2, "0")}`;
-        btn.onclick = () => triggerClueByCode(c.code);
-        quickContainer.appendChild(btn);
-      });
-
       const activePanel = document.getElementById("team-active-clue-panel");
       if (team.activeClueId) {
         const clue = CONFIG.clues.find(c => c.id === team.activeClueId);
@@ -929,7 +915,7 @@
           ${
             isUnlocked
               ? `<div class="bg-emerald-950/80 border border-emerald-500/50 p-3 rounded-xl text-emerald-200 font-bold text-xs">✅ ${clue.hintText}</div>`
-              : `<div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs text-amber-300 font-bold animate-pulse">⏳ 等待關主手機審核中...</div>`
+              : `<div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs text-amber-300 font-bold animate-pulse">⏳ 等待關主審核中...</div>`
           }
         `;
       } else if (clue.type === "folder") {
@@ -939,7 +925,7 @@
           foldersHtml += `
             <button onclick="clickCloudFolder(${clue.id}, ${i})" class="${colorCls} border-2 rounded-xl p-2.5 flex flex-col items-center justify-center gap-1 shadow active:scale-95 transition">
               <i class="fa-solid fa-folder-open text-xl"></i>
-              <span class="text-xs font-black">第 ${i} 隊</span>
+              <span class="text-xs font-black">第 ${i} 小隊</span>
             </button>
           `;
         }
@@ -1107,7 +1093,7 @@
 
     function renderBossView() {
       const clue = CONFIG.clues.find(c => c.id === currentSession.clueId);
-      document.getElementById("boss-badge-code").textContent = `關主 ${currentSession.bossCode}`;
+      document.getElementById("boss-badge-code").textContent = `關主代號：${currentSession.bossCode}`;
       document.getElementById("boss-header-title").textContent = clue.bossName;
       document.getElementById("boss-task-desc").textContent = clue.taskDesc;
       document.getElementById("boss-hint-preview").textContent = clue.hintText;
@@ -1173,10 +1159,11 @@
     function renderAngelView() {
       const teamId = currentSession.teamId;
       const team = STATE.teams[teamId];
-      const angelConf = CONFIG.angelCodes[currentSession.angelCode];
+      const angelKey = `A${String(teamId).padStart(2, "0")}`;
+      const angelConf = CONFIG.angelCodes && CONFIG.angelCodes[angelKey];
       const secret = (angelConf && angelConf.secret1A2B) || CONFIG.default1A2B;
 
-      document.getElementById("angel-badge-code").textContent = `小天使 ${currentSession.angelCode}`;
+      document.getElementById("angel-badge-code").textContent = `隨隊小天使 (已綁定第 ${teamId} 小隊)`;
       document.getElementById("angel-header-title").textContent = `第 ${teamId} 小隊專區`;
       document.getElementById("angel-secret-display").textContent = secret;
 
@@ -1211,7 +1198,9 @@
     function checkAngel1A2B() {
       const input = document.getElementById("angel-1a2b-input");
       const guess = input.value.trim();
-      const angelConf = CONFIG.angelCodes[currentSession.angelCode];
+      const teamId = currentSession.teamId;
+      const angelKey = `A${String(teamId).padStart(2, "0")}`;
+      const angelConf = CONFIG.angelCodes && CONFIG.angelCodes[angelKey];
       const secret = String((angelConf && angelConf.secret1A2B) || CONFIG.default1A2B);
 
       if (guess.length !== 4 || !/^\d{4}$/.test(guess)) {
