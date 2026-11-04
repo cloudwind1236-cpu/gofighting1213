@@ -1,70 +1,1612 @@
-// ==========================================
-// 🎯 【關關難過關關過】獨立題庫與規則設定檔 (config.js)
-// ==========================================
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>關關難過關關過 - 實境解謎</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- HTML5 QRCode 實機相機掃描套件 -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- 讀取獨立題庫設定檔 config.js -->
+  <script src="config.js"></script>
+  <style>
+    body { font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden; }
+    @keyframes pop-in {
+      0% { opacity: 0; transform: scale(0.92) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop-in { animation: pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .bar-transition { transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.5s ease; }
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; left: 0; top: 0; width: 100%; }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen pb-16">
 
-window.CUSTOM_GAME_CONFIG = {
-  // 1. Firebase 跨手機即時連線網址
-  firebaseUrl: "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app",
+  <!-- 頂部導覽列 -->
+  <header class="sticky top-0 z-40 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center justify-between no-print">
+    <div class="flex items-center gap-2 min-w-0">
+      <span class="bg-gradient-to-r from-amber-500 to-orange-600 text-slate-950 font-black px-2.5 py-1 rounded-lg text-sm shrink-0">實境解謎</span>
+      <h1 id="header-title" class="font-black text-lg tracking-wide text-white truncate">關關難過關關過</h1>
+      <span id="cloud-badge" class="hidden text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-full font-bold shrink-0" title="Firebase 跨手機雲端同步連線中">
+        <i class="fa-solid fa-cloud"></i>
+      </span>
+    </div>
+    <div id="role-status-bar" class="hidden items-center gap-2 shrink-0">
+      <span id="current-role-badge" class="text-xs font-bold bg-slate-800 text-amber-400 px-3 py-1.5 rounded-full border border-slate-700"></span>
+      <button onclick="requestLogout()" class="text-xs bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-400 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="輸入 1123 即可解鎖切換身分">
+        <i class="fa-solid fa-lock mr-1"></i>切換
+      </button>
+    </div>
+  </header>
 
-  // 2. 活動基本設定與萬用最高權限密碼 (1123)
-  gameTitle: "關關難過關關過",
-  teamCount: 12,
-  superPin: "1123",            // 你的最高權限萬用密碼 (所有角色與解鎖皆可用)
-  masterPin: "1123",           // 總關主密碼
-  angelPin: "8888",            // 小天使通用密碼 (輸入 1123 也能進)
-  switchPin: "1123",           // 切換身分防弊密碼
+  <main class="max-w-xl mx-auto p-4 no-print">
 
-  // 3. 獎懲秒數設定 (單位：秒)
-  bossFailPenaltySec: 60,      // 關主按「失敗」懲罰加幾秒 (+60秒)
-  bossBonusRewardSec: 30,      // 關主按「加分題」獎勵扣幾秒 (-30秒)
-  folderPeekPenaltySec: 45,    // 偷點別隊雲端資料夾懲罰加幾秒 (+45秒)
-  folderPeekText: "抓到偷看別隊資料夾！全隊請立刻原地開合跳 20 下，並且系統已自動增加 45 秒懲罰時間！",
+    <!-- ==========================================
+         0. 極簡清爽版：身分選擇大廳
+    =========================================== -->
+    <section id="view-lobby" class="space-y-6 py-6">
+      <div class="text-center">
+        <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">請選擇你的現場身分</h2>
+      </div>
 
-  // 4. 最終三大題目與正確答案
-  questions: [
-    { id: 1, title: "第一題：校園歷史之謎", prompt: "請輸入第一題答案：", answer: "同心協力" },
-    { id: 2, title: "第二題：操場方位密碼", prompt: "請輸入第二題答案：", answer: "2026" },
-    { id: 3, title: "第三題：終極精神口號", prompt: "請輸入第三題答案：", answer: "永不放棄" }
-  ],
+      <!-- 四大身分極簡入口卡片 -->
+      <div class="grid grid-cols-1 gap-3.5">
+        <!-- 1. 闖關小隊 -->
+        <button onclick="openLoginPanel('team')" class="w-full flex items-center justify-between bg-gradient-to-r from-blue-950/90 to-slate-900 hover:from-blue-900/90 active:scale-[0.98] border-2 border-blue-500/50 rounded-2xl p-5 transition shadow-lg">
+          <div class="flex items-center gap-3.5">
+            <span class="w-11 h-11 rounded-xl bg-blue-500/20 text-blue-400 flex items-center justify-center text-2xl shrink-0">🏃</span>
+            <span class="text-lg sm:text-xl font-black text-white">1. 我是闖關小隊</span>
+          </div>
+          <span class="text-xs font-bold bg-blue-500/20 text-blue-300 px-3 py-1.5 rounded-full shrink-0">點擊選擇小隊</span>
+        </button>
 
-  // 5. 12 小隊專屬 1A2B 謎底
-  default1A2B: "7943",
-  angelCodes: {
-    "A01": { teamId: 1,  secret1A2B: "7943" },
-    "A02": { teamId: 2,  secret1A2B: "1213" },
-    "A03": { teamId: 3,  secret1A2B: "3942" },
-    "A04": { teamId: 4,  secret1A2B: "8372" },
-    "A05": { teamId: 5,  secret1A2B: "5721" },
-    "A06": { teamId: 6,  secret1A2B: "4873" },
-    "A07": { teamId: 7,  secret1A2B: "9580" },
-    "A08": { teamId: 8,  secret1A2B: "6478" },
-    "A09": { teamId: 9,  secret1A2B: "7245" },
-    "A10": { teamId: 10, secret1A2B: "5243" },
-    "A11": { teamId: 11, secret1A2B: "2593" },
-    "A12": { teamId: 12, secret1A2B: "1948" }
-  },
+        <!-- 2. 關主端 -->
+        <button onclick="openLoginPanel('boss')" class="w-full flex items-center justify-between bg-gradient-to-r from-rose-950/90 to-slate-900 hover:from-rose-900/90 active:scale-[0.98] border-2 border-rose-500/50 rounded-2xl p-5 transition shadow-lg">
+          <div class="flex items-center gap-3.5">
+            <span class="w-11 h-11 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center text-2xl shrink-0">⚔️</span>
+            <span class="text-lg sm:text-xl font-black text-white">2. 我是關主</span>
+          </div>
+          <span class="text-xs font-bold bg-rose-500/20 text-rose-300 px-3 py-1.5 rounded-full shrink-0">點擊輸入代號</span>
+        </button>
 
-  // 6. 操場 15 個提示 QR 碼設定 (bossCode 可隨時改為關主自訂代號)
-  clues: [
-    // --- 第一題的 5 個提示 (qId: 1) ---
-    { id: 1,  code: "CLUE01", qId: 1, type: "boss",   bossCode: "B01", bossName: "第一關主(體力關)", taskDesc: "請前往操場司令台旁尋找【第一關主】，全隊完成跳繩考驗！", hintText: "【提示01】第一題答案的第一個字是「同」" },
-    { id: 2,  code: "CLUE02", qId: 1, type: "boss",   bossCode: "B02", bossName: "第二關主(默契關)", taskDesc: "請前往籃球場尋找【第二關主】，完成兩人三腳考驗！", hintText: "【提示02】第一題答案的第二個字部首是「心」" },
-    { id: 3,  code: "CLUE03", qId: 1, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 A", taskDesc: "請點選「自己小隊」的資料夾領取提示（嚴禁偷看別隊！）", hintText: "【提示03】第一題答案的第二個字就是「心」" },
-    { id: 4,  code: "CLUE04", qId: 1, type: "angel",  bossCode: "",    bossName: "隨隊小天使任務(一)", taskDesc: "請全隊一起對隨隊小天使比出愛心並大喊隊呼，由小天使按下過關！", hintText: "【提示04】第一題答案的第三個字是「協」" },
-    { id: 5,  code: "CLUE05", qId: 1, type: "boss",   bossCode: "B03", bossName: "第三關主(觀察關)", taskDesc: "請前往跑道起點尋找【第三關主】接受記憶考驗！", hintText: "【提示05】第一題答案的第四個字是「力」" },
+        <!-- 3. 小天使端 -->
+        <button onclick="openLoginPanel('angel')" class="w-full flex items-center justify-between bg-gradient-to-r from-emerald-950/90 to-slate-900 hover:from-emerald-900/90 active:scale-[0.98] border-2 border-emerald-500/50 rounded-2xl p-5 transition shadow-lg">
+          <div class="flex items-center gap-3.5">
+            <span class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl shrink-0">👼</span>
+            <span class="text-lg sm:text-xl font-black text-white">3. 我是隨隊小天使</span>
+          </div>
+          <span class="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-full shrink-0">點擊輸入代號</span>
+        </button>
 
-    // --- 第二題的 5 個提示 (qId: 2) ---
-    { id: 6,  code: "CLUE06", qId: 2, type: "boss",   bossCode: "B04", bossName: "第四關主(腦力關)", taskDesc: "請前往大樹下尋找【第四關主】解開火柴棒謎題！", hintText: "【提示06】第二題密碼的第一個數字是「2」" },
-    { id: 7,  code: "CLUE07", qId: 2, type: "angel",  bossCode: "",    bossName: "小天使 1A2B 破譯關", taskDesc: "請向隨隊小天使挑戰【1A2B 猜數字】，猜中後由小天使發送提示！", hintText: "【提示07】第二題密碼的第二個數字是「0」" },
-    { id: 8,  code: "CLUE08", qId: 2, type: "boss",   bossCode: "B05", bossName: "第五關主(反應關)", taskDesc: "請前往排球場尋找【第五關主】挑戰猜拳連勝！", hintText: "【提示08】第二題密碼的第三個數字跟第一個數字一樣" },
-    { id: 9,  code: "CLUE09", qId: 2, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 B", taskDesc: "請點選自己小隊的專屬資料夾領取提示！", hintText: "【提示09】第二題密碼的第四個數字是「6」" },
-    { id: 10, code: "CLUE10", qId: 2, type: "angel",  bossCode: "",    bossName: "隨隊小天使任務(二)", taskDesc: "全隊手牽手圍成一圈單腳站立維持 10 秒鐘，由小天使判定過關！", hintText: "【提示10】第二題的答案正好是今年的西元年份！" },
+        <!-- 4. 總關主端 -->
+        <button onclick="openLoginPanel('master')" class="w-full flex items-center justify-between bg-gradient-to-r from-amber-950/90 to-slate-900 hover:from-amber-900/90 active:scale-[0.98] border-2 border-amber-500/50 rounded-2xl p-5 transition shadow-lg">
+          <div class="flex items-center gap-3.5">
+            <span class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl shrink-0">👑</span>
+            <span class="text-lg sm:text-xl font-black text-white">4. 我是總關主</span>
+          </div>
+          <span class="text-xs font-bold bg-amber-500/20 text-amber-300 px-3 py-1.5 rounded-full shrink-0">請輸入密碼</span>
+        </button>
+      </div>
+    </section>
 
-    // --- 第三題的 5 個提示 (qId: 3) ---
-    { id: 11, code: "CLUE11", qId: 3, type: "boss",   bossCode: "B06", bossName: "第六關主(團結關)", taskDesc: "請前往沙坑旁尋找【第六關主】完成人體解結任務！", hintText: "【提示11】第三題答案的第一個字是「永」" },
-    { id: 12, code: "CLUE12", qId: 3, type: "boss",   bossCode: "B07", bossName: "第七關主(終極關)", taskDesc: "請前往單槓區尋找【第七關主】完成終極比手畫腳！", hintText: "【提示12】第三題答案的第二個字是「不」" },
-    { id: 13, code: "CLUE13", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 C", taskDesc: "請點選自己小隊的專屬資料夾，小心別點到隔壁隊！", hintText: "【提示13】第三題答案的第三個字是「放」" },
-    { id: 14, code: "CLUE14", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 D", taskDesc: "最後一個雲端資料夾！請點選自己小隊的顏色資料夾！", hintText: "【提示14】第三題答案的第四個字是「棄」" },
-    { id: 15, code: "CLUE15", qId: 3, type: "angel",  bossCode: "",    bossName: "隨隊小天使最終任務", taskDesc: "請全隊拍一張最有創意的大合照給小天使看，即可解鎖最後一個提示！", hintText: "【提示15】恭喜集齊！第三題答案就是「永不放棄」，快衝回總關主處答題！" }
-  ]
-};
+    <!-- ==========================================
+         彈出式角色登入對話框 (無測試捷徑按鈕、支援 1123 萬用最高權限)
+    =========================================== -->
+    <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="w-[92vw] max-w-sm animate-pop-in">
+
+        <!-- 彈窗 1：小隊選擇 -->
+        <div id="login-panel-team" class="hidden bg-slate-900 border-2 border-blue-500 rounded-3xl p-5 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-lg text-blue-300">點擊選擇小隊</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div id="lobby-team-grid" class="grid grid-cols-3 gap-2.5 max-h-[60vh] overflow-y-auto"></div>
+        </div>
+
+        <!-- 彈窗 2：關主代號 -->
+        <div id="login-panel-boss" class="hidden bg-slate-900 border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-lg text-rose-300">我是關主</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="space-y-3">
+            <input id="input-boss-code" type="text" placeholder="請輸入你的關主專屬代號" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black uppercase tracking-widest text-center text-base">
+            <button onclick="loginAsBoss()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
+              確認進入
+            </button>
+          </div>
+        </div>
+
+        <!-- 彈窗 3：隨隊小天使 -->
+        <div id="login-panel-angel" class="hidden bg-slate-900 border-2 border-emerald-500 rounded-3xl p-5 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-lg text-emerald-300">我是隨隊小天使</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="space-y-3">
+            <select id="select-angel-team" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black text-center text-base"></select>
+            <input id="input-angel-code" type="password" placeholder="請輸入小天使代號" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black uppercase tracking-widest text-center text-base">
+            <button onclick="loginAsAngel()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
+              確認綁定小隊
+            </button>
+          </div>
+        </div>
+
+        <!-- 彈窗 4：總關主密碼 -->
+        <div id="login-panel-master" class="hidden bg-slate-900 border-2 border-amber-500 rounded-3xl p-5 space-y-4 shadow-2xl">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="font-black text-lg text-amber-300">我是總關主</h3>
+            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div class="space-y-3">
+            <input id="input-master-pin" type="password" inputmode="numeric" placeholder="請輸入密碼" class="w-full min-w-0 box-border bg-slate-950 border border-slate-700 rounded-xl px-4 py-3.5 text-white font-black tracking-widest text-center text-base">
+            <button onclick="loginAsMaster()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-lg transition">
+              確認進入
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ==========================================
+         1. 闖關小隊端 (Team View)
+    =========================================== -->
+    <section id="view-team" class="hidden space-y-4">
+      <div class="bg-gradient-to-r from-slate-900 to-blue-950 border border-blue-500/40 rounded-2xl p-4 shadow-lg">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <span class="text-xs text-blue-300 font-bold">目前綁定隊伍</span>
+            <h2 id="team-header-name" class="text-2xl font-black text-white">第 1 小隊</h2>
+          </div>
+          <div class="text-right">
+            <span id="team-timer-status" class="text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">計時中</span>
+            <div id="team-timer-display" class="text-3xl font-black font-mono text-amber-400 tracking-wider mt-0.5">00:00</div>
+            <div id="team-penalty-detail" class="text-[11px] text-slate-400">獎懲：+0 秒</div>
+          </div>
+        </div>
+
+        <!-- 兩個求救按鈕 -->
+        <div class="mt-3 pt-3 border-t border-slate-800">
+          <div class="grid grid-cols-2 gap-2">
+            <div id="team-lifeline-phone" class="p-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center gap-2">
+              <i class="fa-solid fa-mobile-screen-button text-amber-400 text-base"></i>
+              <div class="min-w-0">
+                <div class="text-xs font-black text-white truncate">使用手機 2 分鐘</div>
+                <div id="team-lifeline-phone-status" class="text-[11px] text-amber-300">剩 1 次</div>
+              </div>
+            </div>
+            <div id="team-lifeline-word" class="p-2.5 rounded-xl border border-purple-500/40 bg-purple-500/10 flex items-center gap-2">
+              <i class="fa-solid fa-lightbulb text-purple-400 text-base"></i>
+              <div class="min-w-0">
+                <div class="text-xs font-black text-white truncate">提示一個字</div>
+                <div id="team-lifeline-word-status" class="text-[11px] text-purple-300">剩 1 次</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 手機 2 分鐘倒數橫幅 -->
+          <div id="team-phone-countdown-box" class="hidden mt-3 bg-amber-500 text-slate-950 font-black p-3 rounded-xl space-y-2 shadow-lg">
+            <div class="flex items-center justify-between">
+              <span class="text-sm">📱 手機搜尋倒數：</span>
+              <span id="team-phone-countdown-timer" class="text-2xl font-mono bg-slate-950 text-amber-400 px-3 py-0.5 rounded-lg">02:00</span>
+            </div>
+            <button onclick="stopPhoneLifelineCountdown(currentSession.teamId)" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-black py-2 rounded-lg shadow transition">
+              <i class="fa-solid fa-stop mr-1"></i>提前結束倒數
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 掃描 QR 碼與輸入代碼區 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-white text-sm"><i class="fa-solid fa-qrcode text-blue-400 mr-1.5"></i>掃描提示 QR 碼</h3>
+          <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black px-3.5 py-2 rounded-xl transition">
+            <i class="fa-solid fa-camera mr-1"></i>開啟相機
+          </button>
+        </div>
+
+        <div id="qr-reader-container" class="hidden bg-black rounded-xl overflow-hidden border border-blue-500/40">
+          <div id="qr-reader" class="w-full"></div>
+        </div>
+
+        <div class="flex gap-2">
+          <input id="input-clue-code" type="text" placeholder="輸入提示代碼 (如 CLUE01)" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white uppercase">
+          <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold px-4 py-2 rounded-xl text-sm shrink-0">送出</button>
+        </div>
+      </div>
+
+      <!-- 當前觸發的關卡互動區 -->
+      <div id="team-active-clue-panel" class="hidden bg-slate-900 border-2 border-amber-500/50 rounded-2xl p-4 space-y-3"></div>
+
+      <!-- 最終答題區 -->
+      <div id="team-final-answer-panel" class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3"></div>
+
+      <!-- 已獲得的提示歷史紀錄 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-white text-sm"><i class="fa-solid fa-book-open text-amber-400 mr-1.5"></i>已獲得的提示紀錄</h3>
+          <span id="team-clue-progress" class="text-xs font-bold bg-amber-500/20 text-amber-300 px-2.5 py-1 rounded-full">0 / 15</span>
+        </div>
+        <div id="team-clues-history" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         2. 關主端 (Boss View)
+    =========================================== -->
+    <section id="view-boss" class="hidden space-y-4">
+      <div class="bg-gradient-to-r from-rose-950 to-slate-900 border border-rose-500/40 rounded-2xl p-4 space-y-2">
+        <span id="boss-badge-code" class="bg-rose-500 text-white text-xs font-black px-3 py-1 rounded-full">關主</span>
+        <h2 id="boss-header-title" class="text-xl font-black text-white pt-1">關主審核專區</h2>
+        <p id="boss-task-desc" class="text-xs text-slate-300 bg-slate-950/60 p-3 rounded-xl border border-slate-800"></p>
+        <div class="text-xs text-amber-300 font-bold">
+          🎁 本關提示：<span id="boss-hint-preview" class="text-white"></span>
+        </div>
+      </div>
+
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <div>
+          <label class="block text-xs font-black text-slate-300 mb-1.5">選擇闖關小隊：</label>
+          <select id="boss-select-team" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white font-black text-base"></select>
+        </div>
+
+        <div class="space-y-2.5">
+          <button onclick="bossJudge('pass')" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.99] text-white font-black py-4 px-4 rounded-2xl shadow-lg flex items-center justify-between transition">
+            <span class="text-base">✅ 通過（發送提示）</span>
+            <i class="fa-solid fa-circle-check text-xl"></i>
+          </button>
+
+          <button onclick="bossJudge('fail')" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-[0.99] text-white font-black py-4 px-4 rounded-2xl shadow-lg flex items-center justify-between transition">
+            <span class="text-base">❌ 失敗（+<span id="boss-fail-sec-label">60</span>秒 並發送提示）</span>
+            <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+          </button>
+
+          <button onclick="bossJudge('bonus')" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-[0.99] text-slate-950 font-black py-4 px-4 rounded-2xl shadow-lg flex items-center justify-between transition">
+            <span class="text-base">🌟 加分題（-<span id="boss-bonus-sec-label">30</span>秒獎勵）</span>
+            <i class="fa-solid fa-star text-xl"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         3. 小天使端 (Angel View - 綁定單一小隊)
+    =========================================== -->
+    <section id="view-angel" class="hidden space-y-4">
+      <div class="bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-500/40 rounded-2xl p-4 flex items-center justify-between">
+        <div>
+          <span id="angel-badge-code" class="bg-emerald-500 text-slate-950 text-xs font-black px-2.5 py-0.5 rounded-full">隨隊小天使</span>
+          <h2 id="angel-header-title" class="text-xl font-black text-white mt-1">第 1 小隊專區</h2>
+        </div>
+        <div class="text-right bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800">
+          <div class="text-[10px] text-slate-400">本隊 1A2B 謎底</div>
+          <div id="angel-secret-display" class="text-lg font-mono font-black text-amber-400 tracking-widest">7943</div>
+        </div>
+      </div>
+
+      <!-- 1A2B 防呆自動計算機 -->
+      <div class="bg-slate-900 border-2 border-emerald-500/40 rounded-2xl p-4 space-y-3">
+        <h3 class="font-black text-base text-emerald-300"><i class="fa-solid fa-calculator mr-1.5"></i>1A2B 計算機</h3>
+        <div class="flex gap-2">
+          <input id="angel-1a2b-input" type="text" inputmode="numeric" maxlength="4" placeholder="輸入小隊猜的 4 位數" class="flex-1 min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3 py-3 text-lg font-mono font-black text-white tracking-widest text-center">
+          <button onclick="checkAngel1A2B()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-5 py-3 rounded-xl shrink-0">計算</button>
+        </div>
+
+        <div id="angel-1a2b-result-box" class="hidden bg-slate-950 border border-emerald-500/50 rounded-2xl p-3 text-center">
+          <div id="angel-1a2b-big-text" class="text-4xl font-black text-emerald-400 font-mono tracking-wider">2A1B</div>
+        </div>
+
+        <div id="angel-1a2b-history" class="space-y-1.5 max-h-32 overflow-y-auto text-xs"></div>
+      </div>
+
+      <!-- 小天使任務完成按鈕 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3">
+        <h3 class="font-black text-sm text-white"><i class="fa-solid fa-paper-plane text-emerald-400 mr-1.5"></i>隨隊任務卡審核</h3>
+        <div id="angel-task-list" class="space-y-2.5"></div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         4. 總關主端 (Master View)
+    =========================================== -->
+    <section id="view-master" class="hidden space-y-5">
+      <div class="bg-gradient-to-r from-amber-950 to-slate-900 border border-amber-500/40 rounded-2xl p-4 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-xl font-black text-white">👑 總關主控台</h2>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="masterStartAllTimers()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black px-3 py-2 rounded-xl">
+              <i class="fa-solid fa-play mr-1"></i>全場開賽計時
+            </button>
+            <button onclick="masterSimulateDemo()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-black px-3 py-2 rounded-xl">
+              ⚡ 模擬數據
+            </button>
+            <button onclick="openPrintModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black px-3 py-2 rounded-xl">
+              <i class="fa-solid fa-print mr-1"></i>列印QR碼
+            </button>
+            <button onclick="masterResetGame()" class="bg-rose-900 hover:bg-rose-700 text-rose-100 text-xs font-bold px-3 py-2 rounded-xl">
+              重置
+            </button>
+          </div>
+        </div>
+
+        <details class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 text-xs">
+          <summary class="cursor-pointer font-bold text-amber-300">☁️ 跨手機雲端連線設定 (已自動連接 Firebase)</summary>
+          <div class="mt-2 space-y-2">
+            <input id="input-firebase-url" type="text" placeholder="https://xxxx-default-rtdb.firebaseio.com" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
+            <button onclick="saveFirebaseUrl()" class="w-full bg-amber-500 text-slate-950 font-black py-2 rounded-lg">更新連線網址</button>
+          </div>
+        </details>
+      </div>
+
+      <!-- 總關主頁籤切換 -->
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="switchMasterTab('monitor')" id="tab-btn-monitor" class="bg-amber-500 text-slate-950 font-black py-2.5 rounded-xl text-xs">
+          📋 各隊狀態 ＆ 停錶
+        </button>
+        <button onclick="switchMasterTab('kahoot')" id="tab-btn-kahoot" class="bg-slate-800 text-slate-300 font-black py-2.5 rounded-xl text-xs">
+          🏆 Kahoot 動態排行榜
+        </button>
+      </div>
+
+      <!-- 頁籤 1：12 小隊監控 -->
+      <div id="master-tab-monitor" class="space-y-3">
+        <div id="master-phone-timer-banner" class="hidden bg-amber-500 text-slate-950 p-3.5 rounded-2xl font-black space-y-2 shadow-xl">
+          <div class="flex items-center justify-between">
+            <div><span id="master-phone-team-label" class="underline">第 1 小隊</span> 手機求救倒數</div>
+            <div id="master-phone-timer-digits" class="text-2xl font-mono bg-slate-950 text-amber-400 px-3 py-0.5 rounded-xl">02:00</div>
+          </div>
+          <button onclick="stopAllPhoneLifelines()" class="w-full bg-rose-600 text-white text-xs font-black py-2 rounded-xl">
+            <i class="fa-solid fa-stop mr-1"></i>提前停止倒數
+          </button>
+        </div>
+
+        <div id="master-teams-grid" class="grid grid-cols-1 gap-3"></div>
+      </div>
+
+      <!-- 頁籤 2：Kahoot 排行榜 -->
+      <div id="master-tab-kahoot" class="hidden bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4">
+        <div class="grid grid-cols-3 gap-1.5">
+          <button onclick="setKahootStage(1)" id="kahoot-btn-1" class="bg-blue-600 text-white text-xs font-black py-2.5 px-2 rounded-xl">
+            1. 順序分
+          </button>
+          <button onclick="setKahootStage(2)" id="kahoot-btn-2" class="bg-purple-600 text-white text-xs font-black py-2.5 px-2 rounded-xl">
+            2. +答題分
+          </button>
+          <button onclick="setKahootStage(3)" id="kahoot-btn-3" class="bg-gradient-to-r from-amber-500 to-rose-500 text-slate-950 text-xs font-black py-2.5 px-2 rounded-xl">
+            🔥 3. 總時間翻盤
+          </button>
+        </div>
+        <div id="kahoot-stage-desc" class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-amber-300 font-bold"></div>
+        <div id="kahoot-bars-container" class="space-y-2"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 全螢幕即時通知彈窗 -->
+  <div id="fullscreen-alert-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+    <div id="fullscreen-alert-card" class="w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl">
+      <div id="alert-icon" class="text-5xl">🎉</div>
+      <h3 id="alert-title" class="text-2xl font-black text-white">恭喜過關！</h3>
+      <p id="alert-message" class="text-sm text-slate-200 font-bold leading-relaxed"></p>
+      <div id="alert-hint-box" class="hidden bg-slate-950/90 border border-amber-500/50 rounded-2xl p-3.5 text-amber-300 font-black text-base"></div>
+      <button onclick="closeFullscreenAlert()" class="w-full bg-white text-slate-950 font-black py-3 rounded-2xl text-base shadow-lg">
+        收到！繼續闖關
+      </button>
+    </div>
+  </div>
+
+  <!-- QR Code 列印視窗 -->
+  <div id="print-modal" class="fixed inset-0 z-50 hidden bg-black/90 overflow-y-auto p-4">
+    <div class="max-w-4xl mx-auto bg-white text-slate-900 rounded-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3 no-print">
+        <h3 class="text-lg font-black">🖨️ 全場 15 個提示 QR Code 列印</h3>
+        <div class="flex gap-2">
+          <button onclick="window.print()" class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl text-xs">立即列印</button>
+          <button onclick="closePrintModal()" class="bg-slate-200 text-slate-800 font-bold px-4 py-2 rounded-xl text-xs">關閉</button>
+        </div>
+      </div>
+      <div id="print-area" class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2"></div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_CONFIG = {
+      // ★ 已直接內建你的 Firebase 即時資料庫網址
+      firebaseUrl: "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app",
+      gameTitle: "關關難過關關過",
+      teamCount: 12,
+      // ★ 1123 為最高權限萬用密碼
+      superPin: "1123",
+      masterPin: "1123",
+      angelPin: "8888",
+      switchPin: "1123",
+      bossFailPenaltySec: 60,
+      bossBonusRewardSec: 30,
+      folderPeekPenaltySec: 45,
+      folderPeekText: "抓到偷看別隊資料夾！全隊請立刻原地開合跳 20 下，並且系統已自動增加 45 秒懲罰時間！",
+      questions: [
+        { id: 1, title: "第一題：校園歷史之謎", prompt: "請輸入第一題答案：", answer: "同心協力" },
+        { id: 2, title: "第二題：操場方位密碼", prompt: "請輸入第二題答案：", answer: "2026" },
+        { id: 3, title: "第三題：終極精神口號", prompt: "請輸入第三題答案：", answer: "永不放棄" }
+      ],
+      default1A2B: "7943",
+      // ★ 已更新為你指定的 12 小隊專屬 1A2B 答案
+      angelCodes: {
+        "A01": { teamId: 1,  secret1A2B: "7943" },
+        "A02": { teamId: 2,  secret1A2B: "1213" },
+        "A03": { teamId: 3,  secret1A2B: "3942" },
+        "A04": { teamId: 4,  secret1A2B: "8372" },
+        "A05": { teamId: 5,  secret1A2B: "5721" },
+        "A06": { teamId: 6,  secret1A2B: "4873" },
+        "A07": { teamId: 7,  secret1A2B: "9580" },
+        "A08": { teamId: 8,  secret1A2B: "6478" },
+        "A09": { teamId: 9,  secret1A2B: "7245" },
+        "A10": { teamId: 10, secret1A2B: "5243" },
+        "A11": { teamId: 11, secret1A2B: "2593" },
+        "A12": { teamId: 12, secret1A2B: "1948" }
+      },
+      clues: [
+        { id: 1,  code: "CLUE01", qId: 1, type: "boss",   bossCode: "B01", bossName: "第一關主(體力關)", taskDesc: "請前往操場司令台旁尋找【第一關主】，全隊完成跳繩考驗！", hintText: "【提示01】第一題答案的第一個字是「同」" },
+        { id: 2,  code: "CLUE02", qId: 1, type: "boss",   bossCode: "B02", bossName: "第二關主(默契關)", taskDesc: "請前往籃球場尋找【第二關主】，完成兩人三腳考驗！", hintText: "【提示02】第一題答案的第二個字部首是「心」" },
+        { id: 3,  code: "CLUE03", qId: 1, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 A", taskDesc: "請點選「自己小隊」的資料夾領取提示（嚴禁偷看別隊！）", hintText: "【提示03】第一題答案的第二個字就是「心」" },
+        { id: 4,  code: "CLUE04", qId: 1, type: "angel",  bossCode: "",    bossName: "隨隊小天使任務(一)", taskDesc: "請全隊一起對隨隊小天使比出愛心並大喊隊呼，由小天使按下過關！", hintText: "【提示04】第一題答案的第三個字是「協」" },
+        { id: 5,  code: "CLUE05", qId: 1, type: "boss",   bossCode: "B03", bossName: "第三關主(觀察關)", taskDesc: "請前往跑道起點尋找【第三關主】接受記憶考驗！", hintText: "【提示05】第一題答案的第四個字是「力」" },
+        { id: 6,  code: "CLUE06", qId: 2, type: "boss",   bossCode: "B04", bossName: "第四關主(腦力關)", taskDesc: "請前往大樹下尋找【第四關主】解開火柴棒謎題！", hintText: "【提示06】第二題密碼的第一個數字是「2」" },
+        { id: 7,  code: "CLUE07", qId: 2, type: "angel",  bossCode: "",    bossName: "小天使 1A2B 破譯關", taskDesc: "請向隨隊小天使挑戰【1A2B 猜數字】，猜中後由小天使發送提示！", hintText: "【提示07】第二題密碼的第二個數字是「0」" },
+        { id: 8,  code: "CLUE08", qId: 2, type: "boss",   bossCode: "B05", bossName: "第五關主(反應關)", taskDesc: "請前往排球場尋找【第五關主】挑戰猜拳連勝！", hintText: "【提示08】第二題密碼的第三個數字跟第一個數字一樣" },
+        { id: 9,  code: "CLUE09", qId: 2, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 B", taskDesc: "請點選自己小隊的專屬資料夾領取提示！", hintText: "【提示09】第二題密碼的第四個數字是「6」" },
+        { id: 10, code: "CLUE10", qId: 2, type: "angel",  bossCode: "",    bossName: "隨隊小天使任務(二)", taskDesc: "全隊手牽手圍成一圈單腳站立維持 10 秒鐘，由小天使判定過關！", hintText: "【提示10】第二題的答案正好是今年的西元年份！" },
+        { id: 11, code: "CLUE11", qId: 3, type: "boss",   bossCode: "B06", bossName: "第六關主(團結關)", taskDesc: "請前往沙坑旁尋找【第六關主】完成人體解結任務！", hintText: "【提示11】第三題答案的第一個字是「永」" },
+        { id: 12, code: "CLUE12", qId: 3, type: "boss",   bossCode: "B07", bossName: "第七關主(終極關)", taskDesc: "請前往單槓區尋找【第七關主】完成終極比手畫腳！", hintText: "【提示12】第三題答案的第二個字是「不」" },
+        { id: 13, code: "CLUE13", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 C", taskDesc: "請點選自己小隊的專屬資料夾，小心別點到隔壁隊！", hintText: "【提示13】第三題答案的第三個字是「放」" },
+        { id: 14, code: "CLUE14", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 D", taskDesc: "最後一個雲端資料夾！請點選自己小隊的顏色資料夾！", hintText: "【提示14】第三題答案的第四個字是「棄」" },
+        { id: 15, code: "CLUE15", qId: 3, type: "angel",  bossCode: "",    bossName: "隨隊小天使最終任務", taskDesc: "請全隊拍一張最有創意的大合照給小天使看，即可解鎖最後一個提示！", hintText: "【提示15】恭喜集齊！第三題答案就是「永不放棄」，快衝回總關主處答題！" }
+      ]
+    };
+
+    const CONFIG = Object.assign({}, DEFAULT_CONFIG, window.CUSTOM_GAME_CONFIG || {});
+    // 強制確保 12 隊的 1A2B 密碼與 Firebase 網址生效
+    if (!CONFIG.firebaseUrl) {
+      CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
+    }
+    const SUPER_PIN = "1123";
+    document.getElementById('header-title').textContent = CONFIG.gameTitle;
+
+    const TEAM_COLORS = [
+      "bg-red-600 border-red-400", "bg-orange-600 border-orange-400", "bg-amber-500 border-amber-300 text-slate-950",
+      "bg-lime-600 border-lime-400", "bg-emerald-600 border-emerald-400", "bg-teal-600 border-teal-400",
+      "bg-cyan-600 border-cyan-400", "bg-blue-600 border-blue-400", "bg-indigo-600 border-indigo-400",
+      "bg-violet-600 border-violet-400", "bg-fuchsia-600 border-fuchsia-400", "bg-rose-600 border-rose-400"
+    ];
+
+    const STORAGE_KEY = "GOFIGHTING_STATE_V2";
+    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V2";
+    let firebaseUrl = CONFIG.firebaseUrl || localStorage.getItem("GOFIGHTING_FB_URL") || "";
+
+    function createInitialState() {
+      const now = Date.now();
+      const teams = {};
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        teams[i] = {
+          id: i,
+          name: `第 ${i} 小隊`,
+          startTime: now,
+          stopTime: null,
+          penaltySec: 0,
+          unlockedClues: [],
+          activeClueId: null,
+          lifelinePhoneUsed: false,
+          lifelinePhoneUntil: 0,
+          lifelineWordUsed: false,
+          finishOrder: null,
+          answers: ["", "", ""],
+          answerSubmitted: false,
+          quizScore: 0,
+          lastEvent: null,
+          angelGuesses: []
+        };
+      }
+      return { updatedAt: now, finishCounter: 0, kahootStage: 1, teams };
+    }
+
+    let STATE = loadState();
+    let currentSession = JSON.parse(localStorage.getItem(LOCKED_ROLE_KEY) || "null");
+    let lastSeenEventTs = Date.now();
+    let html5QrScanner = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return createInitialState();
+        const parsed = JSON.parse(raw);
+        if (!parsed.teams || Object.keys(parsed.teams).length < CONFIG.teamCount) return createInitialState();
+        return parsed;
+      } catch (e) {
+        return createInitialState();
+      }
+    }
+
+    function saveState() {
+      STATE.updatedAt = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+      if (firebaseUrl) {
+        fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(STATE)
+        }).catch(() => {});
+      }
+      renderCurrentView();
+    }
+
+    // 初次載入時先向 Firebase 拉取最新狀態
+    async function syncFromCloud() {
+      if (!firebaseUrl) return;
+      try {
+        const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`);
+        const remote = await res.json();
+        if (remote && remote.teams) {
+          if (!STATE.updatedAt || remote.updatedAt >= STATE.updatedAt) {
+            STATE = remote;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+            renderCurrentView();
+          }
+        } else {
+          // 若雲端還是空的，將初始狀態推上去
+          saveState();
+        }
+      } catch (e) {}
+    }
+
+    setInterval(async () => {
+      if (firebaseUrl) {
+        try {
+          const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`);
+          const remote = await res.json();
+          if (remote && remote.updatedAt && remote.updatedAt > STATE.updatedAt) {
+            STATE = remote;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+            renderCurrentView();
+          }
+        } catch (e) {}
+      }
+      updateLiveTimers();
+      checkTeamIncomingAlert();
+    }, 1000);
+
+    window.addEventListener("storage", (e) => {
+      if (e.key === STORAGE_KEY) {
+        STATE = loadState();
+        renderCurrentView();
+        checkTeamIncomingAlert();
+      }
+    });
+
+    function initLobby() {
+      const grid = document.getElementById("lobby-team-grid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const btn = document.createElement("button");
+        btn.className = "bg-slate-950 hover:bg-blue-600 active:scale-95 border border-slate-700 text-white font-black py-3.5 rounded-xl text-sm transition shadow";
+        btn.textContent = `第 ${i} 小隊`;
+        btn.onclick = () => {
+          if (confirm(`確認將這支手機綁定為【第 ${i} 小隊】嗎？`)) {
+            loginAsTeam(i);
+          }
+        };
+        grid.appendChild(btn);
+      }
+
+      const angelSelect = document.getElementById("select-angel-team");
+      angelSelect.innerHTML = `<option value="">-- 請選擇你負責的小隊 --</option>`;
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `第 ${i} 小隊`;
+        angelSelect.appendChild(opt);
+      }
+
+      if (currentSession) {
+        applySessionRole();
+      }
+      syncFromCloud();
+    }
+
+    function openLoginPanel(type) {
+      ["team", "boss", "angel", "master"].forEach(t => {
+        document.getElementById(`login-panel-${t}`).classList.add("hidden");
+      });
+      document.getElementById("login-modal-backdrop").classList.remove("hidden");
+      document.getElementById(`login-panel-${type}`).classList.remove("hidden");
+
+      setTimeout(() => {
+        if (type === "boss") document.getElementById("input-boss-code").focus();
+        if (type === "angel") document.getElementById("input-angel-code").focus();
+        if (type === "master") document.getElementById("input-master-pin").focus();
+      }, 100);
+    }
+
+    function closeLoginPanels() {
+      document.getElementById("login-modal-backdrop").classList.add("hidden");
+      ["team", "boss", "angel", "master"].forEach(t => {
+        document.getElementById(`login-panel-${t}`).classList.add("hidden");
+      });
+    }
+
+    function handleBackdropClick(e) {
+      if (e.target.id === "login-modal-backdrop") closeLoginPanels();
+    }
+
+    function loginAsTeam(teamId) {
+      closeLoginPanels();
+      currentSession = { role: "team", teamId };
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      lastSeenEventTs = Date.now();
+      applySessionRole();
+    }
+
+    function loginAsBoss() {
+      const code = document.getElementById("input-boss-code").value.trim();
+      if (!code) {
+        alert("請輸入關主代號！");
+        return;
+      }
+      // 支援輸入萬用最高權限 1123 直接進入第一關主測試
+      let clue = CONFIG.clues.find(c => c.type === "boss" && c.bossCode.toUpperCase() === code.toUpperCase());
+      if (!clue && code === SUPER_PIN) {
+        clue = CONFIG.clues.find(c => c.type === "boss");
+      }
+      if (!clue) {
+        alert("關主代號錯誤！請確認輸入的代號是否正確。");
+        return;
+      }
+      closeLoginPanels();
+      currentSession = { role: "boss", bossCode: clue.bossCode, clueId: clue.id };
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      applySessionRole();
+    }
+
+    function loginAsAngel() {
+      const teamId = parseInt(document.getElementById("select-angel-team").value, 10);
+      const code = document.getElementById("input-angel-code").value.trim().toUpperCase();
+      if (!teamId) {
+        alert("請先選擇你是第幾小隊的小天使！");
+        return;
+      }
+      if (!code) {
+        alert("請輸入小天使代號！");
+        return;
+      }
+
+      const expectedKey = `A${String(teamId).padStart(2, "0")}`;
+      const customAngel = CONFIG.angelCodes && CONFIG.angelCodes[code];
+      const validPin = CONFIG.angelPin || "8888";
+
+      // 支援最高權限 1123、8888、或 A01~A12
+      const isPassValid =
+        code === SUPER_PIN ||
+        code === validPin.toUpperCase() ||
+        code === expectedKey ||
+        (customAngel && customAngel.teamId === teamId);
+
+      if (!isPassValid) {
+        alert("小天使驗證代號錯誤！");
+        return;
+      }
+
+      closeLoginPanels();
+      currentSession = { role: "angel", teamId };
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      applySessionRole();
+    }
+
+    function loginAsMaster() {
+      const pin = document.getElementById("input-master-pin").value.trim();
+      // 支援最高權限 1123 或原本設定的 masterPin
+      if (pin !== SUPER_PIN && pin !== CONFIG.masterPin && pin !== "9999") {
+        alert("密碼錯誤！");
+        return;
+      }
+      closeLoginPanels();
+      currentSession = { role: "master" };
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      applySessionRole();
+    }
+
+    // 登出與切換身分：支援最高權限 1123 一碼解鎖
+    function requestLogout() {
+      if (currentSession && currentSession.role !== "master") {
+        const pin = prompt("【防切換鎖定】請輸入最高權限密碼才可切換身分：");
+        if (pin === null) return;
+        const cleanPin = pin.trim();
+        if (cleanPin !== SUPER_PIN && cleanPin !== CONFIG.switchPin && cleanPin !== CONFIG.masterPin) {
+          alert("解鎖密碼錯誤！身分已鎖定無法切換。");
+          return;
+        }
+      }
+      stopCameraScanner();
+      localStorage.removeItem(LOCKED_ROLE_KEY);
+      currentSession = null;
+      ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+      });
+      document.getElementById("role-status-bar").classList.add("hidden");
+      document.getElementById("view-lobby").classList.remove("hidden");
+      closeLoginPanels();
+    }
+
+    function applySessionRole() {
+      document.getElementById("view-lobby").classList.add("hidden");
+      ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
+        document.getElementById(id).classList.add("hidden");
+      });
+
+      const statusBar = document.getElementById("role-status-bar");
+      const badge = document.getElementById("current-role-badge");
+      statusBar.classList.remove("hidden");
+      statusBar.classList.add("flex");
+
+      if (currentSession.role === "team") {
+        badge.textContent = `第 ${currentSession.teamId} 小隊`;
+        document.getElementById("view-team").classList.remove("hidden");
+      } else if (currentSession.role === "boss") {
+        badge.textContent = `關主 ${currentSession.bossCode}`;
+        document.getElementById("view-boss").classList.remove("hidden");
+      } else if (currentSession.role === "angel") {
+        badge.textContent = `第 ${currentSession.teamId} 小隊小天使`;
+        document.getElementById("view-angel").classList.remove("hidden");
+      } else if (currentSession.role === "master") {
+        badge.textContent = `總關主`;
+        document.getElementById("view-master").classList.remove("hidden");
+      }
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      renderCurrentView();
+    }
+
+    function formatSeconds(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
+    }
+
+    function getTeamTotalSeconds(team) {
+      const end = team.stopTime || Date.now();
+      const rawSec = Math.floor((end - team.startTime) / 1000);
+      return Math.max(0, rawSec + (team.penaltySec || 0));
+    }
+
+    function stopPhoneLifelineCountdown(teamId) {
+      const team = STATE.teams[teamId];
+      if (!team) return;
+      team.lifelinePhoneUntil = 0;
+      saveState();
+      updateLiveTimers();
+    }
+
+    function stopAllPhoneLifelines() {
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        if (STATE.teams[i].lifelinePhoneUntil > Date.now()) {
+          STATE.teams[i].lifelinePhoneUntil = 0;
+        }
+      }
+      saveState();
+      updateLiveTimers();
+    }
+
+    function updateLiveTimers() {
+      if (!currentSession) return;
+      if (currentSession.role === "team") {
+        const team = STATE.teams[currentSession.teamId];
+        if (!team) return;
+        document.getElementById("team-timer-display").textContent = formatSeconds(getTeamTotalSeconds(team));
+        const p = team.penaltySec || 0;
+        document.getElementById("team-penalty-detail").textContent = `獎懲：${p >= 0 ? "+" + p : p} 秒`;
+
+        const remainPhone = Math.ceil((team.lifelinePhoneUntil - Date.now()) / 1000);
+        const box = document.getElementById("team-phone-countdown-box");
+        if (remainPhone > 0) {
+          box.classList.remove("hidden");
+          document.getElementById("team-phone-countdown-timer").textContent = formatSeconds(remainPhone);
+        } else {
+          box.classList.add("hidden");
+        }
+      } else if (currentSession.role === "master") {
+        let activePhoneTeam = null;
+        let activePhoneRemain = 0;
+        for (let i = 1; i <= CONFIG.teamCount; i++) {
+          const t = STATE.teams[i];
+          const el = document.getElementById(`master-team-time-${i}`);
+          if (el) el.textContent = formatSeconds(getTeamTotalSeconds(t));
+          const rem = Math.ceil((t.lifelinePhoneUntil - Date.now()) / 1000);
+          if (rem > activePhoneRemain) {
+            activePhoneRemain = rem;
+            activePhoneTeam = t;
+          }
+        }
+        const banner = document.getElementById("master-phone-timer-banner");
+        if (activePhoneTeam && activePhoneRemain > 0) {
+          banner.classList.remove("hidden");
+          document.getElementById("master-phone-team-label").textContent = activePhoneTeam.name;
+          document.getElementById("master-phone-timer-digits").textContent = formatSeconds(activePhoneRemain);
+        } else {
+          banner.classList.add("hidden");
+        }
+      }
+    }
+
+    function renderCurrentView() {
+      if (!currentSession) return;
+      if (currentSession.role === "team") renderTeamView();
+      if (currentSession.role === "boss") renderBossView();
+      if (currentSession.role === "angel") renderAngelView();
+      if (currentSession.role === "master") renderMasterView();
+      updateLiveTimers();
+    }
+
+    function renderTeamView() {
+      const team = STATE.teams[currentSession.teamId];
+      document.getElementById("team-header-name").textContent = team.name;
+
+      const statusBadge = document.getElementById("team-timer-status");
+      if (team.stopTime) {
+        statusBadge.textContent = `已停錶 (第 ${team.finishOrder} 隊)`;
+        statusBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300";
+      } else {
+        statusBadge.textContent = "計時中";
+        statusBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300";
+      }
+
+      const phoneBox = document.getElementById("team-lifeline-phone");
+      const phoneTxt = document.getElementById("team-lifeline-phone-status");
+      if (team.lifelinePhoneUsed) {
+        phoneBox.className = "p-2.5 rounded-xl border border-slate-800 bg-slate-900/40 opacity-40 flex items-center gap-2";
+        phoneTxt.textContent = "已使用";
+      } else {
+        phoneBox.className = "p-2.5 rounded-xl border border-amber-500/40 bg-amber-500/10 flex items-center gap-2";
+        phoneTxt.textContent = "剩 1 次";
+      }
+
+      const wordBox = document.getElementById("team-lifeline-word");
+      const wordTxt = document.getElementById("team-lifeline-word-status");
+      if (team.lifelineWordUsed) {
+        wordBox.className = "p-2.5 rounded-xl border border-slate-800 bg-slate-900/40 opacity-40 flex items-center gap-2";
+        wordTxt.textContent = "已使用";
+      } else {
+        wordBox.className = "p-2.5 rounded-xl border border-purple-500/40 bg-purple-500/10 flex items-center gap-2";
+        wordTxt.textContent = "剩 1 次";
+      }
+
+      const activePanel = document.getElementById("team-active-clue-panel");
+      if (team.activeClueId) {
+        const clue = CONFIG.clues.find(c => c.id === team.activeClueId);
+        activePanel.classList.remove("hidden");
+        renderActiveClueInteraction(activePanel, clue, team);
+      } else {
+        activePanel.classList.add("hidden");
+      }
+
+      renderTeamFinalAnswer(team);
+
+      document.getElementById("team-clue-progress").textContent = `${team.unlockedClues.length} / 15`;
+      const historyDiv = document.getElementById("team-clues-history");
+      historyDiv.innerHTML = "";
+      CONFIG.questions.forEach(q => {
+        const qClues = CONFIG.clues.filter(c => c.qId === q.id);
+        const unlockedList = qClues.filter(c => team.unlockedClues.includes(c.id));
+        const box = document.createElement("div");
+        box.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2";
+        box.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+            <span class="font-black text-xs text-amber-400">${q.title}</span>
+            <span class="text-[11px] text-slate-400">${unlockedList.length} / 5</span>
+          </div>
+          <div class="space-y-1.5">
+            ${
+              unlockedList.length === 0
+                ? `<p class="text-xs text-slate-500">尚未獲得提示</p>`
+                : unlockedList.map(c => `<div class="text-xs bg-slate-900 border border-emerald-500/30 text-emerald-200 px-3 py-2 rounded-lg font-bold">${c.hintText}</div>`).join("")
+            }
+          </div>
+        `;
+        historyDiv.appendChild(box);
+      });
+    }
+
+    function renderActiveClueInteraction(container, clue, team) {
+      const isUnlocked = team.unlockedClues.includes(clue.id);
+
+      if (clue.type === "boss") {
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="bg-rose-500/20 text-rose-300 text-xs font-black px-2.5 py-1 rounded-full">⚔️ 關主關 (${clue.code})</span>
+            <button onclick="clearActiveClue()" class="text-xs text-slate-400">關閉</button>
+          </div>
+          <h4 class="text-base font-black text-white">${clue.bossName}</h4>
+          <p class="text-xs text-slate-300">${clue.taskDesc}</p>
+          ${
+            isUnlocked
+              ? `<div class="bg-emerald-950/80 border border-emerald-500/50 p-3 rounded-xl text-emerald-200 font-bold text-xs">✅ ${clue.hintText}</div>`
+              : `<div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs text-amber-300 font-bold animate-pulse">⏳ 等待關主審核中...</div>`
+          }
+        `;
+      } else if (clue.type === "folder") {
+        let foldersHtml = "";
+        for (let i = 1; i <= CONFIG.teamCount; i++) {
+          const colorCls = TEAM_COLORS[(i - 1) % TEAM_COLORS.length];
+          foldersHtml += `
+            <button onclick="clickCloudFolder(${clue.id}, ${i})" class="${colorCls} border-2 rounded-xl p-2.5 flex flex-col items-center justify-center gap-1 shadow active:scale-95 transition">
+              <i class="fa-solid fa-folder-open text-xl"></i>
+              <span class="text-xs font-black">第 ${i} 小隊</span>
+            </button>
+          `;
+        }
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="bg-blue-500/20 text-blue-300 text-xs font-black px-2.5 py-1 rounded-full">📁 雲端資料夾 (${clue.code})</span>
+            <button onclick="clearActiveClue()" class="text-xs text-slate-400">關閉</button>
+          </div>
+          <p class="text-xs text-amber-300 font-bold">⚠️ 請點選【第 ${team.id} 小隊】資料夾，亂點別隊將受罰！</p>
+          <div class="grid grid-cols-3 gap-2 pt-1">${foldersHtml}</div>
+        `;
+      } else if (clue.type === "angel") {
+        container.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="bg-emerald-500/20 text-emerald-300 text-xs font-black px-2.5 py-1 rounded-full">👼 小天使任務 (${clue.code})</span>
+            <button onclick="clearActiveClue()" class="text-xs text-slate-400">關閉</button>
+          </div>
+          <h4 class="text-base font-black text-white">${clue.bossName}</h4>
+          <p class="text-xs text-slate-300">${clue.taskDesc}</p>
+          ${
+            isUnlocked
+              ? `<div class="bg-emerald-950/80 border border-emerald-500/50 p-3 rounded-xl text-emerald-200 font-bold text-xs">✅ ${clue.hintText}</div>`
+              : `<div class="bg-slate-950 border border-slate-800 p-3 rounded-xl text-xs text-emerald-300 font-bold animate-pulse">⏳ 等待隨隊小天使按下完成...</div>`
+          }
+        `;
+      }
+    }
+
+    function clickCloudFolder(clueId, folderTeamId) {
+      const team = STATE.teams[currentSession.teamId];
+      const clue = CONFIG.clues.find(c => c.id === clueId);
+      if (folderTeamId === team.id) {
+        if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
+        saveState();
+        showFullscreenAlert("success", "📁 資料夾正確！", `成功打開第 ${team.id} 小隊資料夾！`, clue.hintText);
+      } else {
+        team.penaltySec = (team.penaltySec || 0) + CONFIG.folderPeekPenaltySec;
+        saveState();
+        showFullscreenAlert("fail", "🚨 抓到偷看別隊！", CONFIG.folderPeekText, null);
+      }
+    }
+
+    function renderTeamFinalAnswer(team) {
+      const panel = document.getElementById("team-final-answer-panel");
+      if (!team.stopTime) {
+        panel.innerHTML = `
+          <div class="flex items-center justify-between">
+            <h3 class="font-black text-white text-sm"><i class="fa-solid fa-lock text-slate-400 mr-1.5"></i>最終答題區（回總關主停錶後解鎖）</h3>
+          </div>
+        `;
+        return;
+      }
+
+      if (team.answerSubmitted) {
+        panel.innerHTML = `
+          <div class="bg-emerald-950/60 border border-emerald-500/50 rounded-xl p-3 text-center space-y-1">
+            <h3 class="text-base font-black text-white">🎯 已完成作答 (+${team.quizScore}分)</h3>
+            <p class="text-xs text-emerald-300">第 ${team.finishOrder} 隊抵達 ｜ 請等待總關主公佈總成績</p>
+          </div>
+        `;
+        return;
+      }
+
+      panel.innerHTML = `
+        <div class="space-y-3">
+          <div class="text-xs text-amber-300 font-bold">⏱️ 計時已停止！請填寫三題最終答案：</div>
+          ${CONFIG.questions.map((q, idx) => `
+            <div>
+              <label class="block text-xs font-black text-slate-200 mb-1">${q.title}</label>
+              <input id="final-ans-${idx}" type="text" placeholder="輸入答案" class="w-full min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-bold text-sm">
+            </div>
+          `).join("")}
+          <button onclick="submitFinalAnswers()" class="w-full bg-amber-500 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg">
+            🚀 送出最終答案
+          </button>
+        </div>
+      `;
+    }
+
+    function submitFinalAnswers() {
+      const team = STATE.teams[currentSession.teamId];
+      let correctCount = 0;
+      const ansList = [];
+      CONFIG.questions.forEach((q, idx) => {
+        const val = (document.getElementById(`final-ans-${idx}`).value || "").trim();
+        ansList.push(val);
+        if (val === q.answer.trim()) correctCount++;
+      });
+
+      let score = 0;
+      if (correctCount === 1) score = 3;
+      if (correctCount === 2) score = 5;
+      if (correctCount === 3) score = 10;
+
+      team.answers = ansList;
+      team.answerSubmitted = true;
+      team.quizScore = score;
+      saveState();
+
+      showFullscreenAlert("success", `🎯 答對 ${correctCount} 題 (+${score}分)`, "答案已送出！請等待最終排名揭曉！", null);
+    }
+
+    function handleClueCodeSubmit() {
+      const input = document.getElementById("input-clue-code");
+      const code = input.value.trim().toUpperCase();
+      if (!code) return;
+      triggerClueByCode(code);
+      input.value = "";
+    }
+
+    function triggerClueByCode(rawCode) {
+      let clean = rawCode.trim().toUpperCase();
+      if (clean.includes("CLUE=")) {
+        const m = clean.match(/CLUE=(CLUE\d+)/i);
+        if (m) clean = m[1].toUpperCase();
+      }
+      const clue = CONFIG.clues.find(c => c.code.toUpperCase() === clean);
+      if (!clue) {
+        alert("找不到此提示代碼！");
+        return;
+      }
+      const team = STATE.teams[currentSession.teamId];
+      team.activeClueId = clue.id;
+      saveState();
+      stopCameraScanner();
+    }
+
+    function clearActiveClue() {
+      const team = STATE.teams[currentSession.teamId];
+      team.activeClueId = null;
+      saveState();
+    }
+
+    function toggleCameraScanner() {
+      const container = document.getElementById("qr-reader-container");
+      if (!container.classList.contains("hidden")) {
+        stopCameraScanner();
+        return;
+      }
+      container.classList.remove("hidden");
+      document.getElementById("btn-camera-toggle").innerHTML = `<i class="fa-solid fa-xmark mr-1"></i>關閉相機`;
+
+      html5QrScanner = new Html5Qrcode("qr-reader");
+      html5QrScanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: { width: 220, height: 220 } },
+        (decodedText) => triggerClueByCode(decodedText),
+        () => {}
+      ).catch(() => {
+        alert("無法開啟相機，請檢查權限或直接輸入代碼！");
+        stopCameraScanner();
+      });
+    }
+
+    function stopCameraScanner() {
+      const container = document.getElementById("qr-reader-container");
+      container.classList.add("hidden");
+      const btn = document.getElementById("btn-camera-toggle");
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-camera mr-1"></i>開啟相機`;
+      if (html5QrScanner) {
+        html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+        html5QrScanner = null;
+      }
+    }
+
+    function renderBossView() {
+      const clue = CONFIG.clues.find(c => c.id === currentSession.clueId);
+      document.getElementById("boss-badge-code").textContent = `關主代號：${currentSession.bossCode}`;
+      document.getElementById("boss-header-title").textContent = clue.bossName;
+      document.getElementById("boss-task-desc").textContent = clue.taskDesc;
+      document.getElementById("boss-hint-preview").textContent = clue.hintText;
+      document.getElementById("boss-fail-sec-label").textContent = CONFIG.bossFailPenaltySec;
+      document.getElementById("boss-bonus-sec-label").textContent = CONFIG.bossBonusRewardSec;
+
+      const select = document.getElementById("boss-select-team");
+      const currentVal = select.value || "1";
+      select.innerHTML = "";
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const t = STATE.teams[i];
+        const hasClue = t.unlockedClues.includes(clue.id);
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = `第 ${i} 小隊 ${hasClue ? "✅(已發過)" : ""}`;
+        select.appendChild(opt);
+      }
+      select.value = currentVal;
+    }
+
+    function bossJudge(action) {
+      const teamId = parseInt(document.getElementById("boss-select-team").value, 10);
+      const team = STATE.teams[teamId];
+      const clue = CONFIG.clues.find(c => c.id === currentSession.clueId);
+
+      if (action === "pass") {
+        if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
+        team.lastEvent = {
+          ts: Date.now(),
+          type: "success",
+          title: "🎉 恭喜過關！",
+          message: `通過【${clue.bossName}】考驗！`,
+          hint: clue.hintText
+        };
+        saveState();
+        alert(`已發送【通過＋提示】給 第 ${teamId} 小隊！`);
+      } else if (action === "fail") {
+        team.penaltySec = (team.penaltySec || 0) + CONFIG.bossFailPenaltySec;
+        if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
+        team.lastEvent = {
+          ts: Date.now(),
+          type: "fail",
+          title: `❌ 失敗！(+${CONFIG.bossFailPenaltySec}秒)`,
+          message: `挑戰失敗增加 ${CONFIG.bossFailPenaltySec} 秒，獲得本關提示：`,
+          hint: clue.hintText
+        };
+        saveState();
+        alert(`已對 第 ${teamId} 小隊 發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與提示！`);
+      } else if (action === "bonus") {
+        team.penaltySec = (team.penaltySec || 0) - CONFIG.bossBonusRewardSec;
+        team.lastEvent = {
+          ts: Date.now(),
+          type: "bonus",
+          title: `🌟 加分成功！(-${CONFIG.bossBonusRewardSec}秒)`,
+          message: `成功扣除總時間 ${CONFIG.bossBonusRewardSec} 秒！`,
+          hint: null
+        };
+        saveState();
+        alert(`已幫 第 ${teamId} 小隊 扣除 ${CONFIG.bossBonusRewardSec} 秒！`);
+      }
+    }
+
+    // 專屬 12 小隊 1A2B 密碼表
+    const TEAM_1A2B_SECRETS = {
+      1: "7943", 2: "1213", 3: "3942", 4: "8372",
+      5: "5721", 6: "4873", 7: "9580", 8: "6478",
+      9: "7245", 10: "5243", 11: "2593", 12: "1948"
+    };
+
+    function getTeam1A2BSecret(teamId) {
+      const angelKey = `A${String(teamId).padStart(2, "0")}`;
+      const fromConfig = CONFIG.angelCodes && CONFIG.angelCodes[angelKey] && CONFIG.angelCodes[angelKey].secret1A2B;
+      return String(fromConfig || TEAM_1A2B_SECRETS[teamId] || CONFIG.default1A2B);
+    }
+
+    function renderAngelView() {
+      const teamId = currentSession.teamId;
+      const team = STATE.teams[teamId];
+      const secret = getTeam1A2BSecret(teamId);
+
+      document.getElementById("angel-badge-code").textContent = `隨隊小天使 (已綁定第 ${teamId} 小隊)`;
+      document.getElementById("angel-header-title").textContent = `第 ${teamId} 小隊專區`;
+      document.getElementById("angel-secret-display").textContent = secret;
+
+      const histEl = document.getElementById("angel-1a2b-history");
+      const guesses = team.angelGuesses || [];
+      histEl.innerHTML = guesses.map(g => `
+        <div class="flex items-center justify-between bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
+          <span class="font-mono font-bold text-white">${g.guess}</span>
+          <span class="font-mono font-black text-emerald-400">${g.result}</span>
+        </div>
+      `).join("");
+
+      const listEl = document.getElementById("angel-task-list");
+      listEl.innerHTML = "";
+      CONFIG.clues.filter(c => c.type === "angel").forEach(clue => {
+        const done = team.unlockedClues.includes(clue.id);
+        const card = document.createElement("div");
+        card.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2";
+        card.innerHTML = `
+          <div class="text-xs font-black text-emerald-400">#${String(clue.id).padStart(2, "0")} ${clue.bossName}</div>
+          <div class="text-xs text-slate-300">${clue.taskDesc}</div>
+          <button onclick="angelCompleteTask(${clue.id})" class="w-full ${
+            done ? "bg-slate-800 text-emerald-400" : "bg-emerald-600 text-white"
+          } font-black py-2.5 rounded-xl text-xs transition">
+            ${done ? "✅ 已發送提示 (可重發)" : "🎉 任務完成 (發送提示)"}
+          </button>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function checkAngel1A2B() {
+      const input = document.getElementById("angel-1a2b-input");
+      const guess = input.value.trim();
+      const teamId = currentSession.teamId;
+      const secret = getTeam1A2BSecret(teamId);
+
+      if (guess.length !== 4 || !/^\d{4}$/.test(guess)) {
+        alert("請輸入 4 位數字！");
+        return;
+      }
+
+      let A = 0, B = 0;
+      const secretArr = secret.split("");
+      const guessArr = guess.split("");
+      const usedSecret = [false, false, false, false];
+      const usedGuess = [false, false, false, false];
+
+      for (let i = 0; i < 4; i++) {
+        if (guessArr[i] === secretArr[i]) {
+          A++;
+          usedSecret[i] = true;
+          usedGuess[i] = true;
+        }
+      }
+      for (let i = 0; i < 4; i++) {
+        if (usedGuess[i]) continue;
+        for (let j = 0; j < 4; j++) {
+          if (!usedSecret[j] && guessArr[i] === secretArr[j]) {
+            B++;
+            usedSecret[j] = true;
+            break;
+          }
+        }
+      }
+
+      const resultStr = `${A}A${B}B`;
+      document.getElementById("angel-1a2b-result-box").classList.remove("hidden");
+      document.getElementById("angel-1a2b-big-text").textContent = resultStr;
+
+      const team = STATE.teams[currentSession.teamId];
+      team.angelGuesses = team.angelGuesses || [];
+      team.angelGuesses.unshift({ guess, result: resultStr });
+      saveState();
+      input.value = "";
+    }
+
+    function angelCompleteTask(clueId) {
+      const team = STATE.teams[currentSession.teamId];
+      const clue = CONFIG.clues.find(c => c.id === clueId);
+      if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
+      team.lastEvent = {
+        ts: Date.now(),
+        type: "success",
+        title: "👼 任務完成！",
+        message: `完成【${clue.bossName}】！獲得提示：`,
+        hint: clue.hintText
+      };
+      saveState();
+      alert(`已發送提示給 第 ${team.id} 小隊！`);
+    }
+
+    function switchMasterTab(tab) {
+      const mTab = document.getElementById("master-tab-monitor");
+      const kTab = document.getElementById("master-tab-kahoot");
+      const b1 = document.getElementById("tab-btn-monitor");
+      const b2 = document.getElementById("tab-btn-kahoot");
+
+      if (tab === "monitor") {
+        mTab.classList.remove("hidden");
+        kTab.classList.add("hidden");
+        b1.className = "bg-amber-500 text-slate-950 font-black py-2.5 rounded-xl text-xs";
+        b2.className = "bg-slate-800 text-slate-300 font-black py-2.5 rounded-xl text-xs";
+      } else {
+        mTab.classList.add("hidden");
+        kTab.classList.remove("hidden");
+        b2.className = "bg-amber-500 text-slate-950 font-black py-2.5 rounded-xl text-xs";
+        b1.className = "bg-slate-800 text-slate-300 font-black py-2.5 rounded-xl text-xs";
+        renderKahootLeaderboard();
+      }
+    }
+
+    function renderMasterView() {
+      const grid = document.getElementById("master-teams-grid");
+      grid.innerHTML = "";
+
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const t = STATE.teams[i];
+        const isCountingPhone = (t.lifelinePhoneUntil - Date.now()) > 0;
+        const card = document.createElement("div");
+        card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5";
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="font-black text-base text-white">${t.name}</span>
+              <span class="ml-1.5 text-xs font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full">${t.unlockedClues.length}/15</span>
+            </div>
+            <div class="text-right">
+              <div id="master-team-time-${i}" class="text-lg font-mono font-black text-amber-400">${formatSeconds(getTeamTotalSeconds(t))}</div>
+              <div class="text-[10px] text-slate-400">獎懲 ${t.penaltySec >= 0 ? "+" + t.penaltySec : t.penaltySec}s</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            ${
+              isCountingPhone
+                ? `<button onclick="stopPhoneLifelineCountdown(${i})" class="bg-rose-600 text-white py-2 px-2 rounded-xl text-xs font-black animate-pulse">
+                     ⏹️ 停止手機倒數
+                   </button>`
+                : `<button onclick="masterTriggerLifeline(${i}, 'phone')" ${t.lifelinePhoneUsed ? "disabled" : ""} class="${
+                     t.lifelinePhoneUsed
+                       ? "bg-slate-800 text-slate-500"
+                       : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                   } py-2 px-2 rounded-xl text-xs font-bold">
+                     📱 ${t.lifelinePhoneUsed ? "手機(已用)" : "手機 2 分鐘"}
+                   </button>`
+            }
+            <button onclick="masterTriggerLifeline(${i}, 'word')" ${t.lifelineWordUsed ? "disabled" : ""} class="${
+              t.lifelineWordUsed
+                ? "bg-slate-800 text-slate-500"
+                : "bg-purple-500/20 text-purple-300 border border-purple-500/40"
+            } py-2 px-2 rounded-xl text-xs font-bold">
+              💡 ${t.lifelineWordUsed ? "提示(已用)" : "提示一個字"}
+            </button>
+          </div>
+
+          <div>
+            ${
+              t.stopTime
+                ? `<div class="bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs font-bold p-2 rounded-xl text-center">
+                     🏁 第 ${t.finishOrder} 隊停錶 ｜ ${t.answerSubmitted ? `已答題 (+${t.quizScore}分)` : "作答中"}
+                   </div>`
+                : `<button onclick="masterStopTeamTimer(${i})" class="w-full bg-rose-600 text-white font-black py-2.5 rounded-xl text-xs">
+                     🛑 我要答題（停止計時）
+                   </button>`
+            }
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+
+      renderKahootLeaderboard();
+    }
+
+    function masterTriggerLifeline(teamId, type) {
+      const team = STATE.teams[teamId];
+      if (type === "phone") {
+        team.lifelinePhoneUsed = true;
+        team.lifelinePhoneUntil = Date.now() + 120 * 1000;
+        team.lastEvent = {
+          ts: Date.now(),
+          type: "bonus",
+          title: "📱 手機求救 2 分鐘啟動！",
+          message: "查到答案可直接點擊「提前結束倒數」！",
+          hint: null
+        };
+      } else {
+        team.lifelineWordUsed = true;
+        team.lastEvent = {
+          ts: Date.now(),
+          type: "bonus",
+          title: "💡 已使用【提示一個字】",
+          message: "請聽取總關主給予的一個字提示！",
+          hint: null
+        };
+      }
+      saveState();
+    }
+
+    function masterStopTeamTimer(teamId) {
+      const team = STATE.teams[teamId];
+      if (team.stopTime) return;
+      STATE.finishCounter = (STATE.finishCounter || 0) + 1;
+      team.stopTime = Date.now();
+      team.finishOrder = STATE.finishCounter;
+      team.lastEvent = {
+        ts: Date.now(),
+        type: "success",
+        title: `🏁 第 ${team.finishOrder} 隊抵達停錶！`,
+        message: "請立即在下方輸入三題最終答案！",
+        hint: null
+      };
+      saveState();
+    }
+
+    function masterStartAllTimers() {
+      if (!confirm("確定全場重新從 00:00 開始計時？")) return;
+      const now = Date.now();
+      STATE.finishCounter = 0;
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        STATE.teams[i].startTime = now;
+        STATE.teams[i].stopTime = null;
+        STATE.teams[i].penaltySec = 0;
+        STATE.teams[i].finishOrder = null;
+        STATE.teams[i].answerSubmitted = false;
+        STATE.teams[i].quizScore = 0;
+      }
+      saveState();
+    }
+
+    function masterResetGame() {
+      if (!confirm("確定清空所有進度？")) return;
+      STATE = createInitialState();
+      saveState();
+    }
+
+    function masterSimulateDemo() {
+      const now = Date.now();
+      STATE.finishCounter = CONFIG.teamCount;
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const t = STATE.teams[i];
+        t.unlockedClues = CONFIG.clues.map(c => c.id);
+        t.startTime = now - (1200 + i * 55) * 1000;
+        t.stopTime = now;
+        t.penaltySec = (i % 3 === 0) ? -90 : (i % 2 === 0 ? 180 : 30);
+        t.finishOrder = i;
+        t.answerSubmitted = true;
+        t.quizScore = [10, 5, 10, 3, 10, 5, 10, 10, 5, 3, 10, 10][(i - 1) % 12];
+      }
+      saveState();
+      switchMasterTab("kahoot");
+    }
+
+    function setKahootStage(stage) {
+      STATE.kahootStage = stage;
+      saveState();
+    }
+
+    function renderKahootLeaderboard() {
+      const stage = STATE.kahootStage || 1;
+      const descEl = document.getElementById("kahoot-stage-desc");
+      if (stage === 1) descEl.textContent = "階段 1：回到總關主順序分 (+9 ~ +0)";
+      else if (stage === 2) descEl.textContent = "階段 2：加上三題答題正確分 (+3 / +5 / +10)";
+      else descEl.textContent = "🔥 階段 3：計入真正總時間積分，最終大翻盤！";
+
+      const teamArr = Object.values(STATE.teams);
+      const timeSorted = [...teamArr].sort((a, b) => getTeamTotalSeconds(a) - getTeamTotalSeconds(b));
+      const timeRankPointsMap = {};
+      const timePtsTable = [15, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
+      timeSorted.forEach((t, idx) => {
+        timeRankPointsMap[t.id] = timePtsTable[idx] || 1;
+      });
+
+      const scoredTeams = teamArr.map(t => {
+        const orderScore = t.finishOrder ? Math.max(0, 10 - t.finishOrder) : 0;
+        const quizScore = t.quizScore || 0;
+        const timeScore = timeRankPointsMap[t.id] || 0;
+
+        let displayScore = orderScore;
+        if (stage >= 2) displayScore += quizScore;
+        if (stage >= 3) displayScore += timeScore;
+
+        return { ...t, orderScore, quizScore, timeScore, totalSec: getTeamTotalSeconds(t), displayScore };
+      });
+
+      scoredTeams.sort((a, b) => b.displayScore - a.displayScore || a.totalSec - b.totalSec);
+      const maxScore = Math.max(34, ...scoredTeams.map(t => t.displayScore));
+
+      const container = document.getElementById("kahoot-bars-container");
+      container.innerHTML = scoredTeams.map((t, idx) => {
+        const widthPct = Math.max(14, Math.round((t.displayScore / maxScore) * 100));
+        const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
+        return `
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <div class="font-black text-white">${medal} ${t.name}</div>
+              <div class="text-slate-400 text-[11px]">
+                順序+${t.orderScore}
+                ${stage >= 2 ? `｜答題+${t.quizScore}` : ""}
+                ${stage >= 3 ? `｜時間(${formatSeconds(t.totalSec)})+${t.timeScore}` : ""}
+              </div>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-6 overflow-hidden p-0.5">
+              <div class="bar-transition h-full rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-amber-500 flex items-center justify-end pr-2.5 text-xs font-black text-white" style="width: ${widthPct}%">
+                ${t.displayScore}分
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function checkTeamIncomingAlert() {
+      if (!currentSession || currentSession.role !== "team") return;
+      const team = STATE.teams[currentSession.teamId];
+      if (team && team.lastEvent && team.lastEvent.ts > lastSeenEventTs) {
+        lastSeenEventTs = team.lastEvent.ts;
+        const ev = team.lastEvent;
+        showFullscreenAlert(ev.type, ev.title, ev.message, ev.hint);
+      }
+    }
+
+    function showFullscreenAlert(type, title, message, hint) {
+      const modal = document.getElementById("fullscreen-alert-modal");
+      const card = document.getElementById("fullscreen-alert-card");
+      const icon = document.getElementById("alert-icon");
+      const titleEl = document.getElementById("alert-title");
+      const msgEl = document.getElementById("alert-message");
+      const hintBox = document.getElementById("alert-hint-box");
+
+      if (type === "fail") {
+        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-rose-950 border-rose-500";
+        icon.textContent = "💥";
+      } else if (type === "bonus") {
+        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-amber-950 border-amber-400";
+        icon.textContent = "🌟";
+      } else {
+        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-emerald-950 border-emerald-400";
+        icon.textContent = "🎉";
+      }
+
+      titleEl.textContent = title;
+      msgEl.innerText = message;
+      if (hint) {
+        hintBox.classList.remove("hidden");
+        hintBox.textContent = hint;
+      } else {
+        hintBox.classList.add("hidden");
+      }
+      modal.classList.remove("hidden");
+    }
+
+    function closeFullscreenAlert() {
+      document.getElementById("fullscreen-alert-modal").classList.add("hidden");
+    }
+
+    function saveFirebaseUrl() {
+      const val = document.getElementById("input-firebase-url").value.trim();
+      firebaseUrl = val;
+      localStorage.setItem("GOFIGHTING_FB_URL", val);
+      updateCloudBadge();
+      saveState();
+      alert(val ? "已更新雲端同步網址！" : "已切換為本機模式");
+    }
+
+    function updateCloudBadge() {
+      const badge = document.getElementById("cloud-badge");
+      const input = document.getElementById("input-firebase-url");
+      if (input) input.value = firebaseUrl;
+      if (firebaseUrl) badge.classList.remove("hidden");
+      else badge.classList.add("hidden");
+    }
+
+    function openPrintModal() {
+      const modal = document.getElementById("print-modal");
+      const area = document.getElementById("print-area");
+      let html = "";
+      CONFIG.clues.forEach(c => {
+        const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(c.code)}`;
+        html += `
+          <div class="border-2 border-slate-800 rounded-xl p-4 text-center space-y-2 flex flex-col items-center">
+            <div class="text-xs font-black bg-slate-900 text-white px-3 py-1 rounded-full">提示 #${String(c.id).padStart(2, "0")}</div>
+            <img src="${qrImg}" alt="${c.code}" class="w-36 h-36 mx-auto"/>
+            <div class="font-mono font-black text-lg">${c.code}</div>
+            <div class="text-xs text-slate-600">${c.bossName}</div>
+          </div>
+        `;
+      });
+      area.innerHTML = html;
+      modal.classList.remove("hidden");
+    }
+
+    function closePrintModal() {
+      document.getElementById("print-modal").classList.add("hidden");
+    }
+
+    updateCloudBadge();
+    initLobby();
+  </script>
+</body>
+</html>
