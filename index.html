@@ -43,7 +43,7 @@
     </div>
     <div id="role-status-bar" class="hidden items-center gap-2 shrink-0">
       <span id="current-role-badge" class="text-xs font-bold bg-slate-800 text-amber-400 px-3 py-1.5 rounded-full border border-slate-700"></span>
-      <button onclick="requestLogout()" class="text-xs bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-400 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="輸入 1123 即可解鎖切換身分">
+      <button onclick="requestLogout()" class="text-xs bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-400 px-2.5 py-1.5 rounded-lg border border-slate-700 transition" title="輸入 1123 即可解鎖切換身分並釋放綁定">
         <i class="fa-solid fa-lock mr-1"></i>切換
       </button>
     </div>
@@ -101,9 +101,10 @@
     <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="w-[92vw] max-w-sm animate-pop-in">
 
+        <!-- 彈窗 1：小隊選擇 (已被別支手機選走的小隊會自動顯示🔒已綁定並鎖死) -->
         <div id="login-panel-team" class="hidden bg-slate-900 border-2 border-blue-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-            <h3 class="font-black text-lg text-blue-300">點擊選擇小隊</h3>
+            <h3 class="font-black text-lg text-blue-300">點擊選擇小隊（一隊限一機）</h3>
             <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
@@ -345,7 +346,7 @@
               <i class="fa-solid fa-print mr-1"></i>列印QR碼
             </button>
             <button onclick="masterResetGame()" class="bg-rose-900 hover:bg-rose-700 text-rose-100 text-xs font-bold px-3 py-2 rounded-xl">
-              重置
+              重置全場(含解鎖手機)
             </button>
           </div>
         </div>
@@ -473,22 +474,25 @@
     const SUPER_PIN = "1123";
     document.getElementById('header-title').textContent = CONFIG.gameTitle;
 
+    // ★ 為每台手機/電腦產生專屬唯一識別碼 (Device ID)，用來鎖定「一隊一機」
+    const DEVICE_ID_KEY = "GOFIGHTING_DEVICE_ID";
+    let DEVICE_ID = localStorage.getItem(DEVICE_ID_KEY);
+    if (!DEVICE_ID) {
+      DEVICE_ID = "dev_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
+      localStorage.setItem(DEVICE_ID_KEY, DEVICE_ID);
+    }
+
     function getTeamColorObj(teamId) {
       const list = CONFIG.teamColors || DEFAULT_TEAM_COLORS;
       return list.find(c => c.id === Number(teamId)) || DEFAULT_TEAM_COLORS[(teamId - 1) % DEFAULT_TEAM_COLORS.length];
     }
 
     function getCluesForTeam(teamId) {
-      if (CONFIG.teamClues && CONFIG.teamClues[teamId]) {
-        return CONFIG.teamClues[teamId];
-      }
-      if (CONFIG.teamClues && CONFIG.teamClues[1]) {
-        return CONFIG.teamClues[1];
-      }
+      if (CONFIG.teamClues && CONFIG.teamClues[teamId]) return CONFIG.teamClues[teamId];
+      if (CONFIG.teamClues && CONFIG.teamClues[1]) return CONFIG.teamClues[1];
       return CONFIG.clues || [];
     }
 
-    // ★ 核心函數：比對指定小隊的答案是否正確 (自動忽略標點符號、斜線、括號與空白，支援句子+書名前後順序不拘)
     function isTeamAnswerCorrect(teamId, qId, userAns) {
       const clean = (str) => String(str || "").replace(/[\s,，。、！!？?「」『』《》〈〉()（）:：；;\/\\\-—_]/g, "").toUpperCase();
       const cleanedUser = clean(userAns);
@@ -504,8 +508,8 @@
       return fallbackQ && clean(fallbackQ.answer) === cleanedUser;
     }
 
-    const STORAGE_KEY = "GOFIGHTING_STATE_V2";
-    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V2";
+    const STORAGE_KEY = "GOFIGHTING_STATE_V3";
+    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V3";
     let firebaseUrl = CONFIG.firebaseUrl || localStorage.getItem("GOFIGHTING_FB_URL") || "";
 
     function createInitialState() {
@@ -517,6 +521,7 @@
           id: i,
           name: `第 ${i} 小隊`,
           colorName: cObj.colorName,
+          lockedByDevice: null, // ★ 記錄哪支手機綁定了這個小隊
           startTime: now,
           stopTime: null,
           penaltySec: 0,
@@ -539,7 +544,26 @@
     let STATE = loadState();
     let currentSession = JSON.parse(localStorage.getItem(LOCKED_ROLE_KEY) || "null");
     let lastSeenEventTs = Date.now();
+    let lastCloudSnapshot = "";
+    let isSavingToCloud = false;
     let html5QrScanner = null;
+
+    function ensureTeamsStructure(st) {
+      if (!st || !st.teams) return createInitialState();
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const cObj = getTeamColorObj(i);
+        if (!st.teams[i]) {
+          st.teams[i] = createInitialState().teams[i];
+        } else {
+          st.teams[i].unlockedClues = st.teams[i].unlockedClues || [];
+          st.teams[i].answers = st.teams[i].answers || ["", "", ""];
+          st.teams[i].angelGuesses = st.teams[i].angelGuesses || [];
+          st.teams[i].colorName = cObj.colorName;
+          if (st.teams[i].lockedByDevice === undefined) st.teams[i].lockedByDevice = null;
+        }
+      }
+      return st;
+    }
 
     function loadState() {
       try {
@@ -547,54 +571,68 @@
         if (!raw) return createInitialState();
         const parsed = JSON.parse(raw);
         if (!parsed.teams || Object.keys(parsed.teams).length !== CONFIG.teamCount) return createInitialState();
-        return parsed;
+        return ensureTeamsStructure(parsed);
       } catch (e) {
         return createInitialState();
       }
     }
 
-    function saveState() {
+    async function saveState() {
       STATE.updatedAt = Date.now();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
-      if (firebaseUrl) {
-        fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(STATE)
-        }).catch(() => {});
-      }
+      const jsonStr = JSON.stringify(STATE);
+      lastCloudSnapshot = jsonStr;
+      localStorage.setItem(STORAGE_KEY, jsonStr);
       renderCurrentView();
+      renderLobbyTeamButtons();
+
+      if (firebaseUrl) {
+        isSavingToCloud = true;
+        try {
+          await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: jsonStr
+          });
+        } catch (e) {}
+        isSavingToCloud = false;
+      }
     }
 
-    async function syncFromCloud() {
-      if (!firebaseUrl) return;
+    // ★ 修正跨裝置同步：不再受兩台手機系統時鐘誤差影響，只要雲端內容有變動就立即同步！
+    async function pollCloudState() {
+      if (!firebaseUrl || isSavingToCloud) return;
       try {
-        const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`);
+        const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json?t=${Date.now()}`);
         const remote = await res.json();
-        if (remote && remote.teams && Object.keys(remote.teams).length === CONFIG.teamCount) {
-          if (!STATE.updatedAt || remote.updatedAt >= STATE.updatedAt) {
-            STATE = remote;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+        if (remote && remote.teams) {
+          const normalized = ensureTeamsStructure(remote);
+          const remoteStr = JSON.stringify(normalized);
+          if (remoteStr !== lastCloudSnapshot) {
+            lastCloudSnapshot = remoteStr;
+            STATE = normalized;
+            localStorage.setItem(STORAGE_KEY, remoteStr);
+
+            // 若自己原本綁定的小隊被總關主強制解除綁定，自動退回大廳
+            if (currentSession && currentSession.role === "team") {
+              const myTeam = STATE.teams[currentSession.teamId];
+              if (myTeam && myTeam.lockedByDevice && myTeam.lockedByDevice !== DEVICE_ID) {
+                forceReturnToLobby("此小隊已被其他裝置接管或由總關主重設！");
+                return;
+              }
+            }
+
             renderCurrentView();
+            renderLobbyTeamButtons();
+            checkTeamIncomingAlert();
           }
-        } else {
+        } else if (!remote) {
           saveState();
         }
       } catch (e) {}
     }
 
-    setInterval(async () => {
-      if (firebaseUrl) {
-        try {
-          const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`);
-          const remote = await res.json();
-          if (remote && remote.updatedAt && remote.updatedAt > STATE.updatedAt && Object.keys(remote.teams || {}).length === CONFIG.teamCount) {
-            STATE = remote;
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
-            renderCurrentView();
-          }
-        } catch (e) {}
-      }
+    setInterval(() => {
+      pollCloudState();
       updateLiveTimers();
       checkTeamIncomingAlert();
     }, 1000);
@@ -603,30 +641,65 @@
       if (e.key === STORAGE_KEY) {
         STATE = loadState();
         renderCurrentView();
+        renderLobbyTeamButtons();
         checkTeamIncomingAlert();
       }
     });
 
-    function initLobby() {
+    // 渲染小隊選擇按鈕（若已被別支手機綁定則鎖死不能點）
+    function renderLobbyTeamButtons() {
       const grid = document.getElementById("lobby-team-grid");
+      if (!grid) return;
       grid.innerHTML = "";
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const cObj = getTeamColorObj(i);
+        const t = STATE.teams[i];
+        const isLockedByOther = t && t.lockedByDevice && t.lockedByDevice !== DEVICE_ID;
+        const isLockedByMe = t && t.lockedByDevice === DEVICE_ID;
+
         const btn = document.createElement("button");
-        btn.className = "active:scale-95 border-2 border-white/20 rounded-xl py-3 px-2 transition shadow-md flex flex-col items-center justify-center gap-0.5";
-        btn.style.backgroundColor = cObj.hex;
-        btn.style.color = cObj.textHex;
-        btn.innerHTML = `
-          <span class="font-black text-sm">第 ${i} 小隊</span>
-          <span class="text-[11px] font-bold opacity-90">${cObj.colorName}</span>
-        `;
-        btn.onclick = () => {
-          if (confirm(`確認將這支手機綁定為【第 ${i} 小隊（${cObj.colorName}）】嗎？`)) {
-            loginAsTeam(i);
-          }
-        };
+        if (isLockedByOther) {
+          btn.disabled = true;
+          btn.className = "opacity-40 cursor-not-allowed border-2 border-slate-700 bg-slate-950 text-slate-400 rounded-xl py-3 px-2 flex flex-col items-center justify-center gap-0.5";
+          btn.innerHTML = `
+            <span class="font-black text-sm">🔒 第 ${i} 小隊</span>
+            <span class="text-[11px] font-bold text-rose-400">已被其他手機選走</span>
+          `;
+        } else {
+          btn.className = "active:scale-95 border-2 border-white/25 rounded-xl py-3 px-2 transition shadow-md flex flex-col items-center justify-center gap-0.5";
+          btn.style.backgroundColor = cObj.hex;
+          btn.style.color = cObj.textHex;
+          btn.innerHTML = `
+            <span class="font-black text-sm">第 ${i} 小隊 ${isLockedByMe ? "(本機)" : ""}</span>
+            <span class="text-[11px] font-bold opacity-90">${cObj.colorName}</span>
+          `;
+          btn.onclick = () => attemptClaimTeam(i);
+        }
         grid.appendChild(btn);
       }
+    }
+
+    // ★ 先搶先贏防撞鎖：點選時先向 Firebase 檢查最新狀態，確認沒被選走才寫入鎖定
+    async function attemptClaimTeam(teamId) {
+      const cObj = getTeamColorObj(teamId);
+      await pollCloudState();
+      const t = STATE.teams[teamId];
+      if (t.lockedByDevice && t.lockedByDevice !== DEVICE_ID) {
+        alert(`慢了一步！【第 ${teamId} 小隊】剛剛已經被另一支手機選走囉！`);
+        renderLobbyTeamButtons();
+        return;
+      }
+      if (!confirm(`確認將這支手機綁定為【第 ${teamId} 小隊（${cObj.colorName}）】嗎？\n綁定後其他手機將無法再點選此小隊！`)) {
+        return;
+      }
+      // 再次向雲端確認一次並上鎖
+      t.lockedByDevice = DEVICE_ID;
+      await saveState();
+      loginAsTeam(teamId);
+    }
+
+    function initLobby() {
+      renderLobbyTeamButtons();
 
       const angelSelect = document.getElementById("select-angel-team");
       angelSelect.innerHTML = `<option value="">-- 請選擇你負責的小隊 --</option>`;
@@ -641,10 +714,14 @@
       if (currentSession) {
         applySessionRole();
       }
-      syncFromCloud();
+      pollCloudState();
     }
 
-    function openLoginPanel(type) {
+    async function openLoginPanel(type) {
+      if (type === "team") {
+        await pollCloudState();
+        renderLobbyTeamButtons();
+      }
       ["team", "boss", "angel", "master"].forEach(t => {
         document.getElementById(`login-panel-${t}`).classList.add("hidden");
       });
@@ -741,16 +818,8 @@
       applySessionRole();
     }
 
-    function requestLogout() {
-      if (currentSession && currentSession.role !== "master") {
-        const pin = prompt("【防切換鎖定】請輸入最高權限密碼 (1123) 才可切換身分：");
-        if (pin === null) return;
-        const cleanPin = pin.trim();
-        if (cleanPin !== SUPER_PIN && cleanPin !== CONFIG.switchPin && cleanPin !== CONFIG.masterPin) {
-          alert("解鎖密碼錯誤！身分已鎖定無法切換。");
-          return;
-        }
-      }
+    function forceReturnToLobby(msg) {
+      if (msg) alert(msg);
       stopCameraScanner();
       localStorage.removeItem(LOCKED_ROLE_KEY);
       currentSession = null;
@@ -760,6 +829,28 @@
       document.getElementById("role-status-bar").classList.add("hidden");
       document.getElementById("view-lobby").classList.remove("hidden");
       closeLoginPanels();
+      renderLobbyTeamButtons();
+    }
+
+    async function requestLogout() {
+      if (currentSession && currentSession.role !== "master") {
+        const pin = prompt("【防切換鎖定】請輸入最高權限密碼 (1123) 才可切換身分並釋放該小隊綁定：");
+        if (pin === null) return;
+        const cleanPin = pin.trim();
+        if (cleanPin !== SUPER_PIN && cleanPin !== CONFIG.switchPin && cleanPin !== CONFIG.masterPin) {
+          alert("解鎖密碼錯誤！身分已鎖定無法切換。");
+          return;
+        }
+      }
+      // 若目前是小隊身分，登出時自動釋放雲端上的小隊設備鎖
+      if (currentSession && currentSession.role === "team") {
+        const t = STATE.teams[currentSession.teamId];
+        if (t && t.lockedByDevice === DEVICE_ID) {
+          t.lockedByDevice = null;
+          await saveState();
+        }
+      }
+      forceReturnToLobby();
     }
 
     function applySessionRole() {
@@ -1269,7 +1360,6 @@
       }
     }
 
-    // 第 2 小隊已同步更新為 2318
     const TEAM_1A2B_SECRETS = {
       1: "7943", 2: "2318", 3: "3942", 4: "8372",
       5: "5721", 6: "4873", 7: "9580", 8: "6478",
@@ -1404,6 +1494,14 @@
       }
     }
 
+    function masterUnlockTeamDevice(teamId) {
+      const t = STATE.teams[teamId];
+      if (!t) return;
+      t.lockedByDevice = null;
+      saveState();
+      alert(`已解除【第 ${teamId} 小隊】的手機綁定，現在可以重新選擇該小隊！`);
+    }
+
     function renderMasterView() {
       const grid = document.getElementById("master-teams-grid");
       grid.innerHTML = "";
@@ -1412,14 +1510,20 @@
         const t = STATE.teams[i];
         const cObj = getTeamColorObj(i);
         const isCountingPhone = (t.lifelinePhoneUntil - Date.now()) > 0;
+        const isDeviceLocked = Boolean(t.lockedByDevice);
         const card = document.createElement("div");
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5";
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
               <span style="background-color:${cObj.hex}; color:${cObj.textHex}" class="text-xs font-black px-2.5 py-0.5 rounded-full">${cObj.colorName}</span>
               <span class="font-black text-base text-white">${t.name}</span>
               <span class="text-xs font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full">${t.unlockedClues.length}/15</span>
+              ${
+                isDeviceLocked
+                  ? `<button onclick="masterUnlockTeamDevice(${i})" class="text-[11px] bg-emerald-950 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-lg">📱已綁定(點此解鎖)</button>`
+                  : `<span class="text-[11px] text-slate-500">尚未登入</span>`
+              }
             </div>
             <div class="text-right">
               <div id="master-team-time-${i}" class="text-lg font-mono font-black text-amber-400">${formatSeconds(getTeamTotalSeconds(t))}</div>
@@ -1525,7 +1629,7 @@
     }
 
     function masterResetGame() {
-      if (!confirm("確定清空所有進度？")) return;
+      if (!confirm("確定清空所有進度並解除所有小隊的手機綁定？")) return;
       STATE = createInitialState();
       saveState();
     }
