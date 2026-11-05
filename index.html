@@ -100,12 +100,12 @@
     </section>
 
     <!-- ==========================================
-         彈出式角色登入對話框 (無測試捷徑按鈕、支援 1123 萬用最高權限)
+         彈出式角色登入對話框
     =========================================== -->
     <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="w-[92vw] max-w-sm animate-pop-in">
 
-        <!-- 彈窗 1：小隊選擇 -->
+        <!-- 彈窗 1：小隊選擇 (套用 10 小隊專屬代表色) -->
         <div id="login-panel-team" class="hidden bg-slate-900 border-2 border-blue-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <h3 class="font-black text-lg text-blue-300">點擊選擇小隊</h3>
@@ -113,7 +113,7 @@
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
-          <div id="lobby-team-grid" class="grid grid-cols-3 gap-2.5 max-h-[60vh] overflow-y-auto"></div>
+          <div id="lobby-team-grid" class="grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto"></div>
         </div>
 
         <!-- 彈窗 2：關主代號 -->
@@ -172,10 +172,10 @@
          1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <div class="bg-gradient-to-r from-slate-900 to-blue-950 border border-blue-500/40 rounded-2xl p-4 shadow-lg">
+      <div id="team-top-card" class="bg-slate-900 border-2 border-blue-500/40 rounded-2xl p-4 shadow-lg">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <span class="text-xs text-blue-300 font-bold">目前綁定隊伍</span>
+            <span id="team-color-pill" class="inline-block text-xs font-black px-2.5 py-0.5 rounded-full mb-1">極光紅</span>
             <h2 id="team-header-name" class="text-2xl font-black text-white">第 1 小隊</h2>
           </div>
           <div class="text-right">
@@ -369,7 +369,7 @@
         </button>
       </div>
 
-      <!-- 頁籤 1：12 小隊監控 -->
+      <!-- 頁籤 1：小隊監控 -->
       <div id="master-tab-monitor" class="space-y-3">
         <div id="master-phone-timer-banner" class="hidden bg-amber-500 text-slate-950 p-3.5 rounded-2xl font-black space-y-2 shadow-xl">
           <div class="flex items-center justify-between">
@@ -432,16 +432,31 @@
   </div>
 
   <script>
+    // 預設 10 小隊代表色設定
+    const DEFAULT_TEAM_COLORS = [
+      { id: 1,  colorName: "極光紅", hex: "#E63946", textHex: "#FFFFFF" },
+      { id: 2,  colorName: "深海藍", hex: "#1D3557", textHex: "#FFFFFF" },
+      { id: 3,  colorName: "翡翠綠", hex: "#2A9D8F", textHex: "#FFFFFF" },
+      { id: 4,  colorName: "活力黃", hex: "#E9C46A", textHex: "#0F172A" },
+      { id: 5,  colorName: "暖陽橙", hex: "#F4A261", textHex: "#0F172A" },
+      { id: 6,  colorName: "夢幻紫", hex: "#8E44AD", textHex: "#FFFFFF" },
+      { id: 7,  colorName: "玫瑰粉", hex: "#FF70A6", textHex: "#0F172A" },
+      { id: 8,  colorName: "天空藍", hex: "#48CAE4", textHex: "#0F172A" },
+      { id: 9,  colorName: "可可棕", hex: "#6F4E37", textHex: "#FFFFFF" },
+      { id: 10, colorName: "石墨灰", hex: "#4A4A4A", textHex: "#FFFFFF" },
+      { id: 11, colorName: "青檸綠", hex: "#65A30D", textHex: "#FFFFFF" },
+      { id: 12, colorName: "酒紅紫", hex: "#9D174D", textHex: "#FFFFFF" }
+    ];
+
     const DEFAULT_CONFIG = {
-      // ★ 已直接內建你的 Firebase 即時資料庫網址
       firebaseUrl: "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app",
       gameTitle: "關關難過關關過",
-      teamCount: 12,
-      // ★ 1123 為最高權限萬用密碼
+      teamCount: 10,
       superPin: "1123",
       masterPin: "1123",
       angelPin: "8888",
       switchPin: "1123",
+      teamColors: DEFAULT_TEAM_COLORS,
       bossFailPenaltySec: 60,
       bossBonusRewardSec: 30,
       folderPeekPenaltySec: 45,
@@ -452,7 +467,6 @@
         { id: 3, title: "第三題：終極精神口號", prompt: "請輸入第三題答案：", answer: "永不放棄" }
       ],
       default1A2B: "7943",
-      // ★ 已更新為你指定的 12 小隊專屬 1A2B 答案
       angelCodes: {
         "A01": { teamId: 1,  secret1A2B: "7943" },
         "A02": { teamId: 2,  secret1A2B: "1213" },
@@ -470,36 +484,34 @@
       clues: [
         { id: 1,  code: "CLUE01", qId: 1, type: "boss",   bossCode: "B01", bossName: "第一關主(體力關)", taskDesc: "請前往操場司令台旁尋找【第一關主】，全隊完成跳繩考驗！", hintText: "【提示01】第一題答案的第一個字是「同」" },
         { id: 2,  code: "CLUE02", qId: 1, type: "boss",   bossCode: "B02", bossName: "第二關主(默契關)", taskDesc: "請前往籃球場尋找【第二關主】，完成兩人三腳考驗！", hintText: "【提示02】第一題答案的第二個字部首是「心」" },
-        { id: 3,  code: "CLUE03", qId: 1, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 A", taskDesc: "請點選「自己小隊」的資料夾領取提示（嚴禁偷看別隊！）", hintText: "【提示03】第一題答案的第二個字就是「心」" },
+        { id: 3,  code: "CLUE03", qId: 1, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 A", taskDesc: "請點選「自己小隊代表色」的資料夾領取提示（嚴禁偷看別隊！）", hintText: "【提示03】第一題答案的第二個字就是「心」" },
         { id: 4,  code: "CLUE04", qId: 1, type: "angel",  bossCode: "",    bossName: "隨隊小天使任務(一)", taskDesc: "請全隊一起對隨隊小天使比出愛心並大喊隊呼，由小天使按下過關！", hintText: "【提示04】第一題答案的第三個字是「協」" },
         { id: 5,  code: "CLUE05", qId: 1, type: "boss",   bossCode: "B03", bossName: "第三關主(觀察關)", taskDesc: "請前往跑道起點尋找【第三關主】接受記憶考驗！", hintText: "【提示05】第一題答案的第四個字是「力」" },
         { id: 6,  code: "CLUE06", qId: 2, type: "boss",   bossCode: "B04", bossName: "第四關主(腦力關)", taskDesc: "請前往大樹下尋找【第四關主】解開火柴棒謎題！", hintText: "【提示06】第二題密碼的第一個數字是「2」" },
         { id: 7,  code: "CLUE07", qId: 2, type: "angel",  bossCode: "",    bossName: "小天使 1A2B 破譯關", taskDesc: "請向隨隊小天使挑戰【1A2B 猜數字】，猜中後由小天使發送提示！", hintText: "【提示07】第二題密碼的第二個數字是「0」" },
         { id: 8,  code: "CLUE08", qId: 2, type: "boss",   bossCode: "B05", bossName: "第五關主(反應關)", taskDesc: "請前往排球場尋找【第五關主】挑戰猜拳連勝！", hintText: "【提示08】第二題密碼的第三個數字跟第一個數字一樣" },
-        { id: 9,  code: "CLUE09", qId: 2, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 B", taskDesc: "請點選自己小隊的專屬資料夾領取提示！", hintText: "【提示09】第二題密碼的第四個數字是「6」" },
+        { id: 9,  code: "CLUE09", qId: 2, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 B", taskDesc: "請點選自己小隊代表色的專屬資料夾領取提示！", hintText: "【提示09】第二題密碼的第四個數字是「6」" },
         { id: 10, code: "CLUE10", qId: 2, type: "angel",  bossCode: "",    bossName: "隨隊小天使任務(二)", taskDesc: "全隊手牽手圍成一圈單腳站立維持 10 秒鐘，由小天使判定過關！", hintText: "【提示10】第二題的答案正好是今年的西元年份！" },
         { id: 11, code: "CLUE11", qId: 3, type: "boss",   bossCode: "B06", bossName: "第六關主(團結關)", taskDesc: "請前往沙坑旁尋找【第六關主】完成人體解結任務！", hintText: "【提示11】第三題答案的第一個字是「永」" },
         { id: 12, code: "CLUE12", qId: 3, type: "boss",   bossCode: "B07", bossName: "第七關主(終極關)", taskDesc: "請前往單槓區尋找【第七關主】完成終極比手畫腳！", hintText: "【提示12】第三題答案的第二個字是「不」" },
-        { id: 13, code: "CLUE13", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 C", taskDesc: "請點選自己小隊的專屬資料夾，小心別點到隔壁隊！", hintText: "【提示13】第三題答案的第三個字是「放」" },
+        { id: 13, code: "CLUE13", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 C", taskDesc: "請點選自己小隊代表色的專屬資料夾，小心別點到隔壁隊！", hintText: "【提示13】第三題答案的第三個字是「放」" },
         { id: 14, code: "CLUE14", qId: 3, type: "folder", bossCode: "",    bossName: "雲端機密資料夾 D", taskDesc: "最後一個雲端資料夾！請點選自己小隊的顏色資料夾！", hintText: "【提示14】第三題答案的第四個字是「棄」" },
         { id: 15, code: "CLUE15", qId: 3, type: "angel",  bossCode: "",    bossName: "隨隊小天使最終任務", taskDesc: "請全隊拍一張最有創意的大合照給小天使看，即可解鎖最後一個提示！", hintText: "【提示15】恭喜集齊！第三題答案就是「永不放棄」，快衝回總關主處答題！" }
       ]
     };
 
     const CONFIG = Object.assign({}, DEFAULT_CONFIG, window.CUSTOM_GAME_CONFIG || {});
-    // 強制確保 12 隊的 1A2B 密碼與 Firebase 網址生效
     if (!CONFIG.firebaseUrl) {
       CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
     }
     const SUPER_PIN = "1123";
     document.getElementById('header-title').textContent = CONFIG.gameTitle;
 
-    const TEAM_COLORS = [
-      "bg-red-600 border-red-400", "bg-orange-600 border-orange-400", "bg-amber-500 border-amber-300 text-slate-950",
-      "bg-lime-600 border-lime-400", "bg-emerald-600 border-emerald-400", "bg-teal-600 border-teal-400",
-      "bg-cyan-600 border-cyan-400", "bg-blue-600 border-blue-400", "bg-indigo-600 border-indigo-400",
-      "bg-violet-600 border-violet-400", "bg-fuchsia-600 border-fuchsia-400", "bg-rose-600 border-rose-400"
-    ];
+    // 取得指定小隊的代表色資訊
+    function getTeamColorObj(teamId) {
+      const list = CONFIG.teamColors || DEFAULT_TEAM_COLORS;
+      return list.find(c => c.id === Number(teamId)) || DEFAULT_TEAM_COLORS[(teamId - 1) % DEFAULT_TEAM_COLORS.length];
+    }
 
     const STORAGE_KEY = "GOFIGHTING_STATE_V2";
     const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V2";
@@ -509,9 +521,11 @@
       const now = Date.now();
       const teams = {};
       for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const cObj = getTeamColorObj(i);
         teams[i] = {
           id: i,
           name: `第 ${i} 小隊`,
+          colorName: cObj.colorName,
           startTime: now,
           stopTime: null,
           penaltySec: 0,
@@ -541,7 +555,7 @@
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return createInitialState();
         const parsed = JSON.parse(raw);
-        if (!parsed.teams || Object.keys(parsed.teams).length < CONFIG.teamCount) return createInitialState();
+        if (!parsed.teams || Object.keys(parsed.teams).length !== CONFIG.teamCount) return createInitialState();
         return parsed;
       } catch (e) {
         return createInitialState();
@@ -561,20 +575,18 @@
       renderCurrentView();
     }
 
-    // 初次載入時先向 Firebase 拉取最新狀態
     async function syncFromCloud() {
       if (!firebaseUrl) return;
       try {
         const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`);
         const remote = await res.json();
-        if (remote && remote.teams) {
+        if (remote && remote.teams && Object.keys(remote.teams).length === CONFIG.teamCount) {
           if (!STATE.updatedAt || remote.updatedAt >= STATE.updatedAt) {
             STATE = remote;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
             renderCurrentView();
           }
         } else {
-          // 若雲端還是空的，將初始狀態推上去
           saveState();
         }
       } catch (e) {}
@@ -585,7 +597,7 @@
         try {
           const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`);
           const remote = await res.json();
-          if (remote && remote.updatedAt && remote.updatedAt > STATE.updatedAt) {
+          if (remote && remote.updatedAt && remote.updatedAt > STATE.updatedAt && Object.keys(remote.teams || {}).length === CONFIG.teamCount) {
             STATE = remote;
             localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
             renderCurrentView();
@@ -608,11 +620,17 @@
       const grid = document.getElementById("lobby-team-grid");
       grid.innerHTML = "";
       for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const cObj = getTeamColorObj(i);
         const btn = document.createElement("button");
-        btn.className = "bg-slate-950 hover:bg-blue-600 active:scale-95 border border-slate-700 text-white font-black py-3.5 rounded-xl text-sm transition shadow";
-        btn.textContent = `第 ${i} 小隊`;
+        btn.className = "active:scale-95 border-2 border-white/20 rounded-xl py-3 px-2 transition shadow-md flex flex-col items-center justify-center gap-0.5";
+        btn.style.backgroundColor = cObj.hex;
+        btn.style.color = cObj.textHex;
+        btn.innerHTML = `
+          <span class="font-black text-sm">第 ${i} 小隊</span>
+          <span class="text-[11px] font-bold opacity-90">${cObj.colorName}</span>
+        `;
         btn.onclick = () => {
-          if (confirm(`確認將這支手機綁定為【第 ${i} 小隊】嗎？`)) {
+          if (confirm(`確認將這支手機綁定為【第 ${i} 小隊（${cObj.colorName}）】嗎？`)) {
             loginAsTeam(i);
           }
         };
@@ -622,9 +640,10 @@
       const angelSelect = document.getElementById("select-angel-team");
       angelSelect.innerHTML = `<option value="">-- 請選擇你負責的小隊 --</option>`;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const cObj = getTeamColorObj(i);
         const opt = document.createElement("option");
         opt.value = i;
-        opt.textContent = `第 ${i} 小隊`;
+        opt.textContent = `第 ${i} 小隊 (${cObj.colorName})`;
         angelSelect.appendChild(opt);
       }
 
@@ -673,7 +692,6 @@
         alert("請輸入關主代號！");
         return;
       }
-      // 支援輸入萬用最高權限 1123 直接進入第一關主測試
       let clue = CONFIG.clues.find(c => c.type === "boss" && c.bossCode.toUpperCase() === code.toUpperCase());
       if (!clue && code === SUPER_PIN) {
         clue = CONFIG.clues.find(c => c.type === "boss");
@@ -704,7 +722,6 @@
       const customAngel = CONFIG.angelCodes && CONFIG.angelCodes[code];
       const validPin = CONFIG.angelPin || "8888";
 
-      // 支援最高權限 1123、8888、或 A01~A12
       const isPassValid =
         code === SUPER_PIN ||
         code === validPin.toUpperCase() ||
@@ -724,7 +741,6 @@
 
     function loginAsMaster() {
       const pin = document.getElementById("input-master-pin").value.trim();
-      // 支援最高權限 1123 或原本設定的 masterPin
       if (pin !== SUPER_PIN && pin !== CONFIG.masterPin && pin !== "9999") {
         alert("密碼錯誤！");
         return;
@@ -735,7 +751,6 @@
       applySessionRole();
     }
 
-    // 登出與切換身分：支援最高權限 1123 一碼解鎖
     function requestLogout() {
       if (currentSession && currentSession.role !== "master") {
         const pin = prompt("【防切換鎖定】請輸入最高權限密碼才可切換身分：");
@@ -769,7 +784,8 @@
       statusBar.classList.add("flex");
 
       if (currentSession.role === "team") {
-        badge.textContent = `第 ${currentSession.teamId} 小隊`;
+        const cObj = getTeamColorObj(currentSession.teamId);
+        badge.textContent = `第 ${currentSession.teamId} 小隊 (${cObj.colorName})`;
         document.getElementById("view-team").classList.remove("hidden");
       } else if (currentSession.role === "boss") {
         badge.textContent = `關主 ${currentSession.bossCode}`;
@@ -808,7 +824,7 @@
 
     function stopAllPhoneLifelines() {
       for (let i = 1; i <= CONFIG.teamCount; i++) {
-        if (STATE.teams[i].lifelinePhoneUntil > Date.now()) {
+        if (STATE.teams[i] && STATE.teams[i].lifelinePhoneUntil > Date.now()) {
           STATE.teams[i].lifelinePhoneUntil = 0;
         }
       }
@@ -838,6 +854,7 @@
         let activePhoneRemain = 0;
         for (let i = 1; i <= CONFIG.teamCount; i++) {
           const t = STATE.teams[i];
+          if (!t) continue;
           const el = document.getElementById(`master-team-time-${i}`);
           if (el) el.textContent = formatSeconds(getTeamTotalSeconds(t));
           const rem = Math.ceil((t.lifelinePhoneUntil - Date.now()) / 1000);
@@ -868,7 +885,17 @@
 
     function renderTeamView() {
       const team = STATE.teams[currentSession.teamId];
-      document.getElementById("team-header-name").textContent = team.name;
+      if (!team) return;
+      const cObj = getTeamColorObj(team.id);
+      document.getElementById("team-header-name").textContent = `${team.name}`;
+
+      const pill = document.getElementById("team-color-pill");
+      pill.textContent = `代表色：${cObj.colorName}`;
+      pill.style.backgroundColor = cObj.hex;
+      pill.style.color = cObj.textHex;
+
+      const topCard = document.getElementById("team-top-card");
+      topCard.style.borderColor = cObj.hex;
 
       const statusBadge = document.getElementById("team-timer-status");
       if (team.stopTime) {
@@ -937,6 +964,7 @@
 
     function renderActiveClueInteraction(container, clue, team) {
       const isUnlocked = team.unlockedClues.includes(clue.id);
+      const myColorObj = getTeamColorObj(team.id);
 
       if (clue.type === "boss") {
         container.innerHTML = `
@@ -955,21 +983,22 @@
       } else if (clue.type === "folder") {
         let foldersHtml = "";
         for (let i = 1; i <= CONFIG.teamCount; i++) {
-          const colorCls = TEAM_COLORS[(i - 1) % TEAM_COLORS.length];
+          const cObj = getTeamColorObj(i);
           foldersHtml += `
-            <button onclick="clickCloudFolder(${clue.id}, ${i})" class="${colorCls} border-2 rounded-xl p-2.5 flex flex-col items-center justify-center gap-1 shadow active:scale-95 transition">
-              <i class="fa-solid fa-folder-open text-xl"></i>
+            <button onclick="clickCloudFolder(${clue.id}, ${i})" style="background-color: ${cObj.hex}; color: ${cObj.textHex};" class="border-2 border-white/25 rounded-xl p-3 flex flex-col items-center justify-center gap-1 shadow-md active:scale-95 transition">
+              <i class="fa-solid fa-folder-open text-2xl"></i>
               <span class="text-xs font-black">第 ${i} 小隊</span>
+              <span class="text-[11px] font-bold opacity-90">${cObj.colorName}</span>
             </button>
           `;
         }
         container.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="bg-blue-500/20 text-blue-300 text-xs font-black px-2.5 py-1 rounded-full">📁 雲端資料夾 (${clue.code})</span>
+            <span class="bg-blue-500/20 text-blue-300 text-xs font-black px-2.5 py-1 rounded-full">📁 雲端機密資料夾 (${clue.code})</span>
             <button onclick="clearActiveClue()" class="text-xs text-slate-400">關閉</button>
           </div>
-          <p class="text-xs text-amber-300 font-bold">⚠️ 請點選【第 ${team.id} 小隊】資料夾，亂點別隊將受罰！</p>
-          <div class="grid grid-cols-3 gap-2 pt-1">${foldersHtml}</div>
+          <p class="text-xs text-amber-300 font-bold">⚠️ 你們是【第 ${team.id} 小隊 — ${myColorObj.colorName}】，請點選自己的資料夾，亂點別隊將受罰！</p>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">${foldersHtml}</div>
         `;
       } else if (clue.type === "angel") {
         container.innerHTML = `
@@ -991,10 +1020,11 @@
     function clickCloudFolder(clueId, folderTeamId) {
       const team = STATE.teams[currentSession.teamId];
       const clue = CONFIG.clues.find(c => c.id === clueId);
+      const cObj = getTeamColorObj(team.id);
       if (folderTeamId === team.id) {
         if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
         saveState();
-        showFullscreenAlert("success", "📁 資料夾正確！", `成功打開第 ${team.id} 小隊資料夾！`, clue.hintText);
+        showFullscreenAlert("success", `📁 ${cObj.colorName}資料夾正確！`, `成功打開第 ${team.id} 小隊專屬資料夾！`, clue.hintText);
       } else {
         team.penaltySec = (team.penaltySec || 0) + CONFIG.folderPeekPenaltySec;
         saveState();
@@ -1139,10 +1169,11 @@
       select.innerHTML = "";
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const t = STATE.teams[i];
+        const cObj = getTeamColorObj(i);
         const hasClue = t.unlockedClues.includes(clue.id);
         const opt = document.createElement("option");
         opt.value = i;
-        opt.textContent = `第 ${i} 小隊 ${hasClue ? "✅(已發過)" : ""}`;
+        opt.textContent = `第 ${i} 小隊 (${cObj.colorName}) ${hasClue ? "✅已發過" : ""}`;
         select.appendChild(opt);
       }
       select.value = currentVal;
@@ -1190,7 +1221,6 @@
       }
     }
 
-    // 專屬 12 小隊 1A2B 密碼表
     const TEAM_1A2B_SECRETS = {
       1: "7943", 2: "1213", 3: "3942", 4: "8372",
       5: "5721", 6: "4873", 7: "9580", 8: "6478",
@@ -1206,9 +1236,10 @@
     function renderAngelView() {
       const teamId = currentSession.teamId;
       const team = STATE.teams[teamId];
+      const cObj = getTeamColorObj(teamId);
       const secret = getTeam1A2BSecret(teamId);
 
-      document.getElementById("angel-badge-code").textContent = `隨隊小天使 (已綁定第 ${teamId} 小隊)`;
+      document.getElementById("angel-badge-code").textContent = `隨隊小天使 (${cObj.colorName})`;
       document.getElementById("angel-header-title").textContent = `第 ${teamId} 小隊專區`;
       document.getElementById("angel-secret-display").textContent = secret;
 
@@ -1327,14 +1358,16 @@
 
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const t = STATE.teams[i];
+        const cObj = getTeamColorObj(i);
         const isCountingPhone = (t.lifelinePhoneUntil - Date.now()) > 0;
         const card = document.createElement("div");
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5";
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <div>
+            <div class="flex items-center gap-2">
+              <span style="background-color:${cObj.hex}; color:${cObj.textHex}" class="text-xs font-black px-2.5 py-0.5 rounded-full">${cObj.colorName}</span>
               <span class="font-black text-base text-white">${t.name}</span>
-              <span class="ml-1.5 text-xs font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full">${t.unlockedClues.length}/15</span>
+              <span class="text-xs font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full">${t.unlockedClues.length}/15</span>
             </div>
             <div class="text-right">
               <div id="master-team-time-${i}" class="text-lg font-mono font-black text-amber-400">${formatSeconds(getTeamTotalSeconds(t))}</div>
@@ -1456,7 +1489,7 @@
         t.penaltySec = (i % 3 === 0) ? -90 : (i % 2 === 0 ? 180 : 30);
         t.finishOrder = i;
         t.answerSubmitted = true;
-        t.quizScore = [10, 5, 10, 3, 10, 5, 10, 10, 5, 3, 10, 10][(i - 1) % 12];
+        t.quizScore = [10, 5, 10, 3, 10, 5, 10, 10, 5, 3][(i - 1) % 10];
       }
       saveState();
       switchMasterTab("kahoot");
@@ -1499,12 +1532,16 @@
 
       const container = document.getElementById("kahoot-bars-container");
       container.innerHTML = scoredTeams.map((t, idx) => {
-        const widthPct = Math.max(14, Math.round((t.displayScore / maxScore) * 100));
+        const cObj = getTeamColorObj(t.id);
+        const widthPct = Math.max(16, Math.round((t.displayScore / maxScore) * 100));
         const medal = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `#${idx + 1}`;
         return `
           <div class="bg-slate-950 border border-slate-800 rounded-xl p-2.5 space-y-1">
             <div class="flex items-center justify-between text-xs">
-              <div class="font-black text-white">${medal} ${t.name}</div>
+              <div class="font-black text-white flex items-center gap-1.5">
+                <span>${medal} ${t.name}</span>
+                <span style="background-color:${cObj.hex}; color:${cObj.textHex}" class="text-[10px] px-2 py-0.5 rounded-full font-bold">${cObj.colorName}</span>
+              </div>
               <div class="text-slate-400 text-[11px]">
                 順序+${t.orderScore}
                 ${stage >= 2 ? `｜答題+${t.quizScore}` : ""}
@@ -1512,7 +1549,7 @@
               </div>
             </div>
             <div class="w-full bg-slate-900 rounded-full h-6 overflow-hidden p-0.5">
-              <div class="bar-transition h-full rounded-full bg-gradient-to-r from-blue-600 via-purple-600 to-amber-500 flex items-center justify-end pr-2.5 text-xs font-black text-white" style="width: ${widthPct}%">
+              <div class="bar-transition h-full rounded-full flex items-center justify-end pr-2.5 text-xs font-black shadow" style="width: ${widthPct}%; background-color: ${cObj.hex}; color: ${cObj.textHex};">
                 ${t.displayScore}分
               </div>
             </div>
