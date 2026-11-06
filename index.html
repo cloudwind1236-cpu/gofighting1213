@@ -467,7 +467,6 @@
     const SUPER_PIN = "1123";
     document.getElementById('header-title').textContent = CONFIG.gameTitle;
 
-    // 使用 sessionStorage 產生分頁獨立的 Device ID，這樣同一台電腦開一般視窗與無痕視窗測試也絕對不會互相衝突！
     const DEVICE_ID_KEY = "GOFIGHTING_TAB_DEVICE_ID";
     let DEVICE_ID = sessionStorage.getItem(DEVICE_ID_KEY) || localStorage.getItem(DEVICE_ID_KEY);
     if (!DEVICE_ID) {
@@ -502,8 +501,8 @@
       return fallbackQ && clean(fallbackQ.answer) === cleanedUser;
     }
 
-    const STORAGE_KEY = "GOFIGHTING_STATE_V4";
-    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V4";
+    const STORAGE_KEY = "GOFIGHTING_STATE_V5";
+    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V5";
     let firebaseUrl = (CONFIG.firebaseUrl || "").replace(/\/$/, "");
 
     function createSingleTeamObj(i, now) {
@@ -516,7 +515,7 @@
         startTime: now,
         stopTime: 0,
         penaltySec: 0,
-        unlockedClues: [0], // 放一個 0 避免 Firebase 自動刪除空陣列
+        unlockedClues: [0],
         activeClueId: 0,
         lifelinePhoneUsed: false,
         lifelinePhoneUntil: 0,
@@ -540,21 +539,34 @@
       return { updatedAt: now, finishCounter: 0, kahootStage: 1, teams };
     }
 
-    // 過濾掉佔位符 0，取得真實已解鎖的提示 ID 陣列
     function getValidUnlockedClues(team) {
       if (!team || !Array.isArray(team.unlockedClues)) return [];
       return team.unlockedClues.filter(id => Number(id) > 0);
     }
 
+    // ★ 安全取得第 1~10 隊的陣列，徹底過濾掉 Firebase 自動產生的 index 0 (null)！
+    function getValidTeamsArray() {
+      const arr = [];
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        if (STATE && STATE.teams && STATE.teams[i]) {
+          arr.push(STATE.teams[i]);
+        }
+      }
+      return arr;
+    }
+
+    // ★ 修正 Firebase 回傳 Array 含 null 的問題，強制轉為乾淨的 1~10 物件
     function ensureTeamsStructure(st) {
       if (!st || !st.teams) return createInitialState();
       const now = Date.now();
+      const cleanTeams = {};
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const cObj = getTeamColorObj(i);
-        if (!st.teams[i]) {
-          st.teams[i] = createSingleTeamObj(i, now);
+        const rawTeam = st.teams[i];
+        if (!rawTeam || typeof rawTeam !== "object") {
+          cleanTeams[i] = createSingleTeamObj(i, now);
         } else {
-          const t = st.teams[i];
+          const t = Object.assign(createSingleTeamObj(i, now), rawTeam);
           t.id = i;
           t.name = `第 ${i} 小隊`;
           t.colorName = cObj.colorName;
@@ -565,16 +577,19 @@
           if (typeof t.stopTime !== "number") t.stopTime = 0;
           if (typeof t.penaltySec !== "number") t.penaltySec = 0;
           if (typeof t.lifelinePhoneUntil !== "number") t.lifelinePhoneUntil = 0;
-          if (!t.lastEvent) t.lastEvent = { ts: 0, type: "info", title: "", message: "", hint: "" };
+          if (!t.lastEvent || typeof t.lastEvent !== "object") {
+            t.lastEvent = { ts: 0, type: "info", title: "", message: "", hint: "" };
+          }
+          cleanTeams[i] = t;
         }
       }
+      st.teams = cleanTeams;
       return st;
     }
 
     let STATE = loadState();
     let currentSession = JSON.parse(sessionStorage.getItem(LOCKED_ROLE_KEY) || localStorage.getItem(LOCKED_ROLE_KEY) || "null");
     let lastSeenEventTs = Date.now();
-    // ★ 防閃退保護鎖：當本機剛按下按鈕後的 2.5 秒內，暫停被雲端舊資料覆蓋
     let pausePollingUntil = 0;
     let html5QrScanner = null;
 
@@ -588,11 +603,12 @@
       }
     }
 
-    // ★ 精準更新單一小隊資料到 Firebase (PATCH)，不會蓋掉別隊或總關主的操作！
     async function saveTeamPatch(teamId, partialData) {
       pausePollingUntil = Date.now() + 2500;
-      const team = STATE.teams[teamId];
-      Object.assign(team, partialData);
+      if (!STATE.teams[teamId]) {
+        STATE.teams[teamId] = createSingleTeamObj(teamId, Date.now());
+      }
+      Object.assign(STATE.teams[teamId], partialData);
       STATE.updatedAt = Date.now();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
       renderCurrentView();
@@ -614,7 +630,6 @@
       }
     }
 
-    // 全場完整寫入 (僅在總關主按「全場從0開始」、「重置全場」、「模擬數據」時使用)
     async function saveFullState() {
       pausePollingUntil = Date.now() + 3000;
       STATE.updatedAt = Date.now();
@@ -643,10 +658,9 @@
           STATE = ensureTeamsStructure(remote);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
 
-          // 檢查自己綁定的小隊是否被總關主強制解鎖
           if (currentSession && currentSession.role === "team") {
             const myTeam = STATE.teams[currentSession.teamId];
-            if (myTeam && myTeam.lockedByDevice && myTeam.lockedByDevice !== DEVICE_ID) {
+            if (myTeam && myTeam.lockedByDevice && myTeam.lockedByDevice !== "" && myTeam.lockedByDevice !== DEVICE_ID) {
               forceReturnToLobby("此小隊已被其他手機接管或由總關主重設！");
               return;
             }
@@ -703,7 +717,7 @@
       const cObj = getTeamColorObj(teamId);
       await pollCloudState();
       const t = STATE.teams[teamId];
-      if (t.lockedByDevice && t.lockedByDevice !== "" && t.lockedByDevice !== DEVICE_ID) {
+      if (t && t.lockedByDevice && t.lockedByDevice !== "" && t.lockedByDevice !== DEVICE_ID) {
         alert(`慢了一步！【第 ${teamId} 小隊】剛剛已經被另一支手機選走囉！`);
         renderLobbyTeamButtons();
         return;
@@ -907,9 +921,12 @@
       return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
     }
 
+    // ★ 加入空值防呆保護，避免傳入 null 造成當機
     function getTeamTotalSeconds(team) {
+      if (!team || typeof team !== "object") return 0;
       const end = (team.stopTime && team.stopTime > 0) ? team.stopTime : Date.now();
-      const rawSec = Math.floor((end - team.startTime) / 1000);
+      const start = team.startTime || end;
+      const rawSec = Math.floor((end - start) / 1000);
       return Math.max(0, rawSec + (team.penaltySec || 0));
     }
 
@@ -1154,7 +1171,6 @@
       }
     }
 
-    // ★ 修正：當輸入框已經存在時，不要每秒重新洗掉 HTML，否則學生打字會被中斷！
     let lastRenderedAnswerStateKey = "";
     function renderTeamFinalAnswer(team) {
       const panel = document.getElementById("team-final-answer-panel");
@@ -1418,7 +1434,7 @@
       document.getElementById("angel-secret-display").textContent = secret;
 
       const histEl = document.getElementById("angel-1a2b-history");
-      const guesses = (team.angelGuesses || []).filter(g => g.guess !== "----");
+      const guesses = (team.angelGuesses || []).filter(g => g && g.guess !== "----");
       histEl.innerHTML = guesses.map(g => `
         <div class="flex items-center justify-between bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
           <span class="font-mono font-bold text-white">${g.guess}</span>
@@ -1542,6 +1558,7 @@
 
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const t = STATE.teams[i];
+        if (!t) continue;
         const unlockedIds = getValidUnlockedClues(t);
         const cObj = getTeamColorObj(i);
         const isCountingPhone = ((t.lifelinePhoneUntil || 0) - Date.now()) > 0;
@@ -1608,7 +1625,6 @@
       renderKahootLeaderboard();
     }
 
-    // ★ 總關主觸發「手機 2 分鐘」或「提示一個字」（直接透過 PATCH 同步至小隊手機）
     async function masterTriggerLifeline(teamId, type) {
       if (type === "phone") {
         const untilTs = Date.now() + 120 * 1000;
@@ -1642,15 +1658,13 @@
       }
     }
 
-    // ★ 總關主按下「我要答題」停止計時並開放小隊手機作答區
     async function masterStopTeamTimer(teamId) {
       const team = STATE.teams[teamId];
-      if (team.stopTime && team.stopTime > 0) return;
+      if (!team || (team.stopTime && team.stopTime > 0)) return;
 
-      // 自動計算目前有幾隊已經停錶，決定他是第幾名回來
       let maxOrder = 0;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
-        const ord = STATE.teams[i].finishOrder || 0;
+        const ord = (STATE.teams[i] && STATE.teams[i].finishOrder) ? STATE.teams[i].finishOrder : 0;
         if (ord > maxOrder) maxOrder = ord;
       }
       const nextOrder = maxOrder + 1;
@@ -1677,12 +1691,12 @@
       });
     }
 
-    // ★ 修復：總關主按下「全場從 00:00 開始計時」
     async function masterStartAllTimers() {
       if (!confirm("確定要將全場所有小隊的計時器重新從 00:00 開始起算嗎？（已綁定的手機不會被踢出）")) return;
       const now = Date.now();
       STATE.finishCounter = 0;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
+        if (!STATE.teams[i]) STATE.teams[i] = createSingleTeamObj(i, now);
         const t = STATE.teams[i];
         t.startTime = now;
         t.stopTime = 0;
@@ -1718,6 +1732,7 @@
       const now = Date.now();
       STATE.finishCounter = CONFIG.teamCount;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
+        if (!STATE.teams[i]) STATE.teams[i] = createSingleTeamObj(i, now);
         const t = STATE.teams[i];
         t.unlockedClues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
         t.startTime = now - (1200 + i * 55) * 1000;
@@ -1736,6 +1751,7 @@
       await saveFullState();
     }
 
+    // ★ 修正：使用 getValidTeamsArray() 徹底避免讀到 index 0 的 null 空值！
     function renderKahootLeaderboard() {
       const stage = STATE.kahootStage || 1;
       const descEl = document.getElementById("kahoot-stage-desc");
@@ -1743,7 +1759,7 @@
       else if (stage === 2) descEl.textContent = "階段 2：加上三題答題正確分 (+3 / +5 / +10)";
       else descEl.textContent = "🔥 階段 3：計入真正總時間積分，最終大翻盤！";
 
-      const teamArr = Object.values(STATE.teams);
+      const teamArr = getValidTeamsArray();
       const timeSorted = [...teamArr].sort((a, b) => getTeamTotalSeconds(a) - getTeamTotalSeconds(b));
       const timeRankPointsMap = {};
       const timePtsTable = [15, 13, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2];
