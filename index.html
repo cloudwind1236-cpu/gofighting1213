@@ -101,7 +101,6 @@
     <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="w-[92vw] max-w-sm animate-pop-in">
 
-        <!-- 彈窗 1：小隊選擇 (已被別支手機選走的小隊會自動顯示🔒已綁定並鎖死) -->
         <div id="login-panel-team" class="hidden bg-slate-900 border-2 border-blue-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-800 pb-3">
             <h3 class="font-black text-lg text-blue-300">點擊選擇小隊（一隊限一機）</h3>
@@ -196,6 +195,7 @@
             </div>
           </div>
 
+          <!-- 小隊端 2分鐘手機求救倒數視窗 -->
           <div id="team-phone-countdown-box" class="hidden mt-3 bg-amber-500 text-slate-950 font-black p-3 rounded-xl space-y-2 shadow-lg">
             <div class="flex items-center justify-between">
               <span class="text-sm">📱 手機搜尋倒數：</span>
@@ -336,34 +336,26 @@
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-xl font-black text-white">👑 總關主控台</h2>
           <div class="flex flex-wrap gap-1.5">
-            <button onclick="masterStartAllTimers()" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black px-3 py-2 rounded-xl">
-              <i class="fa-solid fa-play mr-1"></i>全場開賽計時
+            <button onclick="masterStartAllTimers()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl shadow">
+              <i class="fa-solid fa-play mr-1"></i>全場從 00:00 開始計時
             </button>
-            <button onclick="masterSimulateDemo()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-black px-3 py-2 rounded-xl">
+            <button onclick="masterSimulateDemo()" class="bg-purple-600 hover:bg-purple-500 active:scale-95 text-white text-xs font-black px-3 py-2 rounded-xl shadow">
               ⚡ 模擬數據
             </button>
-            <button onclick="openPrintModal()" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black px-3 py-2 rounded-xl">
+            <button onclick="openPrintModal()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-3 py-2 rounded-xl shadow">
               <i class="fa-solid fa-print mr-1"></i>列印QR碼
             </button>
-            <button onclick="masterResetGame()" class="bg-rose-900 hover:bg-rose-700 text-rose-100 text-xs font-bold px-3 py-2 rounded-xl">
+            <button onclick="masterResetGame()" class="bg-rose-900 hover:bg-rose-700 active:scale-95 text-rose-100 text-xs font-bold px-3 py-2 rounded-xl">
               重置全場(含解鎖手機)
             </button>
           </div>
         </div>
-
-        <details class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 text-xs">
-          <summary class="cursor-pointer font-bold text-amber-300">☁️ 跨手機雲端連線設定 (已自動連接 Firebase)</summary>
-          <div class="mt-2 space-y-2">
-            <input id="input-firebase-url" type="text" placeholder="https://xxxx-default-rtdb.firebaseio.com" class="w-full min-w-0 bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white">
-            <button onclick="saveFirebaseUrl()" class="w-full bg-amber-500 text-slate-950 font-black py-2 rounded-lg">更新連線網址</button>
-          </div>
-        </details>
       </div>
 
       <!-- 總關主頁籤切換 -->
       <div class="grid grid-cols-2 gap-2">
         <button onclick="switchMasterTab('monitor')" id="tab-btn-monitor" class="bg-amber-500 text-slate-950 font-black py-2.5 rounded-xl text-xs">
-          📋 各隊狀態 ＆ 停錶
+          📋 各隊狀態 ＆ 求救 ＆ 停錶
         </button>
         <button onclick="switchMasterTab('kahoot')" id="tab-btn-kahoot" class="bg-slate-800 text-slate-300 font-black py-2.5 rounded-xl text-xs">
           🏆 Kahoot 動態排行榜
@@ -372,12 +364,13 @@
 
       <!-- 頁籤 1：小隊監控 -->
       <div id="master-tab-monitor" class="space-y-3">
-        <div id="master-phone-timer-banner" class="hidden bg-amber-500 text-slate-950 p-3.5 rounded-2xl font-black space-y-2 shadow-xl">
+        <!-- 總關主端 2分鐘手機求救倒數大橫幅 -->
+        <div id="master-phone-timer-banner" class="hidden bg-amber-500 text-slate-950 p-4 rounded-2xl font-black space-y-2 shadow-xl border-2 border-white">
           <div class="flex items-center justify-between">
-            <div><span id="master-phone-team-label" class="underline">第 1 小隊</span> 手機求救倒數</div>
-            <div id="master-phone-timer-digits" class="text-2xl font-mono bg-slate-950 text-amber-400 px-3 py-0.5 rounded-xl">02:00</div>
+            <div class="text-base">📱 <span id="master-phone-team-label" class="underline">第 1 小隊</span> 手機求救倒數中！</div>
+            <div id="master-phone-timer-digits" class="text-2xl font-mono bg-slate-950 text-amber-400 px-3 py-1 rounded-xl">02:00</div>
           </div>
-          <button onclick="stopAllPhoneLifelines()" class="w-full bg-rose-600 text-white text-xs font-black py-2 rounded-xl">
+          <button onclick="stopAllPhoneLifelines()" class="w-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-black py-2.5 rounded-xl shadow">
             <i class="fa-solid fa-stop mr-1"></i>提前停止倒數
           </button>
         </div>
@@ -474,11 +467,12 @@
     const SUPER_PIN = "1123";
     document.getElementById('header-title').textContent = CONFIG.gameTitle;
 
-    // ★ 為每台手機/電腦產生專屬唯一識別碼 (Device ID)，用來鎖定「一隊一機」
-    const DEVICE_ID_KEY = "GOFIGHTING_DEVICE_ID";
-    let DEVICE_ID = localStorage.getItem(DEVICE_ID_KEY);
+    // 使用 sessionStorage 產生分頁獨立的 Device ID，這樣同一台電腦開一般視窗與無痕視窗測試也絕對不會互相衝突！
+    const DEVICE_ID_KEY = "GOFIGHTING_TAB_DEVICE_ID";
+    let DEVICE_ID = sessionStorage.getItem(DEVICE_ID_KEY) || localStorage.getItem(DEVICE_ID_KEY);
     if (!DEVICE_ID) {
       DEVICE_ID = "dev_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
+      sessionStorage.setItem(DEVICE_ID_KEY, DEVICE_ID);
       localStorage.setItem(DEVICE_ID_KEY, DEVICE_ID);
     }
 
@@ -508,125 +502,161 @@
       return fallbackQ && clean(fallbackQ.answer) === cleanedUser;
     }
 
-    const STORAGE_KEY = "GOFIGHTING_STATE_V3";
-    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V3";
-    let firebaseUrl = CONFIG.firebaseUrl || localStorage.getItem("GOFIGHTING_FB_URL") || "";
+    const STORAGE_KEY = "GOFIGHTING_STATE_V4";
+    const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V4";
+    let firebaseUrl = (CONFIG.firebaseUrl || "").replace(/\/$/, "");
+
+    function createSingleTeamObj(i, now) {
+      const cObj = getTeamColorObj(i);
+      return {
+        id: i,
+        name: `第 ${i} 小隊`,
+        colorName: cObj.colorName,
+        lockedByDevice: "",
+        startTime: now,
+        stopTime: 0,
+        penaltySec: 0,
+        unlockedClues: [0], // 放一個 0 避免 Firebase 自動刪除空陣列
+        activeClueId: 0,
+        lifelinePhoneUsed: false,
+        lifelinePhoneUntil: 0,
+        lifelineWordUsed: false,
+        lifelineWordText: "",
+        finishOrder: 0,
+        answers: ["", "", ""],
+        answerSubmitted: false,
+        quizScore: 0,
+        lastEvent: { ts: 0, type: "info", title: "", message: "", hint: "" },
+        angelGuesses: [{ guess: "----", result: "準備中" }]
+      };
+    }
 
     function createInitialState() {
       const now = Date.now();
       const teams = {};
       for (let i = 1; i <= CONFIG.teamCount; i++) {
-        const cObj = getTeamColorObj(i);
-        teams[i] = {
-          id: i,
-          name: `第 ${i} 小隊`,
-          colorName: cObj.colorName,
-          lockedByDevice: null, // ★ 記錄哪支手機綁定了這個小隊
-          startTime: now,
-          stopTime: null,
-          penaltySec: 0,
-          unlockedClues: [],
-          activeClueId: null,
-          lifelinePhoneUsed: false,
-          lifelinePhoneUntil: 0,
-          lifelineWordUsed: false,
-          finishOrder: null,
-          answers: ["", "", ""],
-          answerSubmitted: false,
-          quizScore: 0,
-          lastEvent: null,
-          angelGuesses: []
-        };
+        teams[i] = createSingleTeamObj(i, now);
       }
       return { updatedAt: now, finishCounter: 0, kahootStage: 1, teams };
     }
 
-    let STATE = loadState();
-    let currentSession = JSON.parse(localStorage.getItem(LOCKED_ROLE_KEY) || "null");
-    let lastSeenEventTs = Date.now();
-    let lastCloudSnapshot = "";
-    let isSavingToCloud = false;
-    let html5QrScanner = null;
+    // 過濾掉佔位符 0，取得真實已解鎖的提示 ID 陣列
+    function getValidUnlockedClues(team) {
+      if (!team || !Array.isArray(team.unlockedClues)) return [];
+      return team.unlockedClues.filter(id => Number(id) > 0);
+    }
 
     function ensureTeamsStructure(st) {
       if (!st || !st.teams) return createInitialState();
+      const now = Date.now();
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const cObj = getTeamColorObj(i);
         if (!st.teams[i]) {
-          st.teams[i] = createInitialState().teams[i];
+          st.teams[i] = createSingleTeamObj(i, now);
         } else {
-          st.teams[i].unlockedClues = st.teams[i].unlockedClues || [];
-          st.teams[i].answers = st.teams[i].answers || ["", "", ""];
-          st.teams[i].angelGuesses = st.teams[i].angelGuesses || [];
-          st.teams[i].colorName = cObj.colorName;
-          if (st.teams[i].lockedByDevice === undefined) st.teams[i].lockedByDevice = null;
+          const t = st.teams[i];
+          t.id = i;
+          t.name = `第 ${i} 小隊`;
+          t.colorName = cObj.colorName;
+          if (!Array.isArray(t.unlockedClues) || t.unlockedClues.length === 0) t.unlockedClues = [0];
+          if (!Array.isArray(t.answers) || t.answers.length < 3) t.answers = ["", "", ""];
+          if (!Array.isArray(t.angelGuesses) || t.angelGuesses.length === 0) t.angelGuesses = [{ guess: "----", result: "準備中" }];
+          if (typeof t.startTime !== "number" || t.startTime <= 0) t.startTime = now;
+          if (typeof t.stopTime !== "number") t.stopTime = 0;
+          if (typeof t.penaltySec !== "number") t.penaltySec = 0;
+          if (typeof t.lifelinePhoneUntil !== "number") t.lifelinePhoneUntil = 0;
+          if (!t.lastEvent) t.lastEvent = { ts: 0, type: "info", title: "", message: "", hint: "" };
         }
       }
       return st;
     }
 
+    let STATE = loadState();
+    let currentSession = JSON.parse(sessionStorage.getItem(LOCKED_ROLE_KEY) || localStorage.getItem(LOCKED_ROLE_KEY) || "null");
+    let lastSeenEventTs = Date.now();
+    // ★ 防閃退保護鎖：當本機剛按下按鈕後的 2.5 秒內，暫停被雲端舊資料覆蓋
+    let pausePollingUntil = 0;
+    let html5QrScanner = null;
+
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return createInitialState();
-        const parsed = JSON.parse(raw);
-        if (!parsed.teams || Object.keys(parsed.teams).length !== CONFIG.teamCount) return createInitialState();
-        return ensureTeamsStructure(parsed);
+        return ensureTeamsStructure(JSON.parse(raw));
       } catch (e) {
         return createInitialState();
       }
     }
 
-    async function saveState() {
+    // ★ 精準更新單一小隊資料到 Firebase (PATCH)，不會蓋掉別隊或總關主的操作！
+    async function saveTeamPatch(teamId, partialData) {
+      pausePollingUntil = Date.now() + 2500;
+      const team = STATE.teams[teamId];
+      Object.assign(team, partialData);
+      STATE.updatedAt = Date.now();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+      renderCurrentView();
+      renderLobbyTeamButtons();
+
+      if (firebaseUrl) {
+        try {
+          await fetch(`${firebaseUrl}/gameState/teams/${teamId}.json`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(partialData)
+          });
+          await fetch(`${firebaseUrl}/gameState.json`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ updatedAt: STATE.updatedAt })
+          });
+        } catch (e) {}
+      }
+    }
+
+    // 全場完整寫入 (僅在總關主按「全場從0開始」、「重置全場」、「模擬數據」時使用)
+    async function saveFullState() {
+      pausePollingUntil = Date.now() + 3000;
       STATE.updatedAt = Date.now();
       const jsonStr = JSON.stringify(STATE);
-      lastCloudSnapshot = jsonStr;
       localStorage.setItem(STORAGE_KEY, jsonStr);
       renderCurrentView();
       renderLobbyTeamButtons();
 
       if (firebaseUrl) {
-        isSavingToCloud = true;
         try {
-          await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json`, {
+          await fetch(`${firebaseUrl}/gameState.json`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: jsonStr
           });
         } catch (e) {}
-        isSavingToCloud = false;
       }
     }
 
-    // ★ 修正跨裝置同步：不再受兩台手機系統時鐘誤差影響，只要雲端內容有變動就立即同步！
     async function pollCloudState() {
-      if (!firebaseUrl || isSavingToCloud) return;
+      if (!firebaseUrl || Date.now() < pausePollingUntil) return;
       try {
-        const res = await fetch(`${firebaseUrl.replace(/\/$/, "")}/gameState.json?t=${Date.now()}`);
+        const res = await fetch(`${firebaseUrl}/gameState.json?t=${Date.now()}`);
         const remote = await res.json();
         if (remote && remote.teams) {
-          const normalized = ensureTeamsStructure(remote);
-          const remoteStr = JSON.stringify(normalized);
-          if (remoteStr !== lastCloudSnapshot) {
-            lastCloudSnapshot = remoteStr;
-            STATE = normalized;
-            localStorage.setItem(STORAGE_KEY, remoteStr);
+          STATE = ensureTeamsStructure(remote);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
 
-            // 若自己原本綁定的小隊被總關主強制解除綁定，自動退回大廳
-            if (currentSession && currentSession.role === "team") {
-              const myTeam = STATE.teams[currentSession.teamId];
-              if (myTeam && myTeam.lockedByDevice && myTeam.lockedByDevice !== DEVICE_ID) {
-                forceReturnToLobby("此小隊已被其他裝置接管或由總關主重設！");
-                return;
-              }
+          // 檢查自己綁定的小隊是否被總關主強制解鎖
+          if (currentSession && currentSession.role === "team") {
+            const myTeam = STATE.teams[currentSession.teamId];
+            if (myTeam && myTeam.lockedByDevice && myTeam.lockedByDevice !== DEVICE_ID) {
+              forceReturnToLobby("此小隊已被其他手機接管或由總關主重設！");
+              return;
             }
-
-            renderCurrentView();
-            renderLobbyTeamButtons();
-            checkTeamIncomingAlert();
           }
+
+          renderCurrentView();
+          renderLobbyTeamButtons();
+          checkTeamIncomingAlert();
         } else if (!remote) {
-          saveState();
+          await saveFullState();
         }
       } catch (e) {}
     }
@@ -637,16 +667,6 @@
       checkTeamIncomingAlert();
     }, 1000);
 
-    window.addEventListener("storage", (e) => {
-      if (e.key === STORAGE_KEY) {
-        STATE = loadState();
-        renderCurrentView();
-        renderLobbyTeamButtons();
-        checkTeamIncomingAlert();
-      }
-    });
-
-    // 渲染小隊選擇按鈕（若已被別支手機綁定則鎖死不能點）
     function renderLobbyTeamButtons() {
       const grid = document.getElementById("lobby-team-grid");
       if (!grid) return;
@@ -654,7 +674,7 @@
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const cObj = getTeamColorObj(i);
         const t = STATE.teams[i];
-        const isLockedByOther = t && t.lockedByDevice && t.lockedByDevice !== DEVICE_ID;
+        const isLockedByOther = t && t.lockedByDevice && t.lockedByDevice !== "" && t.lockedByDevice !== DEVICE_ID;
         const isLockedByMe = t && t.lockedByDevice === DEVICE_ID;
 
         const btn = document.createElement("button");
@@ -679,22 +699,19 @@
       }
     }
 
-    // ★ 先搶先贏防撞鎖：點選時先向 Firebase 檢查最新狀態，確認沒被選走才寫入鎖定
     async function attemptClaimTeam(teamId) {
       const cObj = getTeamColorObj(teamId);
       await pollCloudState();
       const t = STATE.teams[teamId];
-      if (t.lockedByDevice && t.lockedByDevice !== DEVICE_ID) {
+      if (t.lockedByDevice && t.lockedByDevice !== "" && t.lockedByDevice !== DEVICE_ID) {
         alert(`慢了一步！【第 ${teamId} 小隊】剛剛已經被另一支手機選走囉！`);
         renderLobbyTeamButtons();
         return;
       }
-      if (!confirm(`確認將這支手機綁定為【第 ${teamId} 小隊（${cObj.colorName}）】嗎？\n綁定後其他手機將無法再點選此小隊！`)) {
+      if (!confirm(`確認將這支手機綁定為【第 ${teamId} 小隊（${cObj.colorName}）】嗎？`)) {
         return;
       }
-      // 再次向雲端確認一次並上鎖
-      t.lockedByDevice = DEVICE_ID;
-      await saveState();
+      await saveTeamPatch(teamId, { lockedByDevice: DEVICE_ID });
       loginAsTeam(teamId);
     }
 
@@ -746,11 +763,16 @@
       if (e.target.id === "login-modal-backdrop") closeLoginPanels();
     }
 
+    function saveRoleSession(sess) {
+      currentSession = sess;
+      sessionStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(sess));
+      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(sess));
+    }
+
     function loginAsTeam(teamId) {
       closeLoginPanels();
-      currentSession = { role: "team", teamId };
-      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
-      lastSeenEventTs = Date.now();
+      saveRoleSession({ role: "team", teamId });
+      lastSeenEventTs = Date.now() - 5000;
       applySessionRole();
     }
 
@@ -768,8 +790,7 @@
         return;
       }
       closeLoginPanels();
-      currentSession = { role: "boss", bossCode: code };
-      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      saveRoleSession({ role: "boss", bossCode: code });
       applySessionRole();
     }
 
@@ -801,8 +822,7 @@
       }
 
       closeLoginPanels();
-      currentSession = { role: "angel", teamId };
-      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      saveRoleSession({ role: "angel", teamId });
       applySessionRole();
     }
 
@@ -813,14 +833,14 @@
         return;
       }
       closeLoginPanels();
-      currentSession = { role: "master" };
-      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(currentSession));
+      saveRoleSession({ role: "master" });
       applySessionRole();
     }
 
     function forceReturnToLobby(msg) {
       if (msg) alert(msg);
       stopCameraScanner();
+      sessionStorage.removeItem(LOCKED_ROLE_KEY);
       localStorage.removeItem(LOCKED_ROLE_KEY);
       currentSession = null;
       ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
@@ -842,12 +862,10 @@
           return;
         }
       }
-      // 若目前是小隊身分，登出時自動釋放雲端上的小隊設備鎖
       if (currentSession && currentSession.role === "team") {
         const t = STATE.teams[currentSession.teamId];
         if (t && t.lockedByDevice === DEVICE_ID) {
-          t.lockedByDevice = null;
-          await saveState();
+          await saveTeamPatch(currentSession.teamId, { lockedByDevice: "" });
         }
       }
       forceReturnToLobby();
@@ -890,26 +908,22 @@
     }
 
     function getTeamTotalSeconds(team) {
-      const end = team.stopTime || Date.now();
+      const end = (team.stopTime && team.stopTime > 0) ? team.stopTime : Date.now();
       const rawSec = Math.floor((end - team.startTime) / 1000);
       return Math.max(0, rawSec + (team.penaltySec || 0));
     }
 
-    function stopPhoneLifelineCountdown(teamId) {
-      const team = STATE.teams[teamId];
-      if (!team) return;
-      team.lifelinePhoneUntil = 0;
-      saveState();
+    async function stopPhoneLifelineCountdown(teamId) {
+      await saveTeamPatch(teamId, { lifelinePhoneUntil: 0 });
       updateLiveTimers();
     }
 
-    function stopAllPhoneLifelines() {
+    async function stopAllPhoneLifelines() {
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         if (STATE.teams[i] && STATE.teams[i].lifelinePhoneUntil > Date.now()) {
-          STATE.teams[i].lifelinePhoneUntil = 0;
+          await saveTeamPatch(i, { lifelinePhoneUntil: 0 });
         }
       }
-      saveState();
       updateLiveTimers();
     }
 
@@ -922,7 +936,7 @@
         const p = team.penaltySec || 0;
         document.getElementById("team-penalty-detail").textContent = `獎懲：${p >= 0 ? "+" + p : p} 秒`;
 
-        const remainPhone = Math.ceil((team.lifelinePhoneUntil - Date.now()) / 1000);
+        const remainPhone = Math.ceil(((team.lifelinePhoneUntil || 0) - Date.now()) / 1000);
         const box = document.getElementById("team-phone-countdown-box");
         if (remainPhone > 0) {
           box.classList.remove("hidden");
@@ -938,7 +952,7 @@
           if (!t) continue;
           const el = document.getElementById(`master-team-time-${i}`);
           if (el) el.textContent = formatSeconds(getTeamTotalSeconds(t));
-          const rem = Math.ceil((t.lifelinePhoneUntil - Date.now()) / 1000);
+          const rem = Math.ceil(((t.lifelinePhoneUntil || 0) - Date.now()) / 1000);
           if (rem > activePhoneRemain) {
             activePhoneRemain = rem;
             activePhoneTeam = t;
@@ -969,6 +983,7 @@
       if (!team) return;
       const cObj = getTeamColorObj(team.id);
       const myClues = getCluesForTeam(team.id);
+      const unlockedIds = getValidUnlockedClues(team);
 
       document.getElementById("team-header-name").textContent = `${team.name}`;
       const pill = document.getElementById("team-color-pill");
@@ -980,7 +995,7 @@
       topCard.style.borderColor = cObj.hex;
 
       const statusBadge = document.getElementById("team-timer-status");
-      if (team.stopTime) {
+      if (team.stopTime && team.stopTime > 0) {
         statusBadge.textContent = `已停錶 (第 ${team.finishOrder} 隊)`;
         statusBadge.className = "text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300";
       } else {
@@ -1001,8 +1016,8 @@
       const wordBox = document.getElementById("team-lifeline-word");
       const wordTxt = document.getElementById("team-lifeline-word-status");
       if (team.lifelineWordUsed) {
-        wordBox.className = "p-2.5 rounded-xl border border-slate-800 bg-slate-900/40 opacity-40 flex items-center gap-2";
-        wordTxt.textContent = "已使用";
+        wordBox.className = "p-2.5 rounded-xl border border-slate-800 bg-slate-900/40 opacity-50 flex items-center gap-2";
+        wordTxt.textContent = team.lifelineWordText ? `已提示：${team.lifelineWordText}` : "已使用";
       } else {
         wordBox.className = "p-2.5 rounded-xl border border-purple-500/40 bg-purple-500/10 flex items-center gap-2";
         wordTxt.textContent = "剩 1 次";
@@ -1011,7 +1026,7 @@
       const quickContainer = document.getElementById("team-quick-clue-btns");
       quickContainer.innerHTML = "";
       myClues.forEach(c => {
-        const unlocked = team.unlockedClues.includes(c.id);
+        const unlocked = unlockedIds.includes(c.id);
         const icon = c.type === "folder" ? "📁" : c.type === "angel" ? "👼" : "⚔️";
         const btn = document.createElement("button");
         btn.className = `py-2 rounded-lg font-bold text-xs border transition ${
@@ -1027,11 +1042,11 @@
       });
 
       const activePanel = document.getElementById("team-active-clue-panel");
-      if (team.activeClueId) {
+      if (team.activeClueId && team.activeClueId > 0) {
         const clue = myClues.find(c => c.id === team.activeClueId);
         if (clue) {
           activePanel.classList.remove("hidden");
-          renderActiveClueInteraction(activePanel, clue, team);
+          renderActiveClueInteraction(activePanel, clue, team, unlockedIds);
         } else {
           activePanel.classList.add("hidden");
         }
@@ -1041,12 +1056,12 @@
 
       renderTeamFinalAnswer(team);
 
-      document.getElementById("team-clue-progress").textContent = `${team.unlockedClues.length} / 15`;
+      document.getElementById("team-clue-progress").textContent = `${unlockedIds.length} / 15`;
       const historyDiv = document.getElementById("team-clues-history");
       historyDiv.innerHTML = "";
       CONFIG.questions.forEach(q => {
         const qClues = myClues.filter(c => c.qId === q.id);
-        const unlockedList = qClues.filter(c => team.unlockedClues.includes(c.id));
+        const unlockedList = qClues.filter(c => unlockedIds.includes(c.id));
         const box = document.createElement("div");
         box.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2";
         box.innerHTML = `
@@ -1066,8 +1081,8 @@
       });
     }
 
-    function renderActiveClueInteraction(container, clue, team) {
-      const isUnlocked = team.unlockedClues.includes(clue.id);
+    function renderActiveClueInteraction(container, clue, team, unlockedIds) {
+      const isUnlocked = unlockedIds.includes(clue.id);
       const myColorObj = getTeamColorObj(team.id);
 
       if (clue.type === "boss") {
@@ -1121,25 +1136,35 @@
       }
     }
 
-    function clickCloudFolder(clueId, folderTeamId) {
+    async function clickCloudFolder(clueId, folderTeamId) {
       const team = STATE.teams[currentSession.teamId];
       const myClues = getCluesForTeam(team.id);
       const clue = myClues.find(c => c.id === clueId);
       const cObj = getTeamColorObj(team.id);
+      const unlocked = getValidUnlockedClues(team);
+
       if (folderTeamId === team.id) {
-        if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
-        saveState();
+        if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
+        await saveTeamPatch(team.id, { unlockedClues: [0, ...unlocked] });
         showFullscreenAlert("success", `📁 ${cObj.colorName}資料夾正確！`, `成功打開第 ${team.id} 小隊專屬資料夾！`, clue.hintText);
       } else {
-        team.penaltySec = (team.penaltySec || 0) + CONFIG.folderPeekPenaltySec;
-        saveState();
+        const newPenalty = (team.penaltySec || 0) + CONFIG.folderPeekPenaltySec;
+        await saveTeamPatch(team.id, { penaltySec: newPenalty });
         showFullscreenAlert("fail", "🚨 抓到偷看別隊！", CONFIG.folderPeekText, null);
       }
     }
 
+    // ★ 修正：當輸入框已經存在時，不要每秒重新洗掉 HTML，否則學生打字會被中斷！
+    let lastRenderedAnswerStateKey = "";
     function renderTeamFinalAnswer(team) {
       const panel = document.getElementById("team-final-answer-panel");
-      if (!team.stopTime) {
+      const stateKey = `${team.id}_${Boolean(team.stopTime && team.stopTime > 0)}_${Boolean(team.answerSubmitted)}_${team.quizScore}_${team.finishOrder}`;
+      if (stateKey === lastRenderedAnswerStateKey && panel.innerHTML.trim() !== "") {
+        return;
+      }
+      lastRenderedAnswerStateKey = stateKey;
+
+      if (!team.stopTime || team.stopTime <= 0) {
         panel.innerHTML = `
           <div class="flex items-center justify-between">
             <h3 class="font-black text-white text-sm"><i class="fa-solid fa-lock text-slate-400 mr-1.5"></i>最終答題區（回總關主停錶後解鎖）</h3>
@@ -1159,27 +1184,28 @@
       }
 
       panel.innerHTML = `
-        <div class="space-y-3">
-          <div class="text-xs text-amber-300 font-bold">⏱️ 計時已停止！請填寫你們小隊的三題最終答案：</div>
+        <div class="space-y-3 border-2 border-amber-400 rounded-xl p-3 bg-amber-950/20">
+          <div class="text-sm text-amber-300 font-black">⏱️ 總關主已停錶！請填寫你們小隊的三題最終答案：</div>
           ${CONFIG.questions.map((q, idx) => `
             <div>
               <label class="block text-xs font-black text-slate-200 mb-1">${q.title} — ${q.prompt}</label>
               <input id="final-ans-${idx}" type="text" placeholder="請輸入答案" class="w-full min-w-0 bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-white font-bold text-sm">
             </div>
           `).join("")}
-          <button onclick="submitFinalAnswers()" class="w-full bg-amber-500 text-slate-950 font-black py-3 rounded-xl text-sm shadow-lg">
+          <button onclick="submitFinalAnswers()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3 rounded-xl text-base shadow-lg transition">
             🚀 送出最終答案
           </button>
         </div>
       `;
     }
 
-    function submitFinalAnswers() {
+    async function submitFinalAnswers() {
       const team = STATE.teams[currentSession.teamId];
       let correctCount = 0;
       const ansList = [];
       CONFIG.questions.forEach((q, idx) => {
-        const val = (document.getElementById(`final-ans-${idx}`).value || "").trim();
+        const el = document.getElementById(`final-ans-${idx}`);
+        const val = (el ? el.value : "").trim();
         ansList.push(val);
         if (isTeamAnswerCorrect(team.id, q.id, val)) {
           correctCount++;
@@ -1191,10 +1217,11 @@
       if (correctCount === 2) score = 5;
       if (correctCount === 3) score = 10;
 
-      team.answers = ansList;
-      team.answerSubmitted = true;
-      team.quizScore = score;
-      saveState();
+      await saveTeamPatch(team.id, {
+        answers: ansList,
+        answerSubmitted: true,
+        quizScore: score
+      });
 
       showFullscreenAlert("success", `🎯 答對 ${correctCount} 題 (+${score}分)`, "答案已送出！請等待最終排名揭曉！", null);
     }
@@ -1207,7 +1234,7 @@
       input.value = "";
     }
 
-    function triggerClueByCode(rawCode) {
+    async function triggerClueByCode(rawCode) {
       let clean = rawCode.trim().toUpperCase();
       if (clean.includes("CLUE=")) {
         const m = clean.match(/CLUE=(CLUE\d+)/i);
@@ -1220,15 +1247,12 @@
         alert("找不到此提示代碼！");
         return;
       }
-      team.activeClueId = clue.id;
-      saveState();
+      await saveTeamPatch(team.id, { activeClueId: clue.id });
       stopCameraScanner();
     }
 
-    function clearActiveClue() {
-      const team = STATE.teams[currentSession.teamId];
-      team.activeClueId = null;
-      saveState();
+    async function clearActiveClue() {
+      await saveTeamPatch(currentSession.teamId, { activeClueId: 0 });
     }
 
     function toggleCameraScanner() {
@@ -1285,6 +1309,7 @@
     function renderBossClueSelector() {
       const teamId = parseInt(document.getElementById("boss-select-team").value || "1", 10);
       const team = STATE.teams[teamId];
+      const unlockedIds = getValidUnlockedClues(team);
       const teamClues = getCluesForTeam(teamId);
       const bossClues = teamClues.filter(c => c.type === "boss" && c.bossCode.toUpperCase() === currentSession.bossCode.toUpperCase());
       const listToUse = bossClues.length > 0 ? bossClues : teamClues.filter(c => c.type === "boss");
@@ -1293,7 +1318,7 @@
       const prevClueId = clueSelect.value;
       clueSelect.innerHTML = "";
       listToUse.forEach(c => {
-        const hasClue = team.unlockedClues.includes(c.id);
+        const hasClue = unlockedIds.includes(c.id);
         const opt = document.createElement("option");
         opt.value = c.id;
         opt.textContent = `提示 #${String(c.id).padStart(2, "0")} (${c.code}) ${hasClue ? "✅已發過" : ""}`;
@@ -1316,46 +1341,54 @@
       document.getElementById("boss-hint-preview").textContent = clue.hintText;
     }
 
-    function bossJudge(action) {
+    async function bossJudge(action) {
       const teamId = parseInt(document.getElementById("boss-select-team").value, 10);
       const clueId = parseInt(document.getElementById("boss-select-clue").value, 10);
       const team = STATE.teams[teamId];
+      const unlocked = getValidUnlockedClues(team);
       const teamClues = getCluesForTeam(teamId);
       const clue = teamClues.find(c => c.id === clueId) || teamClues[0];
 
       if (action === "pass") {
-        if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
-        team.lastEvent = {
-          ts: Date.now(),
-          type: "success",
-          title: "🎉 恭喜過關！",
-          message: `通過【${clue.bossName}】考驗！`,
-          hint: clue.hintText
-        };
-        saveState();
+        if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
+        await saveTeamPatch(teamId, {
+          unlockedClues: [0, ...unlocked],
+          lastEvent: {
+            ts: Date.now(),
+            type: "success",
+            title: "🎉 恭喜過關！",
+            message: `通過【${clue.bossName}】考驗！`,
+            hint: clue.hintText
+          }
+        });
         alert(`已發送【通過＋專屬提示 #${clue.id}】給 第 ${teamId} 小隊！`);
       } else if (action === "fail") {
-        team.penaltySec = (team.penaltySec || 0) + CONFIG.bossFailPenaltySec;
-        if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
-        team.lastEvent = {
-          ts: Date.now(),
-          type: "fail",
-          title: `❌ 失敗！(+${CONFIG.bossFailPenaltySec}秒)`,
-          message: `挑戰失敗增加 ${CONFIG.bossFailPenaltySec} 秒，獲得本關提示：`,
-          hint: clue.hintText
-        };
-        saveState();
+        if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
+        const newPenalty = (team.penaltySec || 0) + CONFIG.bossFailPenaltySec;
+        await saveTeamPatch(teamId, {
+          penaltySec: newPenalty,
+          unlockedClues: [0, ...unlocked],
+          lastEvent: {
+            ts: Date.now(),
+            type: "fail",
+            title: `❌ 失敗！(+${CONFIG.bossFailPenaltySec}秒)`,
+            message: `挑戰失敗增加 ${CONFIG.bossFailPenaltySec} 秒，獲得本關提示：`,
+            hint: clue.hintText
+          }
+        });
         alert(`已對 第 ${teamId} 小隊 發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與提示 #${clue.id}！`);
       } else if (action === "bonus") {
-        team.penaltySec = (team.penaltySec || 0) - CONFIG.bossBonusRewardSec;
-        team.lastEvent = {
-          ts: Date.now(),
-          type: "bonus",
-          title: `🌟 加分成功！(-${CONFIG.bossBonusRewardSec}秒)`,
-          message: `成功扣除總時間 ${CONFIG.bossBonusRewardSec} 秒！`,
-          hint: null
-        };
-        saveState();
+        const newPenalty = (team.penaltySec || 0) - CONFIG.bossBonusRewardSec;
+        await saveTeamPatch(teamId, {
+          penaltySec: newPenalty,
+          lastEvent: {
+            ts: Date.now(),
+            type: "bonus",
+            title: `🌟 加分成功！(-${CONFIG.bossBonusRewardSec}秒)`,
+            message: `成功扣除總時間 ${CONFIG.bossBonusRewardSec} 秒！`,
+            hint: ""
+          }
+        });
         alert(`已幫 第 ${teamId} 小隊 扣除 ${CONFIG.bossBonusRewardSec} 秒！`);
       }
     }
@@ -1375,6 +1408,7 @@
     function renderAngelView() {
       const teamId = currentSession.teamId;
       const team = STATE.teams[teamId];
+      const unlockedIds = getValidUnlockedClues(team);
       const cObj = getTeamColorObj(teamId);
       const secret = getTeam1A2BSecret(teamId);
       const myClues = getCluesForTeam(teamId);
@@ -1384,7 +1418,7 @@
       document.getElementById("angel-secret-display").textContent = secret;
 
       const histEl = document.getElementById("angel-1a2b-history");
-      const guesses = team.angelGuesses || [];
+      const guesses = (team.angelGuesses || []).filter(g => g.guess !== "----");
       histEl.innerHTML = guesses.map(g => `
         <div class="flex items-center justify-between bg-slate-950 px-3 py-1.5 rounded-lg border border-slate-800">
           <span class="font-mono font-bold text-white">${g.guess}</span>
@@ -1395,7 +1429,7 @@
       const listEl = document.getElementById("angel-task-list");
       listEl.innerHTML = "";
       myClues.filter(c => c.type === "angel").forEach(clue => {
-        const done = team.unlockedClues.includes(clue.id);
+        const done = unlockedIds.includes(clue.id);
         const card = document.createElement("div");
         card.className = "bg-slate-950 border border-slate-800 rounded-xl p-3 space-y-2";
         card.innerHTML = `
@@ -1412,7 +1446,7 @@
       });
     }
 
-    function checkAngel1A2B() {
+    async function checkAngel1A2B() {
       const input = document.getElementById("angel-1a2b-input");
       const guess = input.value.trim();
       const teamId = currentSession.teamId;
@@ -1451,26 +1485,29 @@
       document.getElementById("angel-1a2b-result-box").classList.remove("hidden");
       document.getElementById("angel-1a2b-big-text").textContent = resultStr;
 
-      const team = STATE.teams[currentSession.teamId];
-      team.angelGuesses = team.angelGuesses || [];
-      team.angelGuesses.unshift({ guess, result: resultStr });
-      saveState();
+      const team = STATE.teams[teamId];
+      const newGuesses = [{ guess, result: resultStr }, ...(team.angelGuesses || [])];
+      await saveTeamPatch(teamId, { angelGuesses: newGuesses });
       input.value = "";
     }
 
-    function angelCompleteTask(clueId) {
+    async function angelCompleteTask(clueId) {
       const team = STATE.teams[currentSession.teamId];
+      const unlocked = getValidUnlockedClues(team);
       const myClues = getCluesForTeam(team.id);
       const clue = myClues.find(c => c.id === clueId);
-      if (!team.unlockedClues.includes(clue.id)) team.unlockedClues.push(clue.id);
-      team.lastEvent = {
-        ts: Date.now(),
-        type: "success",
-        title: "👼 任務完成！",
-        message: `完成【${clue.bossName}】！獲得提示：`,
-        hint: clue.hintText
-      };
-      saveState();
+      if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
+
+      await saveTeamPatch(team.id, {
+        unlockedClues: [0, ...unlocked],
+        lastEvent: {
+          ts: Date.now(),
+          type: "success",
+          title: "👼 任務完成！",
+          message: `完成【${clue.bossName}】！獲得提示：`,
+          hint: clue.hintText
+        }
+      });
       alert(`已發送提示給 第 ${team.id} 小隊！`);
     }
 
@@ -1494,11 +1531,8 @@
       }
     }
 
-    function masterUnlockTeamDevice(teamId) {
-      const t = STATE.teams[teamId];
-      if (!t) return;
-      t.lockedByDevice = null;
-      saveState();
+    async function masterUnlockTeamDevice(teamId) {
+      await saveTeamPatch(teamId, { lockedByDevice: "" });
       alert(`已解除【第 ${teamId} 小隊】的手機綁定，現在可以重新選擇該小隊！`);
     }
 
@@ -1508,9 +1542,10 @@
 
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const t = STATE.teams[i];
+        const unlockedIds = getValidUnlockedClues(t);
         const cObj = getTeamColorObj(i);
-        const isCountingPhone = (t.lifelinePhoneUntil - Date.now()) > 0;
-        const isDeviceLocked = Boolean(t.lockedByDevice);
+        const isCountingPhone = ((t.lifelinePhoneUntil || 0) - Date.now()) > 0;
+        const isDeviceLocked = Boolean(t.lockedByDevice && t.lockedByDevice !== "");
         const card = document.createElement("div");
         card.className = "bg-slate-900 border border-slate-800 rounded-2xl p-3.5 space-y-2.5";
         card.innerHTML = `
@@ -1518,7 +1553,7 @@
             <div class="flex items-center gap-2 flex-wrap">
               <span style="background-color:${cObj.hex}; color:${cObj.textHex}" class="text-xs font-black px-2.5 py-0.5 rounded-full">${cObj.colorName}</span>
               <span class="font-black text-base text-white">${t.name}</span>
-              <span class="text-xs font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full">${t.unlockedClues.length}/15</span>
+              <span class="text-xs font-bold bg-slate-800 text-amber-300 px-2 py-0.5 rounded-full">${unlockedIds.length}/15</span>
               ${
                 isDeviceLocked
                   ? `<button onclick="masterUnlockTeamDevice(${i})" class="text-[11px] bg-emerald-950 text-emerald-300 border border-emerald-500/40 px-2 py-0.5 rounded-lg">📱已綁定(點此解鎖)</button>`
@@ -1534,34 +1569,35 @@
           <div class="grid grid-cols-2 gap-2">
             ${
               isCountingPhone
-                ? `<button onclick="stopPhoneLifelineCountdown(${i})" class="bg-rose-600 text-white py-2 px-2 rounded-xl text-xs font-black animate-pulse">
+                ? `<button onclick="stopPhoneLifelineCountdown(${i})" class="bg-rose-600 text-white py-2.5 px-2 rounded-xl text-xs font-black animate-pulse shadow">
                      ⏹️ 停止手機倒數
                    </button>`
-                : `<button onclick="masterTriggerLifeline(${i}, 'phone')" ${t.lifelinePhoneUsed ? "disabled" : ""} class="${
+                : `<button onclick="masterTriggerLifeline(${i}, 'phone')" class="${
                      t.lifelinePhoneUsed
-                       ? "bg-slate-800 text-slate-500"
-                       : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
-                   } py-2 px-2 rounded-xl text-xs font-bold">
-                     📱 ${t.lifelinePhoneUsed ? "手機(已用)" : "手機 2 分鐘"}
+                       ? "bg-slate-800 text-slate-400 border border-slate-700"
+                       : "bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40"
+                   } py-2.5 px-2 rounded-xl text-xs font-black active:scale-95 transition">
+                     📱 ${t.lifelinePhoneUsed ? "手機2分鐘(已用/點此重開)" : "啟用：手機 2 分鐘"}
                    </button>`
             }
-            <button onclick="masterTriggerLifeline(${i}, 'word')" ${t.lifelineWordUsed ? "disabled" : ""} class="${
+            <button onclick="masterTriggerLifeline(${i}, 'word')" class="${
               t.lifelineWordUsed
-                ? "bg-slate-800 text-slate-500"
-                : "bg-purple-500/20 text-purple-300 border border-purple-500/40"
-            } py-2 px-2 rounded-xl text-xs font-bold">
-              💡 ${t.lifelineWordUsed ? "提示(已用)" : "提示一個字"}
+                ? "bg-slate-800 text-slate-400 border border-slate-700"
+                : "bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/40"
+            } py-2.5 px-2 rounded-xl text-xs font-black active:scale-95 transition">
+              💡 ${t.lifelineWordUsed ? `提示一字(已用:${t.lifelineWordText || "完成"})` : "啟用：提示一個字"}
             </button>
           </div>
 
           <div>
             ${
-              t.stopTime
-                ? `<div class="bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs font-bold p-2 rounded-xl text-center">
-                     🏁 第 ${t.finishOrder} 隊停錶 ｜ ${t.answerSubmitted ? `已答題 (+${t.quizScore}分)` : "作答中"}
+              (t.stopTime && t.stopTime > 0)
+                ? `<div class="bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs font-bold p-2.5 rounded-xl flex items-center justify-between">
+                     <span>🏁 第 ${t.finishOrder} 隊停錶 ｜ ${t.answerSubmitted ? `已交卷 (+${t.quizScore}分)` : "手機作答中..."}</span>
+                     <button onclick="masterResumeTeamTimer(${i})" class="text-[11px] underline text-slate-300 ml-2">恢復計時</button>
                    </div>`
-                : `<button onclick="masterStopTeamTimer(${i})" class="w-full bg-rose-600 text-white font-black py-2.5 rounded-xl text-xs">
-                     🛑 我要答題（停止計時）
+                : `<button onclick="masterStopTeamTimer(${i})" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-2.5 rounded-xl text-xs shadow transition">
+                     🛑 我要答題（停止計時並開放該隊作答）
                    </button>`
             }
           </div>
@@ -1572,74 +1608,118 @@
       renderKahootLeaderboard();
     }
 
-    function masterTriggerLifeline(teamId, type) {
-      const team = STATE.teams[teamId];
+    // ★ 總關主觸發「手機 2 分鐘」或「提示一個字」（直接透過 PATCH 同步至小隊手機）
+    async function masterTriggerLifeline(teamId, type) {
       if (type === "phone") {
-        team.lifelinePhoneUsed = true;
-        team.lifelinePhoneUntil = Date.now() + 120 * 1000;
-        team.lastEvent = {
-          ts: Date.now(),
-          type: "bonus",
-          title: "📱 手機求救 2 分鐘啟動！",
-          message: "查到答案可直接點擊「提前結束倒數」！",
-          hint: null
-        };
+        const untilTs = Date.now() + 120 * 1000;
+        await saveTeamPatch(teamId, {
+          lifelinePhoneUsed: true,
+          lifelinePhoneUntil: untilTs,
+          lastEvent: {
+            ts: Date.now(),
+            type: "bonus",
+            title: "📱 手機求救 2 分鐘啟動！",
+            message: "總關主已為你們開啟 2 分鐘手機搜尋時間！若提前查到答案可按「提前結束倒數」。",
+            hint: ""
+          }
+        });
+        updateLiveTimers();
       } else {
-        team.lifelineWordUsed = true;
-        team.lastEvent = {
-          ts: Date.now(),
-          type: "bonus",
-          title: "💡 已使用【提示一個字】",
-          message: "請聽取總關主給予的一個字提示！",
-          hint: null
-        };
+        const word = prompt(`請輸入要提示給【第 ${teamId} 小隊】的一個字（若現場口頭告知，直接按確定即可）：`, "");
+        if (word === null) return;
+        const cleanWord = word.trim() || "（已由總關主口頭提示）";
+        await saveTeamPatch(teamId, {
+          lifelineWordUsed: true,
+          lifelineWordText: cleanWord,
+          lastEvent: {
+            ts: Date.now(),
+            type: "bonus",
+            title: "💡 已使用【提示一個字】求救！",
+            message: "總關主給予你們的一字提示為：",
+            hint: cleanWord
+          }
+        });
       }
-      saveState();
     }
 
-    function masterStopTeamTimer(teamId) {
+    // ★ 總關主按下「我要答題」停止計時並開放小隊手機作答區
+    async function masterStopTeamTimer(teamId) {
       const team = STATE.teams[teamId];
-      if (team.stopTime) return;
-      STATE.finishCounter = (STATE.finishCounter || 0) + 1;
-      team.stopTime = Date.now();
-      team.finishOrder = STATE.finishCounter;
-      team.lastEvent = {
-        ts: Date.now(),
-        type: "success",
-        title: `🏁 第 ${team.finishOrder} 隊抵達停錶！`,
-        message: "請立即在下方輸入三題最終答案！",
-        hint: null
-      };
-      saveState();
+      if (team.stopTime && team.stopTime > 0) return;
+
+      // 自動計算目前有幾隊已經停錶，決定他是第幾名回來
+      let maxOrder = 0;
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const ord = STATE.teams[i].finishOrder || 0;
+        if (ord > maxOrder) maxOrder = ord;
+      }
+      const nextOrder = maxOrder + 1;
+      STATE.finishCounter = nextOrder;
+
+      await saveTeamPatch(teamId, {
+        stopTime: Date.now(),
+        finishOrder: nextOrder,
+        lastEvent: {
+          ts: Date.now(),
+          type: "success",
+          title: `🏁 第 ${nextOrder} 隊抵達停錶！`,
+          message: "總關主已幫你們停止計時！手機下方的【最終答題區】已解鎖，請立即輸入三題答案！",
+          hint: ""
+        }
+      });
     }
 
-    function masterStartAllTimers() {
-      if (!confirm("確定全場重新從 00:00 開始計時？")) return;
+    async function masterResumeTeamTimer(teamId) {
+      await saveTeamPatch(teamId, {
+        stopTime: 0,
+        finishOrder: 0,
+        answerSubmitted: false
+      });
+    }
+
+    // ★ 修復：總關主按下「全場從 00:00 開始計時」
+    async function masterStartAllTimers() {
+      if (!confirm("確定要將全場所有小隊的計時器重新從 00:00 開始起算嗎？（已綁定的手機不會被踢出）")) return;
       const now = Date.now();
       STATE.finishCounter = 0;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
-        STATE.teams[i].startTime = now;
-        STATE.teams[i].stopTime = null;
-        STATE.teams[i].penaltySec = 0;
-        STATE.teams[i].finishOrder = null;
-        STATE.teams[i].answerSubmitted = false;
-        STATE.teams[i].quizScore = 0;
+        const t = STATE.teams[i];
+        t.startTime = now;
+        t.stopTime = 0;
+        t.penaltySec = 0;
+        t.finishOrder = 0;
+        t.lifelinePhoneUsed = false;
+        t.lifelinePhoneUntil = 0;
+        t.lifelineWordUsed = false;
+        t.lifelineWordText = "";
+        t.answerSubmitted = false;
+        t.quizScore = 0;
+        t.lastEvent = {
+          ts: now,
+          type: "bonus",
+          title: "⏱️ 全場計時正式開始！",
+          message: "總關主已按下全場從 00:00 開始計時，祝各小隊闖關順利！",
+          hint: ""
+        };
       }
-      saveState();
+      await saveFullState();
+      updateLiveTimers();
+      alert("全場已同步從 00:00 開始計時！");
     }
 
-    function masterResetGame() {
+    async function masterResetGame() {
       if (!confirm("確定清空所有進度並解除所有小隊的手機綁定？")) return;
       STATE = createInitialState();
-      saveState();
+      await saveFullState();
+      alert("已重置全場資料！");
     }
 
-    function masterSimulateDemo() {
+    async function masterSimulateDemo() {
       const now = Date.now();
       STATE.finishCounter = CONFIG.teamCount;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const t = STATE.teams[i];
-        t.unlockedClues = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
+        t.unlockedClues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
         t.startTime = now - (1200 + i * 55) * 1000;
         t.stopTime = now;
         t.penaltySec = (i % 3 === 0) ? -90 : (i % 2 === 0 ? 180 : 30);
@@ -1647,13 +1727,13 @@
         t.answerSubmitted = true;
         t.quizScore = [10, 5, 10, 3, 10, 5, 10, 10, 5, 3][(i - 1) % 10];
       }
-      saveState();
+      await saveFullState();
       switchMasterTab("kahoot");
     }
 
-    function setKahootStage(stage) {
+    async function setKahootStage(stage) {
       STATE.kahootStage = stage;
-      saveState();
+      await saveFullState();
     }
 
     function renderKahootLeaderboard() {
@@ -1672,7 +1752,7 @@
       });
 
       const scoredTeams = teamArr.map(t => {
-        const orderScore = t.finishOrder ? Math.max(0, 10 - t.finishOrder) : 0;
+        const orderScore = (t.finishOrder && t.finishOrder > 0) ? Math.max(0, 10 - t.finishOrder) : 0;
         const quizScore = t.quizScore || 0;
         const timeScore = timeRankPointsMap[t.id] || 0;
 
@@ -1745,7 +1825,7 @@
 
       titleEl.textContent = title;
       msgEl.innerText = message;
-      if (hint) {
+      if (hint && String(hint).trim() !== "") {
         hintBox.classList.remove("hidden");
         hintBox.textContent = hint;
       } else {
@@ -1758,19 +1838,8 @@
       document.getElementById("fullscreen-alert-modal").classList.add("hidden");
     }
 
-    function saveFirebaseUrl() {
-      const val = document.getElementById("input-firebase-url").value.trim();
-      firebaseUrl = val;
-      localStorage.setItem("GOFIGHTING_FB_URL", val);
-      updateCloudBadge();
-      saveState();
-      alert(val ? "已更新雲端同步網址！" : "已切換為本機模式");
-    }
-
     function updateCloudBadge() {
       const badge = document.getElementById("cloud-badge");
-      const input = document.getElementById("input-firebase-url");
-      if (input) input.value = firebaseUrl;
       if (firebaseUrl) badge.classList.remove("hidden");
       else badge.classList.add("hidden");
     }
