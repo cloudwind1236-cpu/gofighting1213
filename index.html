@@ -32,7 +32,7 @@
 </head>
 <body class="min-h-screen pb-16">
 
-  <!-- 頂部導覽列 (明亮白底高對比) -->
+  <!-- 頂部導覽列 -->
   <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm no-print">
     <div class="flex items-center gap-2 min-w-0">
       <span class="bg-gradient-to-r from-orange-500 to-amber-500 text-white font-black px-2.5 py-1 rounded-lg text-xs shrink-0 shadow-sm">實境解謎</span>
@@ -185,7 +185,7 @@
          1. 闖關小隊端 (Team View - 專屬代表色漸層分區版)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- ★ 第一區塊：頂部小隊計時資訊卡（維持純白不變） -->
+      <!-- 第一區塊：頂部小隊計時資訊卡（維持純白不變） -->
       <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
@@ -235,7 +235,7 @@
       <!-- 當前觸發的關卡互動區 -->
       <div id="team-active-clue-panel" class="hidden bg-white border-4 border-amber-400 rounded-3xl p-4 space-y-3 shadow-lg"></div>
 
-      <!-- ★ 第二區塊：探索區塊 (套用小隊代表色【輕柔漸層】) -->
+      <!-- 第二區塊：探索區塊 (套用小隊代表色輕柔漸層) -->
       <div id="team-explore-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <div>
@@ -261,10 +261,10 @@
         </div>
       </div>
 
-      <!-- ★ 第三區塊：最終答題區 (套用小隊代表色【中度漸層】與「我有答案了!!」文案) -->
+      <!-- 第三區塊：最終答題區 -->
       <div id="team-final-answer-panel" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors"></div>
 
-      <!-- ★ 第四區塊：提示區 (套用小隊代表色【垂直柔和漸層】) -->
+      <!-- 第四區塊：提示區 -->
       <div id="team-history-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-book-open text-amber-600 mr-1.5"></i>已收集的提示筆記本</h3>
@@ -384,7 +384,7 @@
       <!-- 總關主頁籤切換 -->
       <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1 rounded-2xl">
         <button onclick="switchMasterTab('monitor')" id="tab-btn-monitor" class="bg-white text-slate-900 shadow font-black py-2.5 rounded-xl text-xs transition">
-          📋 各隊狀態 ＆ 求救 ＆ 停錶
+          📋 各隊狀態 ＆ 提示明細 ＆ 停錶
         </button>
         <button onclick="switchMasterTab('kahoot')" id="tab-btn-kahoot" class="text-slate-600 font-black py-2.5 rounded-xl text-xs transition">
           🏆 Kahoot 動態排行榜
@@ -474,6 +474,7 @@
       teamCount: 10,
       superPin: "1123",
       masterPin: "1123",
+      masterPins: ["1123", "20040521", "19951004"],
       angelPin: "8888",
       switchPin: "1123",
       teamColors: DEFAULT_TEAM_COLORS,
@@ -494,6 +495,17 @@
       CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
     }
     const SUPER_PIN = "1123";
+    // ★ 新增你指定的兩組總關主密碼：20040521 與 19951004
+    const VALID_MASTER_PINS = ["1123", "20040521", "19951004", String(CONFIG.masterPin || "1123"), String(CONFIG.switchPin || "1123")];
+
+    function isValidMasterOrAdminPin(pin) {
+      const p = String(pin || "").trim();
+      if (!p) return false;
+      if (VALID_MASTER_PINS.includes(p)) return true;
+      if (Array.isArray(CONFIG.masterPins) && CONFIG.masterPins.map(String).includes(p)) return true;
+      return false;
+    }
+
     document.getElementById('header-title').textContent = CONFIG.gameTitle;
 
     const DEVICE_ID_KEY = "GOFIGHTING_TAB_DEVICE_ID";
@@ -509,7 +521,6 @@
       return list.find(c => c.id === Number(teamId)) || DEFAULT_TEAM_COLORS[(teamId - 1) % DEFAULT_TEAM_COLORS.length];
     }
 
-    // ★ 將代表色 Hex 轉為 RGBA 透明色階，打造各小隊專屬漸層區塊
     function hexToRgba(hex, alpha) {
       let c = String(hex || "#3B82F6").replace("#", "");
       if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
@@ -544,6 +555,14 @@
     const STORAGE_KEY = "GOFIGHTING_STATE_V5";
     const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V5";
     let firebaseUrl = (CONFIG.firebaseUrl || "").replace(/\/$/, "");
+
+    // ★ 記錄總關主目前點開了哪幾個小隊的提示明細面板
+    let expandedMasterTeams = {};
+
+    function toggleMasterTeamDetail(teamId) {
+      expandedMasterTeams[teamId] = !expandedMasterTeams[teamId];
+      renderMasterView();
+    }
 
     function createSingleTeamObj(i, now) {
       const cObj = getTeamColorObj(i);
@@ -837,7 +856,7 @@
         alert("請輸入關主代號！");
         return;
       }
-      if (code === SUPER_PIN) code = "B01";
+      if (isValidMasterOrAdminPin(code)) code = "B01";
       const allClues = getCluesForTeam(1);
       const validBoss = allClues.find(c => c.type === "boss" && c.bossCode.toUpperCase() === code);
       if (!validBoss && !/^B0[1-7]$/.test(code)) {
@@ -866,7 +885,7 @@
       const validPin = CONFIG.angelPin || "8888";
 
       const isPassValid =
-        code === SUPER_PIN ||
+        isValidMasterOrAdminPin(code) ||
         code === validPin.toUpperCase() ||
         code === expectedKey ||
         (customAngel && customAngel.teamId === teamId);
@@ -883,7 +902,7 @@
 
     function loginAsMaster() {
       const pin = document.getElementById("input-master-pin").value.trim();
-      if (pin !== SUPER_PIN && pin !== CONFIG.masterPin && pin !== "9999") {
+      if (!isValidMasterOrAdminPin(pin)) {
         alert("密碼錯誤！");
         return;
       }
@@ -918,7 +937,7 @@
 
     async function confirmLogoutWithPin() {
       const cleanPin = document.getElementById("input-logout-pin").value.trim();
-      if (cleanPin !== SUPER_PIN && cleanPin !== CONFIG.switchPin && cleanPin !== CONFIG.masterPin) {
+      if (!isValidMasterOrAdminPin(cleanPin)) {
         alert("解鎖密碼錯誤！身分已鎖定無法切換。");
         return;
       }
@@ -1053,25 +1072,21 @@
       pill.style.backgroundColor = cObj.hex;
       pill.style.color = cObj.textHex;
 
-      // 1. 第一區塊：維持純白與代表色外框不變
       const topCard = document.getElementById("team-top-card");
       topCard.style.borderColor = cObj.hex;
 
-      // ★ 2. 探索區塊：小隊代表色【輕柔漸層 (15% -> 4%)】
       const exploreCard = document.getElementById("team-explore-card");
       if (exploreCard) {
         exploreCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.16)} 0%, ${hexToRgba(cObj.hex, 0.04)} 100%), #FFFFFF`;
         exploreCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
       }
 
-      // ★ 3. 最終答題區：小隊代表色【中度漸層 (26% -> 10%)】
       const answerCard = document.getElementById("team-final-answer-panel");
       if (answerCard) {
         answerCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.28)} 0%, ${hexToRgba(cObj.hex, 0.08)} 100%), #FFFFFF`;
         answerCard.style.borderColor = hexToRgba(cObj.hex, 0.65);
       }
 
-      // ★ 4. 提示區：小隊代表色【垂直柔和漸層 (20% -> 5%)】
       const historyCard = document.getElementById("team-history-card");
       if (historyCard) {
         historyCard.style.background = `linear-gradient(180deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
@@ -1238,7 +1253,6 @@
       }
     }
 
-    // ★ 最終答題區：更新為「我有答案了!!」雙行置中醒目呈現
     let lastRenderedAnswerStateKey = "";
     function renderTeamFinalAnswer(team) {
       const panel = document.getElementById("team-final-answer-panel");
@@ -1625,6 +1639,33 @@
       alert(`已解除【第 ${teamId} 小隊】的手機綁定，現在可以重新選擇該小隊！`);
     }
 
+    // ★ 總關主也可直接在小隊明細中手動幫忙勾選/補發某個提示
+    async function masterToggleSingleClue(teamId, clueId) {
+      const team = STATE.teams[teamId];
+      const unlocked = getValidUnlockedClues(team);
+      const myClues = getCluesForTeam(teamId);
+      const clue = myClues.find(c => c.id === clueId);
+      if (!clue) return;
+
+      if (unlocked.includes(clueId)) {
+        if (!confirm(`確定要移除【第 ${teamId} 小隊】的 提示 #${clueId} 嗎？`)) return;
+        const filtered = unlocked.filter(id => id !== clueId);
+        await saveTeamPatch(teamId, { unlockedClues: [0, ...filtered] });
+      } else {
+        unlocked.push(clueId);
+        await saveTeamPatch(teamId, {
+          unlockedClues: [0, ...unlocked],
+          lastEvent: {
+            ts: Date.now(),
+            type: "success",
+            title: "👑 總關主已為你們解鎖提示！",
+            message: `獲得【提示 #${String(clueId).padStart(2, "0")}】：`,
+            hint: clue.hintText
+          }
+        });
+      }
+    }
+
     function renderMasterView() {
       const grid = document.getElementById("master-teams-grid");
       grid.innerHTML = "";
@@ -1633,28 +1674,101 @@
         const t = STATE.teams[i];
         if (!t) continue;
         const unlockedIds = getValidUnlockedClues(t);
+        const myClues = getCluesForTeam(i);
         const cObj = getTeamColorObj(i);
         const isCountingPhone = ((t.lifelinePhoneUntil || 0) - Date.now()) > 0;
         const isDeviceLocked = Boolean(t.lockedByDevice && t.lockedByDevice !== "");
+        const isExpanded = Boolean(expandedMasterTeams[i]);
+
+        // 組合該小隊 15 個提示與任務的蒐集明細 HTML
+        let detailHtml = "";
+        if (isExpanded) {
+          const qSections = CONFIG.questions.map(q => {
+            const qClues = myClues.filter(c => c.qId === q.id);
+            const gotCount = qClues.filter(c => unlockedIds.includes(c.id)).length;
+            const rows = qClues.map(c => {
+              const got = unlockedIds.includes(c.id);
+              const typeBadge = c.type === "folder"
+                ? `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black">📁提示</span>`
+                : c.type === "angel"
+                  ? `<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-black">👼任務</span>`
+                  : `<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px] font-black">⚔️關卡</span>`;
+              return `
+                <div onclick="masterToggleSingleClue(${i}, ${c.id})" class="cursor-pointer flex items-center justify-between gap-2 p-2 rounded-xl border text-xs transition ${
+                  got ? "bg-emerald-50/90 border-emerald-300 text-slate-900" : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
+                }">
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <span>${got ? "✅" : "⏳"}</span>
+                    <span class="font-mono font-black">#${String(c.id).padStart(2, "0")}</span>
+                    ${typeBadge}
+                    <span class="font-bold truncate">${c.hintText}</span>
+                  </div>
+                  <span class="text-[10px] font-bold shrink-0 ${got ? "text-emerald-700" : "text-slate-400"}">${got ? "已獲得" : "點此補發"}</span>
+                </div>
+              `;
+            }).join("");
+
+            return `
+              <div class="space-y-1.5 bg-slate-50 p-2.5 rounded-2xl border border-slate-200">
+                <div class="flex items-center justify-between text-xs font-black text-slate-700 px-1">
+                  <span>${q.title}</span>
+                  <span class="text-amber-700">進度 ${gotCount} / 5</span>
+                </div>
+                <div class="space-y-1">${rows}</div>
+              </div>
+            `;
+          }).join("");
+
+          // 若已交卷，一併顯示該隊填寫的三題答案
+          const ansSummary = t.answerSubmitted
+            ? `<div class="bg-amber-50 border border-amber-300 rounded-xl p-2.5 text-xs font-bold text-amber-900">
+                 📝 小隊提交答案：1.【${t.answers[0] || "未填"}】 2.【${t.answers[1] || "未填"}】 3.【${t.answers[2] || "未填"}】
+               </div>`
+            : "";
+
+          detailHtml = `
+            <div class="pt-2 border-t border-slate-200 space-y-2">
+              <div class="flex items-center justify-between text-[11px] text-slate-500 font-bold px-1">
+                <span>💡 點擊任一提示列可直接手動【補發 / 取消】該提示</span>
+                <button onclick="toggleMasterTeamDetail(${i})" class="text-slate-600 underline">收起明細</button>
+              </div>
+              ${ansSummary}
+              ${qSections}
+            </div>
+          `;
+        }
+
         const card = document.createElement("div");
-        card.className = "bg-white border border-slate-200 rounded-3xl p-4 space-y-3 shadow-sm";
+        card.className = "bg-white border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-all";
+        card.style.borderColor = hexToRgba(cObj.hex, 0.55);
         card.innerHTML = `
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2 flex-wrap">
+          <!-- 點擊小隊標題列可直接展開/收起 15 題提示明細 -->
+          <div class="flex items-center justify-between gap-2">
+            <div onclick="toggleMasterTeamDetail(${i})" class="flex items-center gap-2 flex-wrap cursor-pointer group">
               <span style="background-color:${cObj.hex}; color:${cObj.textHex}" class="text-xs font-black px-2.5 py-1 rounded-full shadow-sm">${cObj.colorName}</span>
-              <span class="font-black text-base text-slate-800">${t.name}</span>
+              <span class="font-black text-base text-slate-800 group-hover:text-blue-600 transition">${t.name}</span>
               <span class="text-xs font-black bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">提示 ${unlockedIds.length}/15</span>
+            </div>
+            <div class="text-right flex items-center gap-2">
               ${
                 isDeviceLocked
-                  ? `<button onclick="masterUnlockTeamDevice(${i})" class="text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-0.5 rounded-lg">📱已綁定(點此解鎖)</button>`
-                  : `<span class="text-[11px] font-bold text-slate-400">尚未登入</span>`
+                  ? `<button onclick="masterUnlockTeamDevice(${i})" class="text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg">📱已綁定(解鎖)</button>`
+                  : `<span class="text-[11px] font-bold text-slate-400">未登入</span>`
               }
-            </div>
-            <div class="text-right">
-              <div id="master-team-time-${i}" class="text-xl font-mono font-black text-slate-800">${formatSeconds(getTeamTotalSeconds(t))}</div>
-              <div class="text-[11px] font-bold text-slate-500">獎懲 ${t.penaltySec >= 0 ? "+" + t.penaltySec : t.penaltySec}s</div>
+              <div>
+                <div id="master-team-time-${i}" class="text-xl font-mono font-black text-slate-800">${formatSeconds(getTeamTotalSeconds(t))}</div>
+                <div class="text-[11px] font-bold text-slate-500">獎懲 ${t.penaltySec >= 0 ? "+" + t.penaltySec : t.penaltySec}s</div>
+              </div>
             </div>
           </div>
+
+          <!-- 展開查看該小隊目前蒐集到的提示與任務明細按鈕 -->
+          <button onclick="toggleMasterTeamDetail(${i})" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-2 px-3 rounded-xl text-xs flex items-center justify-between transition">
+            <span>🔍 點此查看【${t.name}】目前已蒐集提示與任務狀況 (${unlockedIds.length}/15)</span>
+            <i class="fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}"></i>
+          </button>
+
+          ${detailHtml}
 
           <div class="grid grid-cols-2 gap-2">
             ${
