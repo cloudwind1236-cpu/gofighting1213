@@ -59,7 +59,7 @@
         <h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">請選擇你的現場身分</h2>
       </div>
 
-      <!-- 四大身分極簡入口卡片 (明亮白底立體卡片) -->
+      <!-- 四大身分極簡入口卡片 -->
       <div class="grid grid-cols-1 gap-3.5">
         <button onclick="openLoginPanel('team')" class="w-full flex items-center justify-between bg-white hover:bg-blue-50/50 active:scale-[0.98] border-2 border-blue-500 rounded-2xl p-4 sm:p-5 transition shadow-md">
           <div class="flex items-center gap-3.5">
@@ -96,7 +96,7 @@
     </section>
 
     <!-- ==========================================
-         彈出式角色登入與切換對話框 (清爽白底卡片)
+         彈出式角色登入與切換對話框
     =========================================== -->
     <div id="login-modal-backdrop" onclick="handleBackdropClick(event)" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
       <div class="w-[92vw] max-w-sm animate-pop-in">
@@ -161,7 +161,7 @@
           </div>
         </div>
 
-        <!-- ★ 彈窗 5：切換身分防弊解鎖視窗 (絕不顯示密碼提示！) -->
+        <!-- 彈窗 5：切換身分防弊解鎖視窗 -->
         <div id="login-panel-logout" class="hidden bg-white border-2 border-slate-300 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-slate-800"><i class="fa-solid fa-lock text-rose-500 mr-1.5"></i>切換身分驗證</h3>
@@ -182,10 +182,10 @@
     </div>
 
     <!-- ==========================================
-         1. 闖關小隊端 (Team View - 清爽直覺卡片版)
+         1. 闖關小隊端 (Team View - 專屬代表色漸層分區版)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- 頂部小隊計時資訊卡 -->
+      <!-- ★ 第一區塊：頂部小隊計時資訊卡（維持純白不變） -->
       <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
@@ -232,15 +232,15 @@
         </div>
       </div>
 
-      <!-- 當前觸發的關卡互動區 (當掃描或點擊關卡後，直接醒目顯示在最上方！) -->
+      <!-- 當前觸發的關卡互動區 -->
       <div id="team-active-clue-panel" class="hidden bg-white border-4 border-amber-400 rounded-3xl p-4 space-y-3 shadow-lg"></div>
 
-      <!-- 掃描 QR 碼與 15 個關卡按鈕區 -->
-      <div class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 shadow-sm">
+      <!-- ★ 第二區塊：探索區塊 (套用小隊代表色【輕柔漸層】) -->
+      <div id="team-explore-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <div>
             <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>探索操場 15 個提示</h3>
-            <p class="text-xs text-slate-500">掃描操場 QR 碼，或直接點選下方題號進入任務</p>
+            <p class="text-xs text-slate-600 font-medium">掃描操場 QR 碼，或直接點選下方題號進入任務</p>
           </div>
           <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow transition shrink-0">
             <i class="fa-solid fa-camera mr-1"></i>開啟相機
@@ -251,31 +251,31 @@
           <div id="qr-reader" class="w-full"></div>
         </div>
 
-        <!-- 15 個直覺大按鈕 (已完成會變綠色勾勾) -->
+        <!-- 15 個直覺大按鈕 -->
         <div id="team-quick-clue-btns" class="grid grid-cols-5 gap-2 pt-1"></div>
 
         <!-- 備用代碼輸入 -->
         <div class="flex gap-2 pt-1">
-          <input id="input-clue-code" type="text" placeholder="或輸入代碼 (如 CLUE01)" class="flex-1 min-w-0 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 font-bold uppercase">
+          <input id="input-clue-code" type="text" placeholder="或輸入代碼 (如 CLUE01)" class="flex-1 min-w-0 bg-white/90 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 font-bold uppercase">
           <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 text-white font-black px-4 py-2 rounded-xl text-sm shrink-0">送出</button>
         </div>
       </div>
 
-      <!-- 最終答題區 -->
-      <div id="team-final-answer-panel" class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 shadow-sm"></div>
+      <!-- ★ 第三區塊：最終答題區 (套用小隊代表色【中度漸層】與「我有答案了!!」文案) -->
+      <div id="team-final-answer-panel" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors"></div>
 
-      <!-- 已獲得的提示歷史紀錄 -->
-      <div class="bg-white border border-slate-200 rounded-3xl p-4 space-y-3 shadow-sm">
+      <!-- ★ 第四區塊：提示區 (套用小隊代表色【垂直柔和漸層】) -->
+      <div id="team-history-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
-          <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-book-open text-amber-500 mr-1.5"></i>已收集的提示筆記本</h3>
-          <span id="team-clue-progress" class="text-xs font-black bg-amber-100 text-amber-800 px-3 py-1 rounded-full">0 / 15</span>
+          <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-book-open text-amber-600 mr-1.5"></i>已收集的提示筆記本</h3>
+          <span id="team-clue-progress" class="text-xs font-black bg-white/90 text-slate-800 border border-slate-300 px-3 py-1 rounded-full shadow-sm">0 / 15</span>
         </div>
         <div id="team-clues-history" class="space-y-3"></div>
       </div>
     </section>
 
     <!-- ==========================================
-         2. 關主端 (Boss View - 清爽大按鈕版)
+         2. 關主端 (Boss View)
     =========================================== -->
     <section id="view-boss" class="hidden space-y-4">
       <div class="bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-2 shadow-md">
@@ -320,7 +320,7 @@
     </section>
 
     <!-- ==========================================
-         3. 小天使端 (Angel View - 清爽直覺版)
+         3. 小天使端 (Angel View)
     =========================================== -->
     <section id="view-angel" class="hidden space-y-4">
       <div class="bg-white border-2 border-emerald-500 rounded-3xl p-4 flex items-center justify-between shadow-md">
@@ -358,7 +358,7 @@
     </section>
 
     <!-- ==========================================
-         4. 總關主端 (Master View - 清爽白底控台)
+         4. 總關主端 (Master View)
     =========================================== -->
     <section id="view-master" class="hidden space-y-4">
       <div class="bg-white border-2 border-amber-500 rounded-3xl p-4 space-y-3 shadow-md">
@@ -427,7 +427,7 @@
 
   </main>
 
-  <!-- 全螢幕即時通知彈窗 (明亮高對比大字卡) -->
+  <!-- 全螢幕即時通知彈窗 -->
   <div id="fullscreen-alert-modal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 no-print">
     <div id="fullscreen-alert-card" class="w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white">
       <div id="alert-icon" class="text-5xl">🎉</div>
@@ -507,6 +507,17 @@
     function getTeamColorObj(teamId) {
       const list = CONFIG.teamColors || DEFAULT_TEAM_COLORS;
       return list.find(c => c.id === Number(teamId)) || DEFAULT_TEAM_COLORS[(teamId - 1) % DEFAULT_TEAM_COLORS.length];
+    }
+
+    // ★ 將代表色 Hex 轉為 RGBA 透明色階，打造各小隊專屬漸層區塊
+    function hexToRgba(hex, alpha) {
+      let c = String(hex || "#3B82F6").replace("#", "");
+      if (c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+      const num = parseInt(c, 16);
+      const r = (num >> 16) & 255;
+      const g = (num >> 8) & 255;
+      const b = num & 255;
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
     function getCluesForTeam(teamId) {
@@ -896,7 +907,6 @@
       renderLobbyTeamButtons();
     }
 
-    // ★ 點擊右上角「切換」按鈕：總關主直接切換，其他身分打開隱藏密碼彈窗（絕不洩漏密碼！）
     function openLogoutModal() {
       if (currentSession && currentSession.role === "master") {
         forceReturnToLobby();
@@ -1043,8 +1053,30 @@
       pill.style.backgroundColor = cObj.hex;
       pill.style.color = cObj.textHex;
 
+      // 1. 第一區塊：維持純白與代表色外框不變
       const topCard = document.getElementById("team-top-card");
       topCard.style.borderColor = cObj.hex;
+
+      // ★ 2. 探索區塊：小隊代表色【輕柔漸層 (15% -> 4%)】
+      const exploreCard = document.getElementById("team-explore-card");
+      if (exploreCard) {
+        exploreCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.16)} 0%, ${hexToRgba(cObj.hex, 0.04)} 100%), #FFFFFF`;
+        exploreCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
+      }
+
+      // ★ 3. 最終答題區：小隊代表色【中度漸層 (26% -> 10%)】
+      const answerCard = document.getElementById("team-final-answer-panel");
+      if (answerCard) {
+        answerCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.28)} 0%, ${hexToRgba(cObj.hex, 0.08)} 100%), #FFFFFF`;
+        answerCard.style.borderColor = hexToRgba(cObj.hex, 0.65);
+      }
+
+      // ★ 4. 提示區：小隊代表色【垂直柔和漸層 (20% -> 5%)】
+      const historyCard = document.getElementById("team-history-card");
+      if (historyCard) {
+        historyCard.style.background = `linear-gradient(180deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
+        historyCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
+      }
 
       const statusBadge = document.getElementById("team-timer-status");
       if (team.stopTime && team.stopTime > 0) {
@@ -1085,8 +1117,8 @@
           unlocked
             ? "bg-emerald-50 border-emerald-400 text-emerald-700"
             : c.type === "folder"
-              ? "bg-blue-50 border-blue-300 text-blue-700 hover:bg-blue-100"
-              : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+              ? "bg-white/95 border-blue-300 text-blue-700 hover:bg-blue-50"
+              : "bg-white/95 border-slate-200 text-slate-700 hover:bg-slate-50"
         }`;
         btn.textContent = `${icon}${String(c.id).padStart(2, "0")}`;
         btn.onclick = () => triggerClueByCode(c.code);
@@ -1115,7 +1147,7 @@
         const qClues = myClues.filter(c => c.qId === q.id);
         const unlockedList = qClues.filter(c => unlockedIds.includes(c.id));
         const box = document.createElement("div");
-        box.className = "bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2";
+        box.className = "bg-white/90 border border-slate-200/80 rounded-2xl p-3.5 space-y-2 shadow-sm";
         box.innerHTML = `
           <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
             <span class="font-black text-sm text-slate-800">${q.title}</span>
@@ -1125,7 +1157,7 @@
             ${
               unlockedList.length === 0
                 ? `<p class="text-xs text-slate-400 font-medium">尚未獲得本題提示，請點擊上方關卡號或掃描 QR 碼！</p>`
-                : unlockedList.map(c => `<div class="text-sm bg-white border-2 border-emerald-400 text-slate-800 px-3 py-2 rounded-xl font-black shadow-sm">${c.hintText}</div>`).join("")
+                : unlockedList.map(c => `<div class="text-sm bg-emerald-50/70 border-2 border-emerald-400 text-slate-800 px-3 py-2 rounded-xl font-black shadow-sm">${c.hintText}</div>`).join("")
             }
           </div>
         `;
@@ -1206,6 +1238,7 @@
       }
     }
 
+    // ★ 最終答題區：更新為「我有答案了!!」雙行置中醒目呈現
     let lastRenderedAnswerStateKey = "";
     function renderTeamFinalAnswer(team) {
       const panel = document.getElementById("team-final-answer-panel");
@@ -1217,8 +1250,13 @@
 
       if (!team.stopTime || team.stopTime <= 0) {
         panel.innerHTML = `
-          <div class="flex items-center justify-between text-slate-500">
-            <h3 class="font-black text-slate-700 text-sm"><i class="fa-solid fa-flag-checkered text-rose-500 mr-1.5"></i>最終三題作答區（找總關主喊「我要答題」停錶後開啟）</h3>
+          <div class="text-center py-2 space-y-1">
+            <h3 class="font-black text-slate-900 text-xl tracking-wide">
+              <i class="fa-solid fa-flag-checkered text-rose-600 mr-1.5"></i>我有答案了!!
+            </h3>
+            <p class="text-xs font-black text-slate-700">
+              (找到總關主 喊 我有答案了 即停止計時並開啟作答)
+            </p>
           </div>
         `;
         return;
@@ -1226,7 +1264,7 @@
 
       if (team.answerSubmitted) {
         panel.innerHTML = `
-          <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 text-center space-y-1">
+          <div class="bg-white/95 border-2 border-emerald-400 rounded-2xl p-4 text-center space-y-1 shadow-sm">
             <h3 class="text-lg font-black text-emerald-800">🎯 已完成最終作答 (+${team.quizScore}分)</h3>
             <p class="text-xs font-bold text-emerald-600">第 ${team.finishOrder} 隊抵達停錶 ｜ 請等待總關主公佈最終大翻盤總成績！</p>
           </div>
@@ -1235,12 +1273,12 @@
       }
 
       panel.innerHTML = `
-        <div class="space-y-3 border-2 border-amber-400 rounded-2xl p-4 bg-amber-50/60">
-          <div class="text-sm text-amber-900 font-black">⏱️ 計時已停止！請填寫三題最終答案：</div>
+        <div class="space-y-3 bg-white/95 rounded-2xl p-4 border-2 border-amber-400 shadow-sm">
+          <div class="text-sm text-amber-900 font-black">⏱️ 總關主已停錶！請填寫三題最終答案：</div>
           ${CONFIG.questions.map((q, idx) => `
             <div>
               <label class="block text-xs font-black text-slate-700 mb-1">${q.title} — ${q.prompt}</label>
-              <input id="final-ans-${idx}" type="text" placeholder="請輸入答案" class="w-full min-w-0 bg-white border-2 border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 font-black text-sm">
+              <input id="final-ans-${idx}" type="text" placeholder="請輸入答案" class="w-full min-w-0 bg-slate-50 border-2 border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 font-black text-sm">
             </div>
           `).join("")}
           <button onclick="submitFinalAnswers()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-md transition">
@@ -1649,7 +1687,7 @@
                      <button onclick="masterResumeTeamTimer(${i})" class="text-[11px] underline text-slate-500 ml-2">恢復計時</button>
                    </div>`
                 : `<button onclick="masterStopTeamTimer(${i})" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3 rounded-xl text-xs shadow transition">
-                     🛑 我要答題（停止計時並開放該隊作答）
+                     🛑 我有答案了!!（停止計時並開放該隊作答）
                    </button>`
             }
           </div>
