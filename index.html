@@ -184,7 +184,7 @@
          1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- ★ 第一區塊：頂部小隊計時資訊卡（小字：第 X 小隊 / 大字：史迪奇等角色名） -->
+      <!-- 第一區塊：頂部小隊計時資訊卡（小字：第 X 小隊 / 大字：史迪奇等角色名） -->
       <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
@@ -256,12 +256,12 @@
         </div>
       </div>
 
-      <!-- ★ 探索與掃描提示 QR 碼區塊 (同時包含「📁雲端資料夾」與「👼小天使任務」) -->
+      <!-- ★ 探索與掃描 QR 碼區塊（支援 4 大掃描結果：1.資料夾 2.請洽詢小天使 3.空包彈 4.四款驚喜包） -->
       <div id="team-explore-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>掃描 QR 碼（雲端資料夾 ＆ 小天使）</h3>
-            <p class="text-xs text-slate-600 font-medium">掃描 QR 碼，或點選下方「雲端資料夾」與「小天使任務」</p>
+            <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>掃描場地 QR 碼</h3>
+            <p class="text-xs text-slate-600 font-medium">開啟相機掃描 QR 碼（可能掃出：資料夾、小天使、驚喜包或空包彈！）</p>
           </div>
           <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow transition shrink-0">
             <i class="fa-solid fa-camera mr-1"></i>開啟相機
@@ -272,16 +272,16 @@
           <div id="qr-reader" class="w-full"></div>
         </div>
 
-        <!-- 雲端資料夾(📁) 與 小天使任務(👼) 快速按鈕 -->
-        <div id="team-folder-quick-btns" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1"></div>
-
-        <!-- 備用代碼輸入 -->
+        <!-- 備用代碼輸入框 (若相機無法開啟可直接輸入 QR 卡上的代碼如 CLUE01 ~ CLUE15) -->
         <div class="flex gap-2 pt-1">
-          <input id="input-clue-code" type="text" placeholder="或輸入提示代碼 (如 CLUE04)" class="flex-1 min-w-0 bg-white/90 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 font-bold uppercase">
-          <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 text-white font-black px-4 py-2 rounded-xl text-sm shrink-0">送出</button>
+          <input id="input-clue-code" type="text" placeholder="或輸入 QR 卡代碼 (如 CLUE01~CLUE15)" class="flex-1 min-w-0 bg-white/90 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-black uppercase">
+          <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black px-5 py-2.5 rounded-xl text-sm shrink-0 shadow">送出</button>
         </div>
 
-        <!-- 10 小隊雲端資料夾 / 小天使任務 展開互動面板 -->
+        <!-- 資料夾與小天使狀態列 -->
+        <div id="team-folder-quick-btns" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1"></div>
+
+        <!-- 當前掃描出的「雲端資料夾」或「請洽詢小天使」互動面板 -->
         <div id="team-active-clue-panel" class="hidden bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2"></div>
       </div>
 
@@ -450,12 +450,12 @@
 
   <!-- 全螢幕即時通知彈窗 -->
   <div id="fullscreen-alert-modal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4 no-print">
-    <div id="fullscreen-alert-card" class="w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white">
+    <div id="fullscreen-alert-card" class="w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white animate-pop-in">
       <div id="alert-icon" class="text-5xl">🎉</div>
       <h3 id="alert-title" class="text-2xl font-black text-slate-800">恭喜過關！</h3>
       <p id="alert-message" class="text-sm text-slate-600 font-bold leading-relaxed"></p>
-      <div id="alert-hint-box" class="hidden bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-slate-900 font-black text-base shadow-inner"></div>
-      <button onclick="closeFullscreenAlert()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-3.5 rounded-2xl text-base shadow-lg">
+      <div id="alert-hint-box" class="hidden bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-slate-900 font-black text-base shadow-inner leading-relaxed"></div>
+      <button onclick="closeFullscreenAlert()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black py-3.5 rounded-2xl text-base shadow-lg transition">
         收到！繼續闖關
       </button>
     </div>
@@ -465,8 +465,11 @@
   <div id="print-modal" class="fixed inset-0 z-50 hidden bg-black/90 overflow-y-auto p-4">
     <div class="max-w-4xl mx-auto bg-white text-slate-900 rounded-2xl p-6 space-y-4">
       <div class="flex items-center justify-between border-b pb-3 no-print">
-        <h3 class="text-lg font-black">🖨️ 場地提示 QR Code 列印（CLUE01 ~ CLUE15）</h3>
-        <div class="flex gap-2">
+        <div>
+          <h3 class="text-lg font-black">🖨️ 操場 15 張 QR Code 道具卡列印（含資料夾、小天使、驚喜包、空包彈）</h3>
+          <p class="text-xs text-slate-500 font-bold">相容先前已印出的 CLUE01~CLUE15，底部虛線小字供工作人員辨識，張貼時可摺起或剪下</p>
+        </div>
+        <div class="flex gap-2 shrink-0">
           <button onclick="window.print()" class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl text-xs">立即列印</button>
           <button onclick="closePrintModal()" class="bg-slate-200 text-slate-800 font-bold px-4 py-2 rounded-xl text-xs">關閉</button>
         </div>
@@ -504,13 +507,51 @@
       { index: 10, bossCode: "B10", name: "八仙過海" }
     ];
 
-    // ★ 偷點別隊雲端資料夾的 3 種隨機懲罰（固定 +30 秒）
+    // 偷點別隊雲端資料夾的 3 種隨機懲罰（固定 +30 秒）
     const FOLDER_PEEK_PENALTY_SEC = 30;
     const FOLDER_PEEK_PENALTIES = [
       "抓到偷看別隊資料夾！\n全隊請立刻【開合跳 10 下】\n（系統已自動增加 30 秒懲罰時間！）",
       "抓到偷看別隊資料夾！\n全隊請立刻【平板撐 30 秒】\n（系統已自動增加 30 秒懲罰時間！）",
       "抓到偷看別隊資料夾！\n全隊請立刻【原地轉 6 圈】\n（系統已自動增加 30 秒懲罰時間！）"
     ];
+
+    // ★ 操場 15 張 QR Code 完整對應表 (相容 CLUE01~CLUE15 及獨立代碼)
+    // 包含：1.雲端資料夾(3張) 2.請洽詢小天使(2張) 3.驚喜包(4張) 4.空包彈(6張)
+    const PLAYGROUND_QR_MAP = {
+      // 1. 掃描後出現：各隊雲端資料夾 (3張)
+      "CLUE01":     { qrType: "folder", folderOrder: 0, staffLabel: "📁 雲端資料夾 (一)" },
+      "FOLDER01":   { qrType: "folder", folderOrder: 0, staffLabel: "📁 雲端資料夾 (一)" },
+      "CLUE02":     { qrType: "folder", folderOrder: 1, staffLabel: "📁 雲端資料夾 (二)" },
+      "FOLDER02":   { qrType: "folder", folderOrder: 1, staffLabel: "📁 雲端資料夾 (二)" },
+      "CLUE03":     { qrType: "folder", folderOrder: 2, staffLabel: "📁 雲端資料夾 (三)" },
+      "FOLDER03":   { qrType: "folder", folderOrder: 2, staffLabel: "📁 雲端資料夾 (三)" },
+
+      // 2. 掃描後出現：請洽詢小天使 (2張)
+      "CLUE04":     { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 請洽詢小天使 (一)" },
+      "ANGEL01":    { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 請洽詢小天使 (一)" },
+      "CLUE05":     { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 請洽詢小天使 (二)" },
+      "ANGEL02":    { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 請洽詢小天使 (二)" },
+
+      // 3. 掃描後出現：4 款驚喜包文字提示 (4張)
+      "CLUE06":     { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩隻老虎唱完才可繼續", staffLabel: "🎁 驚喜包1 (兩隻老虎)" },
+      "SURPRISE01": { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩隻老虎唱完才可繼續", staffLabel: "🎁 驚喜包1 (兩隻老虎)" },
+      "CLUE07":     { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩遍生日快樂歌唱完才可繼續", staffLabel: "🎁 驚喜包2 (生日快樂歌)" },
+      "SURPRISE02": { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩遍生日快樂歌唱完才可繼續", staffLabel: "🎁 驚喜包2 (生日快樂歌)" },
+      "CLUE08":     { qrType: "surprise", text: "我是驚喜包~~全隊青蛙跳10下才可繼續", staffLabel: "🎁 驚喜包3 (青蛙跳10下)" },
+      "SURPRISE03": { qrType: "surprise", text: "我是驚喜包~~全隊青蛙跳10下才可繼續", staffLabel: "🎁 驚喜包3 (青蛙跳10下)" },
+      "CLUE09":     { qrType: "surprise", text: "我是驚喜包~~全隊除了隊長以外，所有人閉上眼睛，由隊長牽著走，直到找到下一個QRcode/關卡", staffLabel: "🎁 驚喜包4 (隊長牽著走)" },
+      "SURPRISE04": { qrType: "surprise", text: "我是驚喜包~~全隊除了隊長以外，所有人閉上眼睛，由隊長牽著走，直到找到下一個QRcode/關卡", staffLabel: "🎁 驚喜包4 (隊長牽著走)" },
+
+      // 4. 掃描後出現：空包彈文字提示 (6張，各隊掃都一樣)
+      "CLUE10":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (一)" },
+      "CLUE11":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (二)" },
+      "CLUE12":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (三)" },
+      "CLUE13":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (四)" },
+      "CLUE14":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (五)" },
+      "CLUE15":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (六)" },
+      "BLANK":      { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈" },
+      "BLANK01":    { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈" }
+    };
 
     const DEFAULT_CONFIG = {
       firebaseUrl: "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -580,6 +621,8 @@
       else rawList = CONFIG.clues || [];
 
       let bossCounter = 0;
+      let folderCounter = 0;
+      let angelCounter = 0;
       const stations = CONFIG.bossStations || BOSS_STATIONS;
       return rawList.map(c => {
         const copy = Object.assign({}, c);
@@ -591,10 +634,14 @@
           copy.taskDesc = "請找到該關主並完成挑戰以取得提示";
           bossCounter++;
         } else if (copy.type === "angel") {
-          copy.bossName = `提示 #${String(copy.id).padStart(2, "0")} 隨隊小天使任務`;
-          copy.taskDesc = "請向隨隊小天使完成指定任務，由小天使在手機按下完成即可獲得提示！";
+          angelCounter++;
+          copy.angelOrderIndex = angelCounter;
+          copy.bossName = `請洽詢小天使 (任務 ${angelCounter})`;
+          copy.taskDesc = "請洽詢隨隊小天使完成指定任務，由小天使按下過關即可獲得提示！";
         } else if (copy.type === "folder") {
-          copy.bossName = `提示 #${String(copy.id).padStart(2, "0")} 雲端機密資料夾`;
+          folderCounter++;
+          copy.folderOrderIndex = folderCounter;
+          copy.bossName = `雲端機密資料夾 (${folderCounter})`;
         }
         return copy;
       });
@@ -621,6 +668,7 @@
 
     let expandedMasterTeams = {};
     let activeBossFloatingIndex = null;
+    let isHandlingQrScan = false;
 
     function toggleMasterTeamDetail(teamId) {
       expandedMasterTeams[teamId] = !expandedMasterTeams[teamId];
@@ -641,7 +689,6 @@
       renderTeamView();
     }
 
-    // ★ 修正第 4 點：預設與重置時 startTime 設為 0（代表尚未開賽，畫面固定停在 00:00，直到總關主按下「開始計時」才開始跑！）
     function createSingleTeamObj(i) {
       const cObj = getTeamColorObj(i);
       return {
@@ -691,7 +738,6 @@
       return arr;
     }
 
-    // ★ 修正：保留 startTime === 0 的未開賽待機狀態，不會再自動塞入 Date.now() 偷跑計時！
     function ensureTeamsStructure(st) {
       if (!st || !st.teams) return createInitialState();
       const cleanTeams = {};
@@ -816,7 +862,6 @@
       checkTeamIncomingAlert();
     }, 1000);
 
-    // ★ 登入選小隊按鈕：大字顯示「史迪奇」等角色名，小字顯示「第 2 小隊」
     function renderLobbyTeamButtons() {
       const grid = document.getElementById("lobby-team-grid");
       if (!grid) return;
@@ -883,6 +928,14 @@
         applySessionRole();
       }
       pollCloudState();
+
+      // 若使用手機內建相機直接掃描帶有 ?clue=CLUE01 的網址，進畫面後自動觸發該 QR 碼結果
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlClue = urlParams.get("clue");
+      if (urlClue && currentSession && currentSession.role === "team") {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        setTimeout(() => triggerClueByCode(urlClue), 300);
+      }
     }
 
     async function openLoginPanel(type) {
@@ -1075,7 +1128,6 @@
       return `${String(m).padStart(2, "0")}:${String(r).padStart(2, "0")}`;
     }
 
-    // ★ 修正第 4 點：當 startTime <= 0 時（總關主尚未按開始計時），碼錶固定維持 00:00（只加上若有的懲罰秒數）
     function getTeamTotalSeconds(team) {
       if (!team || typeof team !== "object") return 0;
       if (!team.startTime || team.startTime <= 0) {
@@ -1159,7 +1211,7 @@
       const myClues = getCluesForTeam(team.id);
       const unlockedIds = getValidUnlockedClues(team);
 
-      // ★ 修正第 3 點：第 2 小隊跟史迪奇換位置！「史迪奇」大字、「第 2 小隊」小字（10 隊一起套用）
+      // 小字：第 X 小隊 / 大字：角色名稱
       const pill = document.getElementById("team-color-pill");
       pill.textContent = `${team.name}`;
       pill.style.backgroundColor = cObj.hex;
@@ -1170,35 +1222,30 @@
       const topCard = document.getElementById("team-top-card");
       topCard.style.borderColor = cObj.hex;
 
-      // 漸層區塊 1：十個關主挑戰區
       const bossSectionCard = document.getElementById("team-boss-section-card");
       if (bossSectionCard) {
         bossSectionCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.14)} 0%, ${hexToRgba(cObj.hex, 0.03)} 100%), #FFFFFF`;
         bossSectionCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
       }
 
-      // 漸層區塊 2：掃描 QR 碼（雲端資料夾 ＆ 小天使任務）
       const exploreCard = document.getElementById("team-explore-card");
       if (exploreCard) {
         exploreCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
         exploreCard.style.borderColor = hexToRgba(cObj.hex, 0.50);
       }
 
-      // 漸層區塊 3：最終答題區
       const answerCard = document.getElementById("team-final-answer-panel");
       if (answerCard) {
         answerCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.28)} 0%, ${hexToRgba(cObj.hex, 0.08)} 100%), #FFFFFF`;
         answerCard.style.borderColor = hexToRgba(cObj.hex, 0.65);
       }
 
-      // 漸層區塊 4：已收集的提示筆記本
       const historyCard = document.getElementById("team-history-card");
       if (historyCard) {
         historyCard.style.background = `linear-gradient(180deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
         historyCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
       }
 
-      // ★ 修正第 4 點：判斷是否已開賽
       const statusBadge = document.getElementById("team-timer-status");
       if (!team.startTime || team.startTime <= 0) {
         statusBadge.textContent = "等待總關主開賽";
@@ -1275,8 +1322,11 @@
         floatBox.classList.add("hidden");
       }
 
-      // ★ 修正第 1 點：掃描區同時顯示「📁 雲端資料夾」與「👼 隨隊小天使任務」按鈕，且掃描 QR 碼也會正常呈現！
-      const nonBossClues = myClues.filter(c => c.type === "folder" || c.type === "angel");
+      // 渲染本隊的 3 個「📁資料夾」與 2 個「👼小天使」進度按鈕
+      const folderClues = myClues.filter(c => c.type === "folder");
+      const angelClues = myClues.filter(c => c.type === "angel");
+      const nonBossClues = [...folderClues, ...angelClues];
+
       const folderBtnsContainer = document.getElementById("team-folder-quick-btns");
       folderBtnsContainer.innerHTML = "";
       nonBossClues.forEach(item => {
@@ -1284,7 +1334,9 @@
         const isCurrentActive = team.activeClueId === item.id;
         const isFolder = item.type === "folder";
         const icon = unlocked ? "✅" : (isFolder ? "📁" : "👼");
-        const label = isFolder ? `雲端資料夾 #${String(item.id).padStart(2, "0")}` : `小天使任務 #${String(item.id).padStart(2, "0")}`;
+        const label = isFolder
+          ? `資料夾 (${item.folderOrderIndex})`
+          : `請洽詢小天使 (${item.angelOrderIndex})`;
 
         const btn = document.createElement("button");
         btn.className = `py-2.5 px-2 rounded-2xl font-black text-xs border-2 transition shadow-sm ${
@@ -1308,10 +1360,10 @@
       if (team.activeClueId && team.activeClueId > 0) {
         const clue = myClues.find(c => c.id === team.activeClueId);
         if (clue && clue.type === "folder") {
-          activePanel.className = "bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2";
+          activePanel.className = "bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2 animate-pop-in";
           renderFolderInteraction(activePanel, clue, team);
         } else if (clue && clue.type === "angel") {
-          activePanel.className = "bg-white border-4 border-emerald-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2";
+          activePanel.className = "bg-white border-4 border-emerald-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2 animate-pop-in";
           renderAngelClueInteraction(activePanel, clue, team, unlockedIds);
         } else {
           activePanel.classList.add("hidden");
@@ -1362,7 +1414,7 @@
       }
       container.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">📁 雲端資料夾 #${String(clue.id).padStart(2, "0")} (${clue.code})</span>
+          <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">📁 雲端機密資料夾 (${clue.folderOrderIndex || ""})</span>
           <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
         </div>
         <p class="text-xs text-rose-600 font-black bg-rose-50 p-2.5 rounded-xl border border-rose-200">⚠️ 你們是【${myColorObj.colorName}（第 ${team.id} 小隊）】，請點選自己的資料夾！點錯別隊將受罰！</p>
@@ -1370,25 +1422,26 @@
       `;
     }
 
-    // ★ 渲染小天使任務展開面板
     function renderAngelClueInteraction(container, clue, team, unlockedIds) {
       const isUnlocked = unlockedIds.includes(clue.id);
       container.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="bg-emerald-100 text-emerald-700 text-xs font-black px-3 py-1 rounded-full">👼 隨隊小天使任務 #${String(clue.id).padStart(2, "0")} (${clue.code})</span>
+          <span class="bg-emerald-100 text-emerald-700 text-xs font-black px-3 py-1 rounded-full">👼 請洽詢小天使</span>
           <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
         </div>
-        <h4 class="text-lg font-black text-slate-800">${clue.bossName}</h4>
-        <p class="text-sm font-bold text-slate-600">${clue.taskDesc}</p>
+        <div class="text-center py-2 space-y-1.5">
+          <div class="text-3xl">👼</div>
+          <h4 class="text-2xl font-black text-emerald-700">請洽詢小天使</h4>
+          <p class="text-sm font-bold text-slate-600">${clue.taskDesc}</p>
+        </div>
         ${
           isUnlocked
             ? `<div class="bg-emerald-50 border-2 border-emerald-400 p-3.5 rounded-2xl text-emerald-900 font-black text-sm">✅ 已獲得提示：${clue.hintText}</div>`
-            : `<div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-2xl text-xs text-emerald-800 font-black">⏳ 等待隨隊小天使在手機上按下「任務完成」發送提示...</div>`
+            : `<div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-2xl text-xs text-emerald-800 font-black text-center">⏳ 等待隨隊小天使在手機上按下「任務完成」發送提示...</div>`
         }
       `;
     }
 
-    // ★ 修正第 2 點：偷點別隊資料夾時，從 3 個指定懲罰中隨機抽取一個，並固定 +30 秒！
     async function clickCloudFolder(clueId, folderTeamId) {
       const team = STATE.teams[currentSession.teamId];
       const myClues = getCluesForTeam(team.id);
@@ -1492,41 +1545,86 @@
       input.value = "";
     }
 
-    // ★ 修正第 1 點：掃描 QR 碼支援開啟「📁 雲端資料夾」與「👼 隨隊小天使任務」（若掃到關主碼則自動展開上方寶劍浮動框）
+    // ★ 核心掃描處理：支援 4 大結果（1.資料夾 2.請洽詢小天使 3.空包彈 4.四款驚喜包）
     async function triggerClueByCode(rawCode) {
-      let clean = rawCode.trim().toUpperCase();
+      if (isHandlingQrScan) return;
+      isHandlingQrScan = true;
+      setTimeout(() => { isHandlingQrScan = false; }, 1200);
+
+      await stopCameraScanner();
+
+      let clean = String(rawCode || "").trim().toUpperCase();
+      // 若掃到網址格式 (例如 ?clue=CLUE01)，自動提取參數
       if (clean.includes("CLUE=")) {
-        const m = clean.match(/CLUE=(CLUE\d+)/i);
+        const m = clean.match(/CLUE=([A-Z0-9_]+)/i);
         if (m) clean = m[1].toUpperCase();
       }
+      // 支援輸入純數字 1~15 自動轉為 CLUE01~CLUE15
+      if (/^\d{1,2}$/.test(clean)) {
+        const num = parseInt(clean, 10);
+        if (num >= 1 && num <= 15) {
+          clean = `CLUE${String(num).padStart(2, "0")}`;
+        }
+      }
+
       const team = STATE.teams[currentSession.teamId];
       const myClues = getCluesForTeam(team.id);
       const folderClues = myClues.filter(c => c.type === "folder");
       const angelClues = myClues.filter(c => c.type === "angel");
 
-      let matchedClue = myClues.find(c => c.code.toUpperCase() === clean);
-      if (!matchedClue) {
-        if (clean === "FOLDER01") matchedClue = folderClues[0];
-        else if (clean === "FOLDER02") matchedClue = folderClues[1];
-        else if (clean === "FOLDER03") matchedClue = folderClues[2];
-        else if (clean === "ANGEL01") matchedClue = angelClues[0];
-        else if (clean === "ANGEL02") matchedClue = angelClues[1];
-      }
-
-      if (!matchedClue) {
-        alert("找不到此提示代碼！");
+      const qrAction = PLAYGROUND_QR_MAP[clean];
+      if (!qrAction) {
+        showFullscreenAlert("fail", "❓ 無效的 QR 代碼", `找不到代碼「${clean}」，請確認是否掃描正確的活動 QR Code！`, null);
         return;
       }
 
-      stopCameraScanner();
-
-      if (matchedClue.type === "boss") {
-        activeBossFloatingIndex = matchedClue.bossIndex || 1;
-        renderTeamView();
+      // 結果 1：掃描後出現「雲端資料夾（各隊開各隊的）」
+      if (qrAction.qrType === "folder") {
+        const targetFolder = folderClues[qrAction.folderOrder] || folderClues[0];
+        if (targetFolder) {
+          await saveTeamPatch(team.id, { activeClueId: targetFolder.id });
+          const panelEl = document.getElementById("team-active-clue-panel");
+          if (panelEl) panelEl.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         return;
       }
 
-      await saveTeamPatch(team.id, { activeClueId: matchedClue.id });
+      // 結果 2：掃描後出現「請洽詢小天使」的畫面
+      if (qrAction.qrType === "angel") {
+        const targetAngel = angelClues[qrAction.angelOrder] || angelClues[0];
+        if (targetAngel) {
+          await saveTeamPatch(team.id, { activeClueId: targetAngel.id });
+          showFullscreenAlert(
+            "success",
+            "👼 請洽詢小天使！",
+            "恭喜掃到小天使任務！請立即洽詢你們小隊的【隨隊小天使】完成指定任務，由小天使按下過關即可獲得提示！",
+            null
+          );
+        }
+        return;
+      }
+
+      // 結果 3：掃描後出現「空包彈」文字提示（各隊掃都一樣）
+      if (qrAction.qrType === "blank") {
+        showFullscreenAlert(
+          "bonus",
+          "💨 哎呀！是空包彈",
+          "請繼續尋找其他 QR Code 喔！",
+          qrAction.text
+        );
+        return;
+      }
+
+      // 結果 4：掃描後出現「驚喜包」文字提示（4 款驚喜任務）
+      if (qrAction.qrType === "surprise") {
+        showFullscreenAlert(
+          "bonus",
+          "🎁 觸發驚喜包任務！",
+          "請全隊立刻完成下方驚喜包指定動作才可繼續前進：",
+          qrAction.text
+        );
+        return;
+      }
     }
 
     async function clearActiveClue() {
@@ -1546,22 +1644,28 @@
       html5QrScanner.start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 220, height: 220 } },
-        (decodedText) => triggerClueByCode(decodedText),
+        (decodedText) => {
+          triggerClueByCode(decodedText);
+        },
         () => {}
       ).catch(() => {
-        alert("無法開啟相機，請檢查權限或直接點選下方按鈕！");
+        alert("無法開啟相機，請確認瀏覽器相機權限，或直接在下方輸入框輸入 QR 卡上的代碼 (如 CLUE01)！");
         stopCameraScanner();
       });
     }
 
-    function stopCameraScanner() {
+    async function stopCameraScanner() {
       const container = document.getElementById("qr-reader-container");
-      container.classList.add("hidden");
+      if (container) container.classList.add("hidden");
       const btn = document.getElementById("btn-camera-toggle");
       if (btn) btn.innerHTML = `<i class="fa-solid fa-camera mr-1"></i>開啟相機`;
       if (html5QrScanner) {
-        html5QrScanner.stop().then(() => html5QrScanner.clear()).catch(() => {});
+        const scannerRef = html5QrScanner;
         html5QrScanner = null;
+        try {
+          await scannerRef.stop();
+          scannerRef.clear();
+        } catch (e) {}
       }
     }
 
@@ -2043,7 +2147,6 @@
       });
     }
 
-    // ★ 總關主按下「開始計時」：全場才正式從 00:00 開始起跑！
     async function masterStartAllTimers() {
       if (!confirm("確定全場正式開始計時嗎？（所有小隊手機將同步從 00:00 開始跑錶！）")) return;
       const now = Date.now();
@@ -2074,7 +2177,6 @@
       alert("全場已同步從 00:00 正式開始計時！");
     }
 
-    // ★ 新增：總關主可將全場時間歸零待機（停在 00:00 等待開賽，但不會踢出已登入的小隊手機）
     async function masterStandbyTimers() {
       if (!confirm("確定將全場時間歸零並維持在【00:00 等待開賽】狀態嗎？（不會踢出已綁定的手機）")) return;
       STATE.finishCounter = 0;
@@ -2093,7 +2195,6 @@
       alert("全場時間已歸零並停在 00:00 等待開賽！");
     }
 
-    // ★ 修正第 4 點：重置全場後，所有小隊 startTime 皆為 0，進畫面固定顯示 00:00 不會偷跑！
     async function masterResetGame() {
       if (!confirm("確定清空所有進度並解除所有小隊的手機綁定？（時間將歸零停在 00:00 直到按下開始計時）")) return;
       STATE = createInitialState();
@@ -2201,14 +2302,14 @@
       const hintBox = document.getElementById("alert-hint-box");
 
       if (type === "fail") {
-        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white border-rose-500";
+        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white border-rose-500 animate-pop-in";
         icon.textContent = "💥";
       } else if (type === "bonus") {
-        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white border-amber-400";
-        icon.textContent = "🌟";
+        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white border-amber-400 animate-pop-in";
+        icon.textContent = title.includes("空包彈") ? "💨" : "🎁";
       } else {
-        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white border-emerald-500";
-        icon.textContent = "🎉";
+        card.className = "w-[92vw] max-w-sm rounded-3xl p-6 text-center space-y-4 border-4 shadow-2xl bg-white border-emerald-500 animate-pop-in";
+        icon.textContent = title.includes("小天使") ? "👼" : "🎉";
       }
 
       titleEl.textContent = title;
@@ -2232,18 +2333,23 @@
       else badge.classList.add("hidden");
     }
 
+    // ★ 列印 15 張操場 QR Code 道具卡（相容先前已印出的 CLUE01 ~ CLUE15！）
     function openPrintModal() {
       const modal = document.getElementById("print-modal");
       const area = document.getElementById("print-area");
       let html = "";
       for (let i = 1; i <= 15; i++) {
         const code = `CLUE${String(i).padStart(2, "0")}`;
+        const qrInfo = PLAYGROUND_QR_MAP[code];
         const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(code)}`;
         html += `
           <div class="border-2 border-slate-800 rounded-xl p-4 text-center space-y-2 flex flex-col items-center">
-            <div class="text-xs font-black bg-blue-600 text-white px-3 py-1 rounded-full">提示 QR 碼 #${String(i).padStart(2, "0")}</div>
+            <div class="text-xs font-black bg-slate-900 text-white px-3 py-1 rounded-full">操場神秘 QR 碼 #${String(i).padStart(2, "0")}</div>
             <img src="${qrImg}" alt="${code}" class="w-36 h-36 mx-auto"/>
             <div class="font-mono font-black text-lg">${code}</div>
+            <div class="text-[11px] font-bold text-slate-400 border-t border-dashed border-slate-300 pt-1 w-full">
+              工作人員辨識：${qrInfo ? qrInfo.staffLabel : ""}
+            </div>
           </div>
         `;
       }
