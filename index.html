@@ -20,7 +20,7 @@
       0% { opacity: 0; transform: scale(0.94) translateY(8px); }
       100% { opacity: 1; transform: scale(1) translateY(0); }
     }
-    .animate-pop-in { animation: pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-pop-in { animation: pop-in 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .bar-transition { transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
     @media print {
       body * { visibility: hidden; }
@@ -59,7 +59,6 @@
         <h2 class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">請選擇你的現場身分</h2>
       </div>
 
-      <!-- 四大身分極簡入口卡片 -->
       <div class="grid grid-cols-1 gap-3.5">
         <button onclick="openLoginPanel('team')" class="w-full flex items-center justify-between bg-white hover:bg-blue-50/50 active:scale-[0.98] border-2 border-blue-500 rounded-2xl p-4 sm:p-5 transition shadow-md">
           <div class="flex items-center gap-3.5">
@@ -112,7 +111,7 @@
           <div id="lobby-team-grid" class="grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto p-0.5"></div>
         </div>
 
-        <!-- 彈窗 2：關主代號 -->
+        <!-- 彈窗 2：關主代號 (B01~B10) -->
         <div id="login-panel-boss" class="hidden bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-rose-600">我是關主</h3>
@@ -121,7 +120,7 @@
             </button>
           </div>
           <div class="space-y-3">
-            <input id="input-boss-code" type="text" placeholder="請輸入你的關主專屬代號" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
+            <input id="input-boss-code" type="text" placeholder="請輸入關主代號 (B01~B10)" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
             <button onclick="loginAsBoss()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認進入
             </button>
@@ -182,14 +181,14 @@
     </div>
 
     <!-- ==========================================
-         1. 闖關小隊端 (Team View - 專屬代表色漸層分區版)
+         1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- 第一區塊：頂部小隊計時資訊卡（維持純白不變） -->
+      <!-- 第一區塊：頂部小隊計時資訊卡（純白不變） -->
       <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <span id="team-color-pill" class="inline-block text-xs font-black px-3 py-1 rounded-full mb-1 shadow-sm">極光紅</span>
+            <span id="team-color-pill" class="inline-block text-xs font-black px-3 py-1 rounded-full mb-1 shadow-sm">DoReMi</span>
             <h2 id="team-header-name" class="text-2xl font-black text-slate-800">第 1 小隊</h2>
           </div>
           <div class="text-right bg-slate-50 px-3.5 py-2 rounded-2xl border border-slate-200">
@@ -232,15 +231,37 @@
         </div>
       </div>
 
-      <!-- 當前觸發的關卡互動區 -->
-      <div id="team-active-clue-panel" class="hidden bg-white border-4 border-amber-400 rounded-3xl p-4 space-y-3 shadow-lg"></div>
+      <!-- ★ 獨立區塊：10 個關主挑戰區 (點擊 ⚔️01~⚔️10 彈出浮動文字框，再點一下收起) -->
+      <div id="team-boss-section-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors relative">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-khanda text-rose-600 mr-1.5"></i>十個關主挑戰區</h3>
+            <p class="text-xs text-slate-600 font-medium">點選下方寶劍查看關名，再點一下即可收起</p>
+          </div>
+          <span id="team-boss-progress" class="text-xs font-black bg-white/90 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full">0 / 10</span>
+        </div>
 
-      <!-- 第二區塊：探索區塊 (套用小隊代表色輕柔漸層) -->
+        <!-- ⚔️01 ~ ⚔️10 按鈕網格 -->
+        <div id="team-boss-grid" class="grid grid-cols-5 gap-2 pt-1"></div>
+
+        <!-- ★ 浮動文字框 (點擊 ⚔️01 跳出大字明顯關名，再點一下收起) -->
+        <div id="team-boss-floating-box" onclick="closeBossFloatingBox()" class="hidden animate-pop-in cursor-pointer bg-white border-4 border-rose-500 rounded-2xl p-5 text-center shadow-2xl space-y-2 mt-2">
+          <div id="boss-float-badge" class="inline-block text-xs font-black bg-rose-100 text-rose-700 px-3 py-0.5 rounded-full">⚔️ 關主 01</div>
+          <div id="boss-float-name" class="text-3xl font-black text-slate-900 tracking-wide py-1">補給站</div>
+          <div class="text-sm font-black text-slate-600">請找到該關主並完成挑戰以取得提示</div>
+          <div id="boss-float-done-tag" class="hidden text-xs font-black text-emerald-700 bg-emerald-50 border border-emerald-300 rounded-xl py-1.5 px-3">
+            ✅ 本關已完成！提示已存入下方筆記本
+          </div>
+          <div class="text-[11px] font-bold text-slate-400 pt-1">（再點選一下即可收起）</div>
+        </div>
+      </div>
+
+      <!-- ★ 探索與掃描提示 QR 碼區塊 (僅限開啟雲端資料夾，已移除所有找關主畫面) -->
       <div id="team-explore-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <div>
-            <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>探索操場 15 個提示</h3>
-            <p class="text-xs text-slate-600 font-medium">掃描操場 QR 碼，或直接點選下方題號進入任務</p>
+            <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>掃描提示 QR 碼（雲端資料夾）</h3>
+            <p class="text-xs text-slate-600 font-medium">掃描場地 QR 碼開啟 10 小隊專屬雲端資料夾</p>
           </div>
           <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow transition shrink-0">
             <i class="fa-solid fa-camera mr-1"></i>開啟相機
@@ -251,20 +272,23 @@
           <div id="qr-reader" class="w-full"></div>
         </div>
 
-        <!-- 15 個直覺大按鈕 -->
-        <div id="team-quick-clue-btns" class="grid grid-cols-5 gap-2 pt-1"></div>
+        <!-- 雲端資料夾快速開啟鈕 (無找關主按鈕) -->
+        <div id="team-folder-quick-btns" class="grid grid-cols-3 gap-2 pt-1"></div>
 
         <!-- 備用代碼輸入 -->
         <div class="flex gap-2 pt-1">
-          <input id="input-clue-code" type="text" placeholder="或輸入代碼 (如 CLUE01)" class="flex-1 min-w-0 bg-white/90 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 font-bold uppercase">
+          <input id="input-clue-code" type="text" placeholder="或輸入提示代碼開啟資料夾" class="flex-1 min-w-0 bg-white/90 border border-slate-300 rounded-xl px-3 py-2 text-sm text-slate-800 font-bold uppercase">
           <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 text-white font-black px-4 py-2 rounded-xl text-sm shrink-0">送出</button>
         </div>
+
+        <!-- 10 小隊雲端資料夾展開面板 (只在點選/掃描雲端資料夾時出現) -->
+        <div id="team-active-clue-panel" class="hidden bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2"></div>
       </div>
 
-      <!-- 第三區塊：最終答題區 -->
+      <!-- 最終答題區 -->
       <div id="team-final-answer-panel" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors"></div>
 
-      <!-- 第四區塊：提示區 -->
+      <!-- 提示區 -->
       <div id="team-history-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-book-open text-amber-600 mr-1.5"></i>已收集的提示筆記本</h3>
@@ -275,12 +299,12 @@
     </section>
 
     <!-- ==========================================
-         2. 關主端 (Boss View)
+         2. 關主端 (Boss View - 已移除加分題)
     =========================================== -->
     <section id="view-boss" class="hidden space-y-4">
       <div class="bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-2 shadow-md">
-        <span id="boss-badge-code" class="bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-full">關主</span>
-        <h2 id="boss-header-title" class="text-xl font-black text-slate-800 pt-1">關主審核專區</h2>
+        <span id="boss-badge-code" class="bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-full">關主 B01</span>
+        <h2 id="boss-header-title" class="text-2xl font-black text-slate-800 pt-1">補給站</h2>
         <p id="boss-task-desc" class="text-xs font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-200"></p>
         <div class="text-xs text-rose-700 font-black bg-rose-50 p-3 rounded-2xl border border-rose-200">
           🎁 過關將發送給該隊：<span id="boss-hint-preview" class="text-slate-900"></span>
@@ -294,10 +318,11 @@
         </div>
 
         <div>
-          <label class="block text-sm font-black text-slate-700 mb-1.5">步驟 2：確認要發放的關卡提示</label>
+          <label class="block text-sm font-black text-slate-700 mb-1.5">步驟 2：確認本關發放的提示</label>
           <select id="boss-select-clue" onchange="updateBossPreviewText()" class="w-full bg-amber-50 border-2 border-amber-300 rounded-2xl px-4 py-3 text-slate-800 font-black text-sm"></select>
         </div>
 
+        <!-- ★ 步驟 3：已移除加分題按鈕，只保留通過與失敗 -->
         <div class="space-y-3 pt-2">
           <label class="block text-sm font-black text-slate-700">步驟 3：點擊判定結果（小隊手機將立即跳出視窗）</label>
 
@@ -309,11 +334,6 @@
           <button onclick="bossJudge('fail')" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
             <span class="text-lg">❌ 失敗（+<span id="boss-fail-sec-label">60</span>秒 並發送提示）</span>
             <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-          </button>
-
-          <button onclick="bossJudge('bonus')" class="w-full bg-amber-400 hover:bg-amber-300 active:scale-[0.98] text-slate-950 font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
-            <span class="text-lg">🌟 加分題（-<span id="boss-bonus-sec-label">30</span>秒獎勵）</span>
-            <i class="fa-solid fa-star text-2xl"></i>
           </button>
         </div>
       </div>
@@ -393,7 +413,6 @@
 
       <!-- 頁籤 1：小隊監控 -->
       <div id="master-tab-monitor" class="space-y-3">
-        <!-- 總關主端 2分鐘手機求救倒數大橫幅 -->
         <div id="master-phone-timer-banner" class="hidden bg-amber-400 text-slate-950 p-4 rounded-3xl font-black space-y-2 shadow-lg border-2 border-amber-500">
           <div class="flex items-center justify-between">
             <div class="text-base">📱 <span id="master-phone-team-label" class="underline">第 1 小隊</span> 手機求救倒數中！</div>
@@ -444,7 +463,7 @@
   <div id="print-modal" class="fixed inset-0 z-50 hidden bg-black/90 overflow-y-auto p-4">
     <div class="max-w-4xl mx-auto bg-white text-slate-900 rounded-2xl p-6 space-y-4">
       <div class="flex items-center justify-between border-b pb-3 no-print">
-        <h3 class="text-lg font-black">🖨️ 全場 15 個提示 QR Code 列印</h3>
+        <h3 class="text-lg font-black">🖨️ 雲端資料夾提示 QR Code 列印</h3>
         <div class="flex gap-2">
           <button onclick="window.print()" class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl text-xs">立即列印</button>
           <button onclick="closePrintModal()" class="bg-slate-200 text-slate-800 font-bold px-4 py-2 rounded-xl text-xs">關閉</button>
@@ -455,17 +474,32 @@
   </div>
 
   <script>
+    // 10 小隊預設名稱與代表色
     const DEFAULT_TEAM_COLORS = [
-      { id: 1,  colorName: "極光紅", hex: "#E63946", textHex: "#FFFFFF" },
-      { id: 2,  colorName: "深海藍", hex: "#1D3557", textHex: "#FFFFFF" },
-      { id: 3,  colorName: "翡翠綠", hex: "#2A9D8F", textHex: "#FFFFFF" },
-      { id: 4,  colorName: "活力黃", hex: "#E9C46A", textHex: "#0F172A" },
-      { id: 5,  colorName: "暖陽橙", hex: "#F4A261", textHex: "#0F172A" },
-      { id: 6,  colorName: "夢幻紫", hex: "#8E44AD", textHex: "#FFFFFF" },
-      { id: 7,  colorName: "玫瑰粉", hex: "#FF70A6", textHex: "#0F172A" },
-      { id: 8,  colorName: "天空藍", hex: "#48CAE4", textHex: "#0F172A" },
-      { id: 9,  colorName: "可可棕", hex: "#6F4E37", textHex: "#FFFFFF" },
-      { id: 10, colorName: "石墨灰", hex: "#4A4A4A", textHex: "#FFFFFF" }
+      { id: 1,  colorName: "DoReMi",     hex: "#E63946", textHex: "#FFFFFF" },
+      { id: 2,  colorName: "史迪奇",     hex: "#1D3557", textHex: "#FFFFFF" },
+      { id: 3,  colorName: "海王星",     hex: "#2A9D8F", textHex: "#FFFFFF" },
+      { id: 4,  colorName: "小小兵",     hex: "#E9C46A", textHex: "#0F172A" },
+      { id: 5,  colorName: "漩渦鳴人",   hex: "#F4A261", textHex: "#0F172A" },
+      { id: 6,  colorName: "百變怪",     hex: "#8E44AD", textHex: "#FFFFFF" },
+      { id: 7,  colorName: "甘露寺蜜璃", hex: "#FF70A6", textHex: "#0F172A" },
+      { id: 8,  colorName: "泡泡",       hex: "#48CAE4", textHex: "#0F172A" },
+      { id: 9,  colorName: "達菲熊",     hex: "#6F4E37", textHex: "#FFFFFF" },
+      { id: 10, colorName: "酷洛米",     hex: "#4A4A4A", textHex: "#FFFFFF" }
+    ];
+
+    // ★ 10 大關主關卡名稱定義 (B01 ~ B10)
+    const BOSS_STATIONS = [
+      { index: 1,  bossCode: "B01", name: "補給站" },
+      { index: 2,  bossCode: "B02", name: "大家來找碴" },
+      { index: 3,  bossCode: "B03", name: "大藝術家" },
+      { index: 4,  bossCode: "B04", name: "動動ABC" },
+      { index: 5,  bossCode: "B05", name: "Emo不Emo" },
+      { index: 6,  bossCode: "B06", name: "明爭暗鬥" },
+      { index: 7,  bossCode: "B07", name: "平了又平" },
+      { index: 8,  bossCode: "B08", name: "數獨海戰棋" },
+      { index: 9,  bossCode: "B09", name: "默契大挑戰" },
+      { index: 10, bossCode: "B10", name: "八仙過海" }
     ];
 
     const DEFAULT_CONFIG = {
@@ -478,8 +512,8 @@
       angelPin: "8888",
       switchPin: "1123",
       teamColors: DEFAULT_TEAM_COLORS,
+      bossStations: BOSS_STATIONS,
       bossFailPenaltySec: 60,
-      bossBonusRewardSec: 30,
       folderPeekPenaltySec: 45,
       folderPeekText: "抓到偷看別隊資料夾！全隊請立刻原地開合跳 20 下，並且系統已自動增加 45 秒懲罰時間！",
       questions: [
@@ -495,7 +529,6 @@
       CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
     }
     const SUPER_PIN = "1123";
-    // ★ 新增你指定的兩組總關主密碼：20040521 與 19951004
     const VALID_MASTER_PINS = ["1123", "20040521", "19951004", String(CONFIG.masterPin || "1123"), String(CONFIG.switchPin || "1123")];
 
     function isValidMasterOrAdminPin(pin) {
@@ -531,10 +564,27 @@
       return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
+    // ★ 自動確保每一隊的 10 個 boss 關卡依序對應 B01 ~ B10 與 10 個關名（徹底解決 12、13、14 跳回 1、2、3 的問題）
     function getCluesForTeam(teamId) {
-      if (CONFIG.teamClues && CONFIG.teamClues[teamId]) return CONFIG.teamClues[teamId];
-      if (CONFIG.teamClues && CONFIG.teamClues[1]) return CONFIG.teamClues[1];
-      return CONFIG.clues || [];
+      let rawList = [];
+      if (CONFIG.teamClues && CONFIG.teamClues[teamId]) rawList = CONFIG.teamClues[teamId];
+      else if (CONFIG.teamClues && CONFIG.teamClues[1]) rawList = CONFIG.teamClues[1];
+      else rawList = CONFIG.clues || [];
+
+      let bossCounter = 0;
+      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      return rawList.map(c => {
+        const copy = Object.assign({}, c);
+        if (copy.type === "boss") {
+          const st = stations[bossCounter] || stations[bossCounter % stations.length];
+          copy.bossIndex = bossCounter + 1;
+          copy.bossCode = st.bossCode;
+          copy.bossName = st.name;
+          copy.taskDesc = "請找到該關主並完成挑戰以取得提示";
+          bossCounter++;
+        }
+        return copy;
+      });
     }
 
     function isTeamAnswerCorrect(teamId, qId, userAns) {
@@ -556,12 +606,28 @@
     const LOCKED_ROLE_KEY = "GOFIGHTING_LOCKED_ROLE_V5";
     let firebaseUrl = (CONFIG.firebaseUrl || "").replace(/\/$/, "");
 
-    // ★ 記錄總關主目前點開了哪幾個小隊的提示明細面板
     let expandedMasterTeams = {};
+    // ★ 記錄小隊目前點開哪一個寶劍浮動框 (1 ~ 10，null 代表收起)
+    let activeBossFloatingIndex = null;
 
     function toggleMasterTeamDetail(teamId) {
       expandedMasterTeams[teamId] = !expandedMasterTeams[teamId];
       renderMasterView();
+    }
+
+    // ★ 點選寶劍 01~10：點一下開啟浮動文字框，再點一下收起
+    function toggleBossFloatingBox(bossIdx) {
+      if (activeBossFloatingIndex === bossIdx) {
+        activeBossFloatingIndex = null;
+      } else {
+        activeBossFloatingIndex = bossIdx;
+      }
+      renderTeamView();
+    }
+
+    function closeBossFloatingBox() {
+      activeBossFloatingIndex = null;
+      renderTeamView();
     }
 
     function createSingleTeamObj(i, now) {
@@ -845,26 +911,33 @@
 
     function loginAsTeam(teamId) {
       closeLoginPanels();
+      activeBossFloatingIndex = null;
       saveRoleSession({ role: "team", teamId });
       lastSeenEventTs = Date.now() - 5000;
       applySessionRole();
     }
 
     function loginAsBoss() {
-      let code = document.getElementById("input-boss-code").value.trim().toUpperCase();
-      if (!code) {
+      let rawInput = document.getElementById("input-boss-code").value.trim();
+      if (!rawInput) {
         alert("請輸入關主代號！");
         return;
       }
+      let code = rawInput.toUpperCase();
       if (isValidMasterOrAdminPin(code)) code = "B01";
-      const allClues = getCluesForTeam(1);
-      const validBoss = allClues.find(c => c.type === "boss" && c.bossCode.toUpperCase() === code);
-      if (!validBoss && !/^B0[1-7]$/.test(code)) {
-        alert("關主代號錯誤！");
+
+      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      // 支援輸入 B01~B10 或是直接輸入關卡中文名稱（例如：補給站、數獨海戰棋）
+      const matchedStation = stations.find(
+        s => s.bossCode.toUpperCase() === code || s.name === rawInput
+      );
+
+      if (!matchedStation) {
+        alert("關主代號錯誤！請輸入 B01 ~ B10 或關卡名稱");
         return;
       }
       closeLoginPanels();
-      saveRoleSession({ role: "boss", bossCode: code });
+      saveRoleSession({ role: "boss", bossCode: matchedStation.bossCode });
       applySessionRole();
     }
 
@@ -966,7 +1039,9 @@
         badge.textContent = `第 ${currentSession.teamId} 小隊 (${cObj.colorName})`;
         document.getElementById("view-team").classList.remove("hidden");
       } else if (currentSession.role === "boss") {
-        badge.textContent = `關主 ${currentSession.bossCode}`;
+        const stations = CONFIG.bossStations || BOSS_STATIONS;
+        const st = stations.find(s => s.bossCode === currentSession.bossCode);
+        badge.textContent = st ? `關主 ${st.bossCode} (${st.name})` : `關主 ${currentSession.bossCode}`;
         document.getElementById("view-boss").classList.remove("hidden");
       } else if (currentSession.role === "angel") {
         badge.textContent = `第 ${currentSession.teamId} 小隊小天使`;
@@ -1068,25 +1143,35 @@
 
       document.getElementById("team-header-name").textContent = `${team.name}`;
       const pill = document.getElementById("team-color-pill");
-      pill.textContent = `代表色：${cObj.colorName}`;
+      pill.textContent = `${cObj.colorName}`;
       pill.style.backgroundColor = cObj.hex;
       pill.style.color = cObj.textHex;
 
       const topCard = document.getElementById("team-top-card");
       topCard.style.borderColor = cObj.hex;
 
-      const exploreCard = document.getElementById("team-explore-card");
-      if (exploreCard) {
-        exploreCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.16)} 0%, ${hexToRgba(cObj.hex, 0.04)} 100%), #FFFFFF`;
-        exploreCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
+      // 漸層區塊 1：十個關主挑戰區
+      const bossSectionCard = document.getElementById("team-boss-section-card");
+      if (bossSectionCard) {
+        bossSectionCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.14)} 0%, ${hexToRgba(cObj.hex, 0.03)} 100%), #FFFFFF`;
+        bossSectionCard.style.borderColor = hexToRgba(cObj.hex, 0.45);
       }
 
+      // 漸層區塊 2：掃描提示 QR 碼（雲端資料夾）
+      const exploreCard = document.getElementById("team-explore-card");
+      if (exploreCard) {
+        exploreCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
+        exploreCard.style.borderColor = hexToRgba(cObj.hex, 0.50);
+      }
+
+      // 漸層區塊 3：最終答題區
       const answerCard = document.getElementById("team-final-answer-panel");
       if (answerCard) {
         answerCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.28)} 0%, ${hexToRgba(cObj.hex, 0.08)} 100%), #FFFFFF`;
         answerCard.style.borderColor = hexToRgba(cObj.hex, 0.65);
       }
 
+      // 漸層區塊 4：已收集的提示筆記本
       const historyCard = document.getElementById("team-history-card");
       if (historyCard) {
         historyCard.style.background = `linear-gradient(180deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
@@ -1122,30 +1207,80 @@
         wordTxt.textContent = "可使用 (剩 1 次)";
       }
 
-      const quickContainer = document.getElementById("team-quick-clue-btns");
-      quickContainer.innerHTML = "";
-      myClues.forEach(c => {
-        const unlocked = unlockedIds.includes(c.id);
-        const icon = unlocked ? "✅" : c.type === "folder" ? "📁" : c.type === "angel" ? "👼" : "⚔️";
+      // ★ 渲染「十個關主挑戰區」按鈕 (⚔️01 ~ ⚔️10) 與浮動文字框
+      const bossClues = myClues.filter(c => c.type === "boss");
+      const passedBossCount = bossClues.filter(c => unlockedIds.includes(c.id)).length;
+      document.getElementById("team-boss-progress").textContent = `已過 ${passedBossCount} / 10 關`;
+
+      const bossGrid = document.getElementById("team-boss-grid");
+      bossGrid.innerHTML = "";
+      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      stations.forEach((st, idx) => {
+        const bIdx = idx + 1;
+        const correspondingClue = bossClues[idx];
+        const isPassed = correspondingClue && unlockedIds.includes(correspondingClue.id);
+        const isSelected = activeBossFloatingIndex === bIdx;
+
         const btn = document.createElement("button");
         btn.className = `py-2.5 rounded-2xl font-black text-xs border-2 transition shadow-sm ${
-          unlocked
-            ? "bg-emerald-50 border-emerald-400 text-emerald-700"
-            : c.type === "folder"
-              ? "bg-white/95 border-blue-300 text-blue-700 hover:bg-blue-50"
-              : "bg-white/95 border-slate-200 text-slate-700 hover:bg-slate-50"
+          isSelected
+            ? "bg-rose-600 border-rose-700 text-white scale-105 shadow-md"
+            : isPassed
+              ? "bg-emerald-50 border-emerald-400 text-emerald-700"
+              : "bg-white/95 border-slate-200 text-slate-700 hover:bg-rose-50"
         }`;
-        btn.textContent = `${icon}${String(c.id).padStart(2, "0")}`;
-        btn.onclick = () => triggerClueByCode(c.code);
-        quickContainer.appendChild(btn);
+        btn.textContent = `${isPassed ? "✅" : "⚔️"}${String(bIdx).padStart(2, "0")}`;
+        btn.onclick = () => toggleBossFloatingBox(bIdx);
+        bossGrid.appendChild(btn);
       });
 
+      const floatBox = document.getElementById("team-boss-floating-box");
+      if (activeBossFloatingIndex && activeBossFloatingIndex >= 1 && activeBossFloatingIndex <= stations.length) {
+        const st = stations[activeBossFloatingIndex - 1];
+        const correspondingClue = bossClues[activeBossFloatingIndex - 1];
+        const isPassed = correspondingClue && unlockedIds.includes(correspondingClue.id);
+
+        document.getElementById("boss-float-badge").textContent = `⚔️ 關卡 ${String(activeBossFloatingIndex).padStart(2, "0")}`;
+        document.getElementById("boss-float-name").textContent = st.name;
+        const doneTag = document.getElementById("boss-float-done-tag");
+        if (isPassed) doneTag.classList.remove("hidden");
+        else doneTag.classList.add("hidden");
+
+        floatBox.classList.remove("hidden");
+      } else {
+        floatBox.classList.add("hidden");
+      }
+
+      // ★ 渲染「掃描提示 QR 碼（雲端資料夾）」區塊：只顯示該隊的 3 個雲端資料夾，完全不出現找關主！
+      const folderClues = myClues.filter(c => c.type === "folder");
+      const folderBtnsContainer = document.getElementById("team-folder-quick-btns");
+      folderBtnsContainer.innerHTML = "";
+      folderClues.forEach((fc, idx) => {
+        const unlocked = unlockedIds.includes(fc.id);
+        const isCurrentFolder = team.activeClueId === fc.id;
+        const btn = document.createElement("button");
+        btn.className = `py-2.5 px-2 rounded-2xl font-black text-xs border-2 transition shadow-sm ${
+          isCurrentFolder
+            ? "bg-blue-600 border-blue-700 text-white"
+            : unlocked
+              ? "bg-emerald-50 border-emerald-400 text-emerald-700"
+              : "bg-white/95 border-blue-300 text-blue-700 hover:bg-blue-50"
+        }`;
+        btn.textContent = `${unlocked ? "✅" : "📁"} 雲端資料夾 #${String(fc.id).padStart(2, "0")}`;
+        btn.onclick = () => {
+          if (team.activeClueId === fc.id) clearActiveClue();
+          else saveTeamPatch(team.id, { activeClueId: fc.id });
+        };
+        folderBtnsContainer.appendChild(btn);
+      });
+
+      // 只在 activeClueId 為「雲端資料夾 (folder)」時才顯示展開面板，絕不出現找關主畫面！
       const activePanel = document.getElementById("team-active-clue-panel");
       if (team.activeClueId && team.activeClueId > 0) {
         const clue = myClues.find(c => c.id === team.activeClueId);
-        if (clue) {
+        if (clue && clue.type === "folder") {
           activePanel.classList.remove("hidden");
-          renderActiveClueInteraction(activePanel, clue, team, unlockedIds);
+          renderFolderInteraction(activePanel, clue, team);
         } else {
           activePanel.classList.add("hidden");
         }
@@ -1171,7 +1306,7 @@
           <div class="space-y-1.5">
             ${
               unlockedList.length === 0
-                ? `<p class="text-xs text-slate-400 font-medium">尚未獲得本題提示，請點擊上方關卡號或掃描 QR 碼！</p>`
+                ? `<p class="text-xs text-slate-400 font-medium">尚未獲得本題提示</p>`
                 : unlockedList.map(c => `<div class="text-sm bg-emerald-50/70 border-2 border-emerald-400 text-slate-800 px-3 py-2 rounded-xl font-black shadow-sm">${c.hintText}</div>`).join("")
             }
           </div>
@@ -1180,59 +1315,27 @@
       });
     }
 
-    function renderActiveClueInteraction(container, clue, team, unlockedIds) {
-      const isUnlocked = unlockedIds.includes(clue.id);
+    function renderFolderInteraction(container, clue, team) {
       const myColorObj = getTeamColorObj(team.id);
-
-      if (clue.type === "boss") {
-        container.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="bg-rose-100 text-rose-700 text-xs font-black px-3 py-1 rounded-full">⚔️ 關主挑戰關 (${clue.code})</span>
-            <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
-          </div>
-          <h4 class="text-lg font-black text-slate-800">${clue.bossName}</h4>
-          <p class="text-sm font-bold text-slate-600">${clue.taskDesc}</p>
-          ${
-            isUnlocked
-              ? `<div class="bg-emerald-50 border-2 border-emerald-400 p-3.5 rounded-2xl text-emerald-900 font-black text-sm">✅ 已獲得提示：${clue.hintText}</div>`
-              : `<div class="bg-amber-50 border-2 border-amber-300 p-3.5 rounded-2xl text-xs text-amber-800 font-black">⏳ 請找關主完成挑戰，關主按下通過後手機會自動跳出提示！</div>`
-          }
-        `;
-      } else if (clue.type === "folder") {
-        let foldersHtml = "";
-        for (let i = 1; i <= CONFIG.teamCount; i++) {
-          const cObj = getTeamColorObj(i);
-          foldersHtml += `
-            <button onclick="clickCloudFolder(${clue.id}, ${i})" style="background-color: ${cObj.hex}; color: ${cObj.textHex};" class="border-2 border-black/15 rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow active:scale-95 transition">
-              <i class="fa-solid fa-folder-open text-2xl"></i>
-              <span class="text-xs font-black">第 ${i} 小隊</span>
-              <span class="text-[11px] font-bold opacity-90">${cObj.colorName}</span>
-            </button>
-          `;
-        }
-        container.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">📁 10色雲端資料夾 (${clue.code})</span>
-            <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
-          </div>
-          <p class="text-xs text-rose-600 font-black bg-rose-50 p-2.5 rounded-xl border border-rose-200">⚠️ 你們是【第 ${team.id} 小隊 — ${myColorObj.colorName}】，請點選自己的代表色資料夾！點錯別隊將受罰！</p>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">${foldersHtml}</div>
-        `;
-      } else if (clue.type === "angel") {
-        container.innerHTML = `
-          <div class="flex items-center justify-between">
-            <span class="bg-emerald-100 text-emerald-700 text-xs font-black px-3 py-1 rounded-full">👼 隨隊小天使任務 (${clue.code})</span>
-            <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
-          </div>
-          <h4 class="text-lg font-black text-slate-800">${clue.bossName}</h4>
-          <p class="text-sm font-bold text-slate-600">${clue.taskDesc}</p>
-          ${
-            isUnlocked
-              ? `<div class="bg-emerald-50 border-2 border-emerald-400 p-3.5 rounded-2xl text-emerald-900 font-black text-sm">✅ 已獲得提示：${clue.hintText}</div>`
-              : `<div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-2xl text-xs text-emerald-800 font-black">⏳ 請向隨隊小天使完成任務，由小天使在手機按下完成！</div>`
-          }
+      let foldersHtml = "";
+      for (let i = 1; i <= CONFIG.teamCount; i++) {
+        const cObj = getTeamColorObj(i);
+        foldersHtml += `
+          <button onclick="clickCloudFolder(${clue.id}, ${i})" style="background-color: ${cObj.hex}; color: ${cObj.textHex};" class="border-2 border-black/15 rounded-2xl p-3 flex flex-col items-center justify-center gap-1 shadow active:scale-95 transition">
+            <i class="fa-solid fa-folder-open text-2xl"></i>
+            <span class="text-xs font-black">第 ${i} 小隊</span>
+            <span class="text-[11px] font-bold opacity-90">${cObj.colorName}</span>
+          </button>
         `;
       }
+      container.innerHTML = `
+        <div class="flex items-center justify-between">
+          <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">📁 雲端資料夾 #${String(clue.id).padStart(2, "0")}</span>
+          <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
+        </div>
+        <p class="text-xs text-rose-600 font-black bg-rose-50 p-2.5 rounded-xl border border-rose-200">⚠️ 你們是【第 ${team.id} 小隊 — ${myColorObj.colorName}】，請點選自己的資料夾！點錯別隊將受罰！</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">${foldersHtml}</div>
+      `;
     }
 
     async function clickCloudFolder(clueId, folderTeamId) {
@@ -1244,7 +1347,7 @@
 
       if (folderTeamId === team.id) {
         if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
-        await saveTeamPatch(team.id, { unlockedClues: [0, ...unlocked] });
+        await saveTeamPatch(team.id, { unlockedClues: [0, ...unlocked], activeClueId: 0 });
         showFullscreenAlert("success", `📁 ${cObj.colorName}資料夾正確！`, `成功打開第 ${team.id} 小隊專屬資料夾！`, clue.hintText);
       } else {
         const newPenalty = (team.penaltySec || 0) + CONFIG.folderPeekPenaltySec;
@@ -1337,6 +1440,7 @@
       input.value = "";
     }
 
+    // ★ 掃描 QR 碼只開啟雲端資料夾，絕不跳出找關主畫面！
     async function triggerClueByCode(rawCode) {
       let clean = rawCode.trim().toUpperCase();
       if (clean.includes("CLUE=")) {
@@ -1345,12 +1449,21 @@
       }
       const team = STATE.teams[currentSession.teamId];
       const myClues = getCluesForTeam(team.id);
-      const clue = myClues.find(c => c.code.toUpperCase() === clean);
-      if (!clue) {
-        alert("找不到此提示代碼！");
+      const folderClues = myClues.filter(c => c.type === "folder");
+
+      // 支援掃描 FOLDER01~03 或直接掃描對應的 CLUE 代碼開啟雲端資料夾
+      let targetFolder = myClues.find(c => c.code.toUpperCase() === clean && c.type === "folder");
+      if (!targetFolder) {
+        if (clean === "FOLDER01" || clean === "CLUE01") targetFolder = folderClues[0];
+        else if (clean === "FOLDER02" || clean === "CLUE02") targetFolder = folderClues[1];
+        else if (clean === "FOLDER03" || clean === "CLUE03") targetFolder = folderClues[2];
+      }
+
+      if (!targetFolder) {
+        alert("此代碼不是你們小隊的雲端資料夾提示代碼喔！");
         return;
       }
-      await saveTeamPatch(team.id, { activeClueId: clue.id });
+      await saveTeamPatch(team.id, { activeClueId: targetFolder.id });
       stopCameraScanner();
     }
 
@@ -1374,7 +1487,7 @@
         (decodedText) => triggerClueByCode(decodedText),
         () => {}
       ).catch(() => {
-        alert("無法開啟相機，請檢查權限或直接點選下方題號按鈕！");
+        alert("無法開啟相機，請檢查權限或直接點選下方雲端資料夾按鈕！");
         stopCameraScanner();
       });
     }
@@ -1391,9 +1504,11 @@
     }
 
     function renderBossView() {
+      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      const st = stations.find(s => s.bossCode === currentSession.bossCode);
       document.getElementById("boss-badge-code").textContent = `關主代號：${currentSession.bossCode}`;
+      document.getElementById("boss-header-title").textContent = st ? st.name : "關主審核專區";
       document.getElementById("boss-fail-sec-label").textContent = CONFIG.bossFailPenaltySec;
-      document.getElementById("boss-bonus-sec-label").textContent = CONFIG.bossBonusRewardSec;
 
       const select = document.getElementById("boss-select-team");
       const currentVal = select.value || "1";
@@ -1418,18 +1533,14 @@
       const listToUse = bossClues.length > 0 ? bossClues : teamClues.filter(c => c.type === "boss");
 
       const clueSelect = document.getElementById("boss-select-clue");
-      const prevClueId = clueSelect.value;
       clueSelect.innerHTML = "";
       listToUse.forEach(c => {
         const hasClue = unlockedIds.includes(c.id);
         const opt = document.createElement("option");
         opt.value = c.id;
-        opt.textContent = `提示 #${String(c.id).padStart(2, "0")} (${c.code}) ${hasClue ? "✅已發過" : ""}`;
+        opt.textContent = `提示 #${String(c.id).padStart(2, "0")} — ${c.bossName} ${hasClue ? "✅(已發過)" : ""}`;
         clueSelect.appendChild(opt);
       });
-      if (prevClueId && listToUse.some(c => String(c.id) === String(prevClueId))) {
-        clueSelect.value = prevClueId;
-      }
       updateBossPreviewText();
     }
 
@@ -1459,12 +1570,12 @@
           lastEvent: {
             ts: Date.now(),
             type: "success",
-            title: "🎉 恭喜過關！",
-            message: `通過【${clue.bossName}】考驗！`,
+            title: `🎉 【${clue.bossName}】恭喜過關！`,
+            message: `通過關主考驗，獲得本關專屬提示：`,
             hint: clue.hintText
           }
         });
-        alert(`已發送【通過＋專屬提示 #${clue.id}】給 第 ${teamId} 小隊！`);
+        alert(`已發送【通過＋提示 #${clue.id}】給 第 ${teamId} 小隊！`);
       } else if (action === "fail") {
         if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
         const newPenalty = (team.penaltySec || 0) + CONFIG.bossFailPenaltySec;
@@ -1474,25 +1585,12 @@
           lastEvent: {
             ts: Date.now(),
             type: "fail",
-            title: `❌ 失敗！(+${CONFIG.bossFailPenaltySec}秒)`,
+            title: `❌ 【${clue.bossName}】失敗！(+${CONFIG.bossFailPenaltySec}秒)`,
             message: `挑戰失敗增加 ${CONFIG.bossFailPenaltySec} 秒，獲得本關提示：`,
             hint: clue.hintText
           }
         });
         alert(`已對 第 ${teamId} 小隊 發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與提示 #${clue.id}！`);
-      } else if (action === "bonus") {
-        const newPenalty = (team.penaltySec || 0) - CONFIG.bossBonusRewardSec;
-        await saveTeamPatch(teamId, {
-          penaltySec: newPenalty,
-          lastEvent: {
-            ts: Date.now(),
-            type: "bonus",
-            title: `🌟 加分成功！(-${CONFIG.bossBonusRewardSec}秒)`,
-            message: `成功扣除總時間 ${CONFIG.bossBonusRewardSec} 秒！`,
-            hint: ""
-          }
-        });
-        alert(`已幫 第 ${teamId} 小隊 扣除 ${CONFIG.bossBonusRewardSec} 秒！`);
       }
     }
 
@@ -1639,7 +1737,6 @@
       alert(`已解除【第 ${teamId} 小隊】的手機綁定，現在可以重新選擇該小隊！`);
     }
 
-    // ★ 總關主也可直接在小隊明細中手動幫忙勾選/補發某個提示
     async function masterToggleSingleClue(teamId, clueId) {
       const team = STATE.teams[teamId];
       const unlocked = getValidUnlockedClues(team);
@@ -1680,7 +1777,6 @@
         const isDeviceLocked = Boolean(t.lockedByDevice && t.lockedByDevice !== "");
         const isExpanded = Boolean(expandedMasterTeams[i]);
 
-        // 組合該小隊 15 個提示與任務的蒐集明細 HTML
         let detailHtml = "";
         if (isExpanded) {
           const qSections = CONFIG.questions.map(q => {
@@ -1692,7 +1788,7 @@
                 ? `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black">📁提示</span>`
                 : c.type === "angel"
                   ? `<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-black">👼任務</span>`
-                  : `<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px] font-black">⚔️關卡</span>`;
+                  : `<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px] font-black">⚔️${c.bossName}</span>`;
               return `
                 <div onclick="masterToggleSingleClue(${i}, ${c.id})" class="cursor-pointer flex items-center justify-between gap-2 p-2 rounded-xl border text-xs transition ${
                   got ? "bg-emerald-50/90 border-emerald-300 text-slate-900" : "bg-white border-slate-200 text-slate-400 hover:bg-slate-50"
@@ -1719,7 +1815,6 @@
             `;
           }).join("");
 
-          // 若已交卷，一併顯示該隊填寫的三題答案
           const ansSummary = t.answerSubmitted
             ? `<div class="bg-amber-50 border border-amber-300 rounded-xl p-2.5 text-xs font-bold text-amber-900">
                  📝 小隊提交答案：1.【${t.answers[0] || "未填"}】 2.【${t.answers[1] || "未填"}】 3.【${t.answers[2] || "未填"}】
@@ -1742,7 +1837,6 @@
         card.className = "bg-white border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-all";
         card.style.borderColor = hexToRgba(cObj.hex, 0.55);
         card.innerHTML = `
-          <!-- 點擊小隊標題列可直接展開/收起 15 題提示明細 -->
           <div class="flex items-center justify-between gap-2">
             <div onclick="toggleMasterTeamDetail(${i})" class="flex items-center gap-2 flex-wrap cursor-pointer group">
               <span style="background-color:${cObj.hex}; color:${cObj.textHex}" class="text-xs font-black px-2.5 py-1 rounded-full shadow-sm">${cObj.colorName}</span>
@@ -1762,9 +1856,8 @@
             </div>
           </div>
 
-          <!-- 展開查看該小隊目前蒐集到的提示與任務明細按鈕 -->
           <button onclick="toggleMasterTeamDetail(${i})" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-2 px-3 rounded-xl text-xs flex items-center justify-between transition">
-            <span>🔍 點此查看【${t.name}】目前已蒐集提示與任務狀況 (${unlockedIds.length}/15)</span>
+            <span>🔍 點此查看【${t.name} - ${cObj.colorName}】提示與任務狀況 (${unlockedIds.length}/15)</span>
             <i class="fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}"></i>
           </button>
 
@@ -2050,12 +2143,12 @@
       const modal = document.getElementById("print-modal");
       const area = document.getElementById("print-area");
       let html = "";
-      for (let i = 1; i <= 15; i++) {
-        const code = `CLUE${String(i).padStart(2, "0")}`;
+      for (let i = 1; i <= 3; i++) {
+        const code = `FOLDER0${i}`;
         const qrImg = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(code)}`;
         html += `
           <div class="border-2 border-slate-800 rounded-xl p-4 text-center space-y-2 flex flex-col items-center">
-            <div class="text-xs font-black bg-slate-900 text-white px-3 py-1 rounded-full">操場提示 #${String(i).padStart(2, "0")}</div>
+            <div class="text-xs font-black bg-blue-600 text-white px-3 py-1 rounded-full">雲端資料夾提示 #${i}</div>
             <img src="${qrImg}" alt="${code}" class="w-36 h-36 mx-auto"/>
             <div class="font-mono font-black text-lg">${code}</div>
           </div>
