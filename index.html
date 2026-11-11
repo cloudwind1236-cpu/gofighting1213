@@ -184,23 +184,24 @@
          1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- 第一區塊：頂部小隊計時資訊卡（小字：第 X 小隊 / 大字：史迪奇等角色名） -->
-      <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 shadow-md">
+      <!-- ★ 第一區塊：頂部小隊計時資訊卡（放大版隊名＋求救區＋我有答案了色塊與浮動框） -->
+      <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 sm:p-5 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <span id="team-color-pill" class="inline-block text-xs font-black px-3 py-1 rounded-full mb-1 shadow-sm">第 1 小隊</span>
-            <h2 id="team-header-name" class="text-2xl sm:text-3xl font-black text-slate-800 tracking-tight">DoReMi</h2>
+            <!-- 放大版：第幾小隊 與 小隊名稱 -->
+            <span id="team-color-pill" class="inline-block text-sm sm:text-base font-black px-3.5 py-1 rounded-full mb-1.5 shadow-sm">第 1 小隊</span>
+            <h2 id="team-header-name" class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight leading-tight">DoReMi</h2>
           </div>
-          <div class="text-right bg-slate-50 px-3.5 py-2 rounded-2xl border border-slate-200">
+          <div class="text-right bg-slate-50 px-3.5 py-2 rounded-2xl border border-slate-200 shrink-0">
             <span id="team-timer-status" class="text-[11px] font-black px-2 py-0.5 rounded bg-slate-200 text-slate-600">等待開賽</span>
             <div id="team-timer-display" class="text-3xl font-black font-mono text-slate-800 tracking-wider mt-0.5">00:00</div>
             <div id="team-penalty-detail" class="text-[11px] font-bold text-slate-500">獎懲：+0 秒</div>
           </div>
         </div>
 
-        <!-- 兩個求救機會狀態 -->
-        <div class="mt-3 pt-3 border-t border-slate-100">
-          <div class="text-[11px] font-bold text-slate-400 mb-1.5">總關主求救機會（需找總關主開啟）：</div>
+        <!-- 兩個求救機會狀態 ＆ 我有答案了色塊 -->
+        <div class="mt-3.5 pt-3 border-t border-slate-100 space-y-2.5">
+          <div class="text-[11px] font-bold text-slate-400">總關主求救機會（需找總關主開啟）：</div>
           <div class="grid grid-cols-2 gap-2">
             <div id="team-lifeline-phone" class="p-2.5 rounded-2xl border-2 border-amber-300 bg-amber-50 flex items-center gap-2.5">
               <i class="fa-solid fa-mobile-screen-button text-amber-600 text-lg"></i>
@@ -219,7 +220,7 @@
           </div>
 
           <!-- 小隊端 2分鐘手機求救倒數視窗 -->
-          <div id="team-phone-countdown-box" class="hidden mt-3 bg-amber-400 text-slate-950 font-black p-3.5 rounded-2xl space-y-2 shadow-md border-2 border-amber-500">
+          <div id="team-phone-countdown-box" class="hidden bg-amber-400 text-slate-950 font-black p-3.5 rounded-2xl space-y-2 shadow-md border-2 border-amber-500">
             <div class="flex items-center justify-between">
               <span class="text-sm">📱 手機搜尋時間倒數：</span>
               <span id="team-phone-countdown-timer" class="text-2xl font-mono bg-white text-rose-600 px-3 py-0.5 rounded-xl shadow-sm">02:00</span>
@@ -228,6 +229,23 @@
               <i class="fa-solid fa-stop mr-1"></i>已查到答案，提前結束倒數
             </button>
           </div>
+
+          <!-- ★ 合併至第一區塊：「我有答案了」色塊按鈕 -->
+          <button onclick="toggleHaveAnswerFloatingBox()" id="team-have-answer-btn" class="w-full p-3 rounded-2xl border-2 border-rose-300 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 active:scale-[0.98] text-white shadow-md flex items-center justify-center gap-2 transition">
+            <i class="fa-solid fa-flag-checkered text-base"></i>
+            <span class="text-base font-black tracking-wider">我有答案了</span>
+          </button>
+
+          <!-- ★ 點擊「我有答案了」跳出的浮動窗 (點一下即可關掉) -->
+          <div id="team-have-answer-floating-box" onclick="closeHaveAnswerFloatingBox()" class="hidden animate-pop-in cursor-pointer bg-rose-50 border-4 border-rose-500 rounded-2xl p-4 text-center shadow-xl space-y-1.5">
+            <div class="text-base sm:text-lg font-black text-rose-700 leading-relaxed">
+              趕緊找到總關主 大喊 我們有答案了<br>即停止計時並開啟作答
+            </div>
+            <div class="text-[11px] font-bold text-slate-400">（點一下即可關掉浮動窗）</div>
+          </div>
+
+          <!-- ★ 當總關主按下停錶後，直接在此處展開三題作答區 -->
+          <div id="team-final-answer-panel" class="hidden pt-1"></div>
         </div>
       </div>
 
@@ -256,26 +274,19 @@
         </div>
       </div>
 
-      <!-- ★ 探索與掃描 QR 碼區塊（支援 4 大掃描結果：1.資料夾 2.請洽詢小天使 3.空包彈 4.四款驚喜包） -->
+      <!-- ★ 掃描場地 QR 碼區塊（已移除小字說明、移除代碼輸入框、並將「開啟相機」按鈕放大） -->
       <div id="team-explore-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
-          <div>
-            <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>掃描場地 QR 碼</h3>
-            <p class="text-xs text-slate-600 font-medium">開啟相機掃描 QR 碼（可能掃出：資料夾、小天使、驚喜包或空包彈！）</p>
-          </div>
-          <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-4 py-2.5 rounded-2xl shadow transition shrink-0">
-            <i class="fa-solid fa-camera mr-1"></i>開啟相機
-          </button>
+          <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>掃描場地 QR 碼</h3>
         </div>
+
+        <!-- 放大版「開啟相機」按鈕 -->
+        <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-lg font-black py-4 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2.5 transition">
+          <i class="fa-solid fa-camera text-xl"></i>開啟相機
+        </button>
 
         <div id="qr-reader-container" class="hidden bg-black rounded-2xl overflow-hidden border-2 border-blue-500">
           <div id="qr-reader" class="w-full"></div>
-        </div>
-
-        <!-- 備用代碼輸入框 (若相機無法開啟可直接輸入 QR 卡上的代碼如 CLUE01 ~ CLUE15) -->
-        <div class="flex gap-2 pt-1">
-          <input id="input-clue-code" type="text" placeholder="或輸入 QR 卡代碼 (如 CLUE01~CLUE15)" class="flex-1 min-w-0 bg-white/90 border border-slate-300 rounded-xl px-3 py-2.5 text-sm text-slate-800 font-black uppercase">
-          <button onclick="handleClueCodeSubmit()" class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black px-5 py-2.5 rounded-xl text-sm shrink-0 shadow">送出</button>
         </div>
 
         <!-- 資料夾與小天使狀態列 -->
@@ -284,9 +295,6 @@
         <!-- 當前掃描出的「雲端資料夾」或「請洽詢小天使」互動面板 -->
         <div id="team-active-clue-panel" class="hidden bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2"></div>
       </div>
-
-      <!-- 最終答題區 -->
-      <div id="team-final-answer-panel" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors"></div>
 
       <!-- 提示區 -->
       <div id="team-history-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
@@ -515,8 +523,7 @@
       "抓到偷看別隊資料夾！\n全隊請立刻【原地轉 6 圈】\n（系統已自動增加 30 秒懲罰時間！）"
     ];
 
-    // ★ 操場 15 張 QR Code 完整對應表 (相容 CLUE01~CLUE15 及獨立代碼)
-    // 包含：1.雲端資料夾(3張) 2.請洽詢小天使(2張) 3.驚喜包(4張) 4.空包彈(6張)
+    // 操場 15 張 QR Code 完整對應表
     const PLAYGROUND_QR_MAP = {
       // 1. 掃描後出現：各隊雲端資料夾 (3張)
       "CLUE01":     { qrType: "folder", folderOrder: 0, staffLabel: "📁 雲端資料夾 (一)" },
@@ -668,6 +675,7 @@
 
     let expandedMasterTeams = {};
     let activeBossFloatingIndex = null;
+    let showHaveAnswerFloating = false;
     let isHandlingQrScan = false;
 
     function toggleMasterTeamDetail(teamId) {
@@ -686,6 +694,23 @@
 
     function closeBossFloatingBox() {
       activeBossFloatingIndex = null;
+      renderTeamView();
+    }
+
+    // ★ 切換「我有答案了」浮動視窗
+    function toggleHaveAnswerFloatingBox() {
+      const team = STATE.teams[currentSession.teamId];
+      if (team && team.stopTime && team.stopTime > 0) {
+        const panel = document.getElementById("team-final-answer-panel");
+        if (panel) panel.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      showHaveAnswerFloating = !showHaveAnswerFloating;
+      renderTeamView();
+    }
+
+    function closeHaveAnswerFloatingBox() {
+      showHaveAnswerFloating = false;
       renderTeamView();
     }
 
@@ -929,7 +954,6 @@
       }
       pollCloudState();
 
-      // 若使用手機內建相機直接掃描帶有 ?clue=CLUE01 的網址，進畫面後自動觸發該 QR 碼結果
       const urlParams = new URLSearchParams(window.location.search);
       const urlClue = urlParams.get("clue");
       if (urlClue && currentSession && currentSession.role === "team") {
@@ -979,6 +1003,7 @@
     function loginAsTeam(teamId) {
       closeLoginPanels();
       activeBossFloatingIndex = null;
+      showHaveAnswerFloating = false;
       saveRoleSession({ role: "team", teamId });
       lastSeenEventTs = Date.now() - 5000;
       applySessionRole();
@@ -1211,7 +1236,7 @@
       const myClues = getCluesForTeam(team.id);
       const unlockedIds = getValidUnlockedClues(team);
 
-      // 小字：第 X 小隊 / 大字：角色名稱
+      // 第幾小隊 與 小隊名稱
       const pill = document.getElementById("team-color-pill");
       pill.textContent = `${team.name}`;
       pill.style.backgroundColor = cObj.hex;
@@ -1232,12 +1257,6 @@
       if (exploreCard) {
         exploreCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.20)} 0%, ${hexToRgba(cObj.hex, 0.05)} 100%), #FFFFFF`;
         exploreCard.style.borderColor = hexToRgba(cObj.hex, 0.50);
-      }
-
-      const answerCard = document.getElementById("team-final-answer-panel");
-      if (answerCard) {
-        answerCard.style.background = `linear-gradient(135deg, ${hexToRgba(cObj.hex, 0.28)} 0%, ${hexToRgba(cObj.hex, 0.08)} 100%), #FFFFFF`;
-        answerCard.style.borderColor = hexToRgba(cObj.hex, 0.65);
       }
 
       const historyCard = document.getElementById("team-history-card");
@@ -1276,6 +1295,16 @@
       } else {
         wordBox.className = "p-2.5 rounded-2xl border-2 border-purple-300 bg-purple-50 flex items-center gap-2.5";
         wordTxt.textContent = "可使用 (剩 1 次)";
+      }
+
+      // 「我有答案了」浮動框顯示控制
+      const haveAnsFloat = document.getElementById("team-have-answer-floating-box");
+      if (haveAnsFloat) {
+        if (showHaveAnswerFloating && (!team.stopTime || team.stopTime <= 0)) {
+          haveAnsFloat.classList.remove("hidden");
+        } else {
+          haveAnsFloat.classList.add("hidden");
+        }
       }
 
       // 渲染「十個關主挑戰區」按鈕 (⚔️01 ~ ⚔️10) 與浮動文字框
@@ -1461,32 +1490,29 @@
       }
     }
 
+    // ★ 最終作答區：未停錶時隱藏（由「我有答案了」色塊與浮動框取代），總關主按下停錶後直接在此展開作答表單
     let lastRenderedAnswerStateKey = "";
     function renderTeamFinalAnswer(team) {
       const panel = document.getElementById("team-final-answer-panel");
-      const stateKey = `${team.id}_${Boolean(team.stopTime && team.stopTime > 0)}_${Boolean(team.answerSubmitted)}_${team.quizScore}_${team.finishOrder}`;
+      if (!panel) return;
+
+      if (!team.stopTime || team.stopTime <= 0) {
+        panel.classList.add("hidden");
+        panel.innerHTML = "";
+        lastRenderedAnswerStateKey = "locked";
+        return;
+      }
+
+      panel.classList.remove("hidden");
+      const stateKey = `${team.id}_stopped_${Boolean(team.answerSubmitted)}_${team.quizScore}_${team.finishOrder}`;
       if (stateKey === lastRenderedAnswerStateKey && panel.innerHTML.trim() !== "") {
         return;
       }
       lastRenderedAnswerStateKey = stateKey;
 
-      if (!team.stopTime || team.stopTime <= 0) {
-        panel.innerHTML = `
-          <div class="text-center py-2 space-y-1">
-            <h3 class="font-black text-slate-900 text-xl tracking-wide">
-              <i class="fa-solid fa-flag-checkered text-rose-600 mr-1.5"></i>我有答案了!!
-            </h3>
-            <p class="text-xs font-black text-slate-700">
-              (找到總關主 喊 我有答案了 即停止計時並開啟作答)
-            </p>
-          </div>
-        `;
-        return;
-      }
-
       if (team.answerSubmitted) {
         panel.innerHTML = `
-          <div class="bg-white/95 border-2 border-emerald-400 rounded-2xl p-4 text-center space-y-1 shadow-sm">
+          <div class="bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-4 text-center space-y-1 shadow-sm">
             <h3 class="text-lg font-black text-emerald-800">🎯 已完成最終作答 (+${team.quizScore}分)</h3>
             <p class="text-xs font-bold text-emerald-600">第 ${team.finishOrder} 隊抵達停錶 ｜ 請等待總關主公佈最終大翻盤總成績！</p>
           </div>
@@ -1495,12 +1521,12 @@
       }
 
       panel.innerHTML = `
-        <div class="space-y-3 bg-white/95 rounded-2xl p-4 border-2 border-amber-400 shadow-sm">
+        <div class="space-y-3 bg-amber-50/90 rounded-2xl p-4 border-2 border-amber-400 shadow-md">
           <div class="text-sm text-amber-900 font-black">⏱️ 總關主已停錶！請填寫三題最終答案：</div>
           ${CONFIG.questions.map((q, idx) => `
             <div>
               <label class="block text-xs font-black text-slate-700 mb-1">${q.title} — ${q.prompt}</label>
-              <input id="final-ans-${idx}" type="text" placeholder="請輸入答案" class="w-full min-w-0 bg-slate-50 border-2 border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 font-black text-sm">
+              <input id="final-ans-${idx}" type="text" placeholder="請輸入答案" class="w-full min-w-0 bg-white border-2 border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 font-black text-sm">
             </div>
           `).join("")}
           <button onclick="submitFinalAnswers()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-md transition">
@@ -1537,15 +1563,7 @@
       showFullscreenAlert("success", `🎯 答對 ${correctCount} 題 (+${score}分)`, "答案已送出！請等待最終排名揭曉！", null);
     }
 
-    function handleClueCodeSubmit() {
-      const input = document.getElementById("input-clue-code");
-      const code = input.value.trim().toUpperCase();
-      if (!code) return;
-      triggerClueByCode(code);
-      input.value = "";
-    }
-
-    // ★ 核心掃描處理：支援 4 大結果（1.資料夾 2.請洽詢小天使 3.空包彈 4.四款驚喜包）
+    // 核心掃描處理：支援 4 大結果（1.資料夾 2.請洽詢小天使 3.空包彈 4.四款驚喜包）
     async function triggerClueByCode(rawCode) {
       if (isHandlingQrScan) return;
       isHandlingQrScan = true;
@@ -1554,12 +1572,10 @@
       await stopCameraScanner();
 
       let clean = String(rawCode || "").trim().toUpperCase();
-      // 若掃到網址格式 (例如 ?clue=CLUE01)，自動提取參數
       if (clean.includes("CLUE=")) {
         const m = clean.match(/CLUE=([A-Z0-9_]+)/i);
         if (m) clean = m[1].toUpperCase();
       }
-      // 支援輸入純數字 1~15 自動轉為 CLUE01~CLUE15
       if (/^\d{1,2}$/.test(clean)) {
         const num = parseInt(clean, 10);
         if (num >= 1 && num <= 15) {
@@ -1638,7 +1654,7 @@
         return;
       }
       container.classList.remove("hidden");
-      document.getElementById("btn-camera-toggle").innerHTML = `<i class="fa-solid fa-xmark mr-1"></i>關閉相機`;
+      document.getElementById("btn-camera-toggle").innerHTML = `<i class="fa-solid fa-xmark text-xl"></i>關閉相機`;
 
       html5QrScanner = new Html5Qrcode("qr-reader");
       html5QrScanner.start(
@@ -1649,7 +1665,7 @@
         },
         () => {}
       ).catch(() => {
-        alert("無法開啟相機，請確認瀏覽器相機權限，或直接在下方輸入框輸入 QR 卡上的代碼 (如 CLUE01)！");
+        alert("無法開啟相機，請確認已允許瀏覽器的相機權限！");
         stopCameraScanner();
       });
     }
@@ -1658,7 +1674,7 @@
       const container = document.getElementById("qr-reader-container");
       if (container) container.classList.add("hidden");
       const btn = document.getElementById("btn-camera-toggle");
-      if (btn) btn.innerHTML = `<i class="fa-solid fa-camera mr-1"></i>開啟相機`;
+      if (btn) btn.innerHTML = `<i class="fa-solid fa-camera text-xl"></i>開啟相機`;
       if (html5QrScanner) {
         const scannerRef = html5QrScanner;
         html5QrScanner = null;
@@ -2133,7 +2149,7 @@
           ts: now,
           type: "success",
           title: `🏁 第 ${nextOrder} 隊抵達停錶！`,
-          message: "總關主已幫你們停止計時！手機下方的【最終答題區】已解鎖，請立即輸入三題答案！",
+          message: "總關主已幫你們停止計時！手機上方的【最終答題區】已解鎖，請立即輸入三題答案！",
           hint: ""
         }
       });
@@ -2333,7 +2349,6 @@
       else badge.classList.add("hidden");
     }
 
-    // ★ 列印 15 張操場 QR Code 道具卡（相容先前已印出的 CLUE01 ~ CLUE15！）
     function openPrintModal() {
       const modal = document.getElementById("print-modal");
       const area = document.getElementById("print-area");
