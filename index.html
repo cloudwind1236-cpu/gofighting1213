@@ -184,11 +184,10 @@
          1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- ★ 第一區塊：頂部小隊計時資訊卡（放大版隊名＋求救區＋我有答案了色塊與浮動框） -->
+      <!-- 第一區塊：頂部小隊計時資訊卡（放大版隊名＋求救區＋我有答案了色塊與浮動框） -->
       <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 sm:p-5 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
-            <!-- 放大版：第幾小隊 與 小隊名稱 -->
             <span id="team-color-pill" class="inline-block text-sm sm:text-base font-black px-3.5 py-1 rounded-full mb-1.5 shadow-sm">第 1 小隊</span>
             <h2 id="team-header-name" class="text-3xl sm:text-4xl font-black text-slate-800 tracking-tight leading-tight">DoReMi</h2>
           </div>
@@ -230,13 +229,13 @@
             </button>
           </div>
 
-          <!-- ★ 合併至第一區塊：「我有答案了」色塊按鈕 -->
+          <!-- 「我有答案了」色塊按鈕 -->
           <button onclick="toggleHaveAnswerFloatingBox()" id="team-have-answer-btn" class="w-full p-3 rounded-2xl border-2 border-rose-300 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 active:scale-[0.98] text-white shadow-md flex items-center justify-center gap-2 transition">
             <i class="fa-solid fa-flag-checkered text-base"></i>
             <span class="text-base font-black tracking-wider">我有答案了</span>
           </button>
 
-          <!-- ★ 點擊「我有答案了」跳出的浮動窗 (點一下即可關掉) -->
+          <!-- 點擊「我有答案了」跳出的浮動窗 -->
           <div id="team-have-answer-floating-box" onclick="closeHaveAnswerFloatingBox()" class="hidden animate-pop-in cursor-pointer bg-rose-50 border-4 border-rose-500 rounded-2xl p-4 text-center shadow-xl space-y-1.5">
             <div class="text-base sm:text-lg font-black text-rose-700 leading-relaxed">
               趕緊找到總關主 大喊 我們有答案了<br>即停止計時並開啟作答
@@ -244,7 +243,7 @@
             <div class="text-[11px] font-bold text-slate-400">（點一下即可關掉浮動窗）</div>
           </div>
 
-          <!-- ★ 當總關主按下停錶後，直接在此處展開三題作答區 -->
+          <!-- 當總關主按下停錶後，直接在此處展開三題作答區 -->
           <div id="team-final-answer-panel" class="hidden pt-1"></div>
         </div>
       </div>
@@ -262,7 +261,7 @@
         <!-- ⚔️01 ~ ⚔️10 按鈕網格 -->
         <div id="team-boss-grid" class="grid grid-cols-5 gap-2 pt-1"></div>
 
-        <!-- 浮動文字框 -->
+        <!-- 關主浮動文字框 -->
         <div id="team-boss-floating-box" onclick="closeBossFloatingBox()" class="hidden animate-pop-in cursor-pointer bg-white border-4 border-rose-500 rounded-2xl p-5 text-center shadow-2xl space-y-2 mt-2">
           <div id="boss-float-badge" class="inline-block text-xs font-black bg-rose-100 text-rose-700 px-3 py-0.5 rounded-full">⚔️ 關卡 01</div>
           <div id="boss-float-name" class="text-3xl font-black text-slate-900 tracking-wide py-1">補給站</div>
@@ -274,7 +273,7 @@
         </div>
       </div>
 
-      <!-- ★ 掃描場地 QR 碼區塊（已移除小字說明、移除代碼輸入框、並將「開啟相機」按鈕放大） -->
+      <!-- ★ 掃描場地 QR 碼區塊（包含放大版相機按鈕、寶箱卡 ＆ 小天使卡 浮動說明窗） -->
       <div id="team-explore-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors">
         <div class="flex items-center justify-between">
           <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-qrcode text-blue-600 mr-1.5"></i>掃描場地 QR 碼</h3>
@@ -289,10 +288,13 @@
           <div id="qr-reader" class="w-full"></div>
         </div>
 
-        <!-- 資料夾與小天使狀態列 -->
+        <!-- ★ 寶箱卡 與 小天使卡 按鈕列（點選僅彈出浮動說明視窗，不會直接開啟資料夾或看到答案） -->
         <div id="team-folder-quick-btns" class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1"></div>
 
-        <!-- 當前掃描出的「雲端資料夾」或「請洽詢小天使」互動面板 -->
+        <!-- ★ 寶箱卡 / 小天使卡 專屬浮動說明視窗（再點一下即可收起） -->
+        <div id="team-card-floating-box" onclick="closeCardFloatingBox()" class="hidden animate-pop-in cursor-pointer bg-white border-4 rounded-2xl p-5 text-center shadow-2xl space-y-2.5 mt-2"></div>
+
+        <!-- ★ 只有透過相機實際掃描到「寶箱鑰匙 QR 碼」時，才會展開此處的 10 隊資料夾面板 -->
         <div id="team-active-clue-panel" class="hidden bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2"></div>
       </div>
 
@@ -474,7 +476,7 @@
     <div class="max-w-4xl mx-auto bg-white text-slate-900 rounded-2xl p-6 space-y-4">
       <div class="flex items-center justify-between border-b pb-3 no-print">
         <div>
-          <h3 class="text-lg font-black">🖨️ 操場 15 張 QR Code 道具卡列印（含資料夾、小天使、驚喜包、空包彈）</h3>
+          <h3 class="text-lg font-black">🖨️ 操場 15 張 QR Code 道具卡列印（含寶箱鑰匙、小天使、驚喜包、空包彈）</h3>
           <p class="text-xs text-slate-500 font-bold">相容先前已印出的 CLUE01~CLUE15，底部虛線小字供工作人員辨識，張貼時可摺起或剪下</p>
         </div>
         <div class="flex gap-2 shrink-0">
@@ -525,19 +527,19 @@
 
     // 操場 15 張 QR Code 完整對應表
     const PLAYGROUND_QR_MAP = {
-      // 1. 掃描後出現：各隊雲端資料夾 (3張)
-      "CLUE01":     { qrType: "folder", folderOrder: 0, staffLabel: "📁 雲端資料夾 (一)" },
-      "FOLDER01":   { qrType: "folder", folderOrder: 0, staffLabel: "📁 雲端資料夾 (一)" },
-      "CLUE02":     { qrType: "folder", folderOrder: 1, staffLabel: "📁 雲端資料夾 (二)" },
-      "FOLDER02":   { qrType: "folder", folderOrder: 1, staffLabel: "📁 雲端資料夾 (二)" },
-      "CLUE03":     { qrType: "folder", folderOrder: 2, staffLabel: "📁 雲端資料夾 (三)" },
-      "FOLDER03":   { qrType: "folder", folderOrder: 2, staffLabel: "📁 雲端資料夾 (三)" },
+      // 1. 掃描後出現：各隊寶箱資料夾 (3張)
+      "CLUE01":     { qrType: "folder", folderOrder: 0, staffLabel: "📦 寶箱卡鑰匙 (一)" },
+      "FOLDER01":   { qrType: "folder", folderOrder: 0, staffLabel: "📦 寶箱卡鑰匙 (一)" },
+      "CLUE02":     { qrType: "folder", folderOrder: 1, staffLabel: "📦 寶箱卡鑰匙 (二)" },
+      "FOLDER02":   { qrType: "folder", folderOrder: 1, staffLabel: "📦 寶箱卡鑰匙 (二)" },
+      "CLUE03":     { qrType: "folder", folderOrder: 2, staffLabel: "📦 寶箱卡鑰匙 (三)" },
+      "FOLDER03":   { qrType: "folder", folderOrder: 2, staffLabel: "📦 寶箱卡鑰匙 (三)" },
 
-      // 2. 掃描後出現：請洽詢小天使 (2張)
-      "CLUE04":     { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 請洽詢小天使 (一)" },
-      "ANGEL01":    { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 請洽詢小天使 (一)" },
-      "CLUE05":     { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 請洽詢小天使 (二)" },
-      "ANGEL02":    { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 請洽詢小天使 (二)" },
+      // 2. 掃描後出現：小天使卡說明 (2張)
+      "CLUE04":     { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 小天使卡 (一)" },
+      "ANGEL01":    { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 小天使卡 (一)" },
+      "CLUE05":     { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 小天使卡 (二)" },
+      "ANGEL02":    { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 小天使卡 (二)" },
 
       // 3. 掃描後出現：4 款驚喜包文字提示 (4張)
       "CLUE06":     { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩隻老虎唱完才可繼續", staffLabel: "🎁 驚喜包1 (兩隻老虎)" },
@@ -643,12 +645,12 @@
         } else if (copy.type === "angel") {
           angelCounter++;
           copy.angelOrderIndex = angelCounter;
-          copy.bossName = `請洽詢小天使 (任務 ${angelCounter})`;
+          copy.bossName = `小天使卡 (${angelCounter})`;
           copy.taskDesc = "請洽詢隨隊小天使完成指定任務，由小天使按下過關即可獲得提示！";
         } else if (copy.type === "folder") {
           folderCounter++;
           copy.folderOrderIndex = folderCounter;
-          copy.bossName = `雲端機密資料夾 (${folderCounter})`;
+          copy.bossName = `寶箱卡 (${folderCounter})`;
         }
         return copy;
       });
@@ -675,6 +677,8 @@
 
     let expandedMasterTeams = {};
     let activeBossFloatingIndex = null;
+    // ★ 記錄目前點開了哪一張「寶箱卡 / 小天使卡」的浮動說明視窗
+    let activeCardFloatingClueId = null;
     let showHaveAnswerFloating = false;
     let isHandlingQrScan = false;
 
@@ -697,7 +701,22 @@
       renderTeamView();
     }
 
-    // ★ 切換「我有答案了」浮動視窗
+    // ★ 點擊「寶箱卡」或「小天使卡」：切換浮動說明視窗（再點一下即可收起，不會直接開出答案或資料夾）
+    function toggleCardFloatingBox(clueId) {
+      if (activeCardFloatingClueId === clueId) {
+        activeCardFloatingClueId = null;
+      } else {
+        activeCardFloatingClueId = clueId;
+      }
+      renderTeamView();
+    }
+
+    function closeCardFloatingBox() {
+      activeCardFloatingClueId = null;
+      renderTeamView();
+    }
+
+    // 切換「我有答案了」浮動視窗
     function toggleHaveAnswerFloatingBox() {
       const team = STATE.teams[currentSession.teamId];
       if (team && team.stopTime && team.stopTime > 0) {
@@ -1003,6 +1022,7 @@
     function loginAsTeam(teamId) {
       closeLoginPanels();
       activeBossFloatingIndex = null;
+      activeCardFloatingClueId = null;
       showHaveAnswerFloating = false;
       saveRoleSession({ role: "team", teamId });
       lastSeenEventTs = Date.now() - 5000;
@@ -1351,7 +1371,7 @@
         floatBox.classList.add("hidden");
       }
 
-      // 渲染本隊的 3 個「📁資料夾」與 2 個「👼小天使」進度按鈕
+      // ★ 渲染「📦 寶箱卡 (1)~(3)」與「👼 小天使卡 (1)~(2)」按鈕（點選只會切換浮動說明窗，不會直接看到答案）
       const folderClues = myClues.filter(c => c.type === "folder");
       const angelClues = myClues.filter(c => c.type === "angel");
       const nonBossClues = [...folderClues, ...angelClues];
@@ -1360,17 +1380,17 @@
       folderBtnsContainer.innerHTML = "";
       nonBossClues.forEach(item => {
         const unlocked = unlockedIds.includes(item.id);
-        const isCurrentActive = team.activeClueId === item.id;
+        const isCurrentFloating = activeCardFloatingClueId === item.id;
         const isFolder = item.type === "folder";
-        const icon = unlocked ? "✅" : (isFolder ? "📁" : "👼");
+        const icon = unlocked ? "✅" : (isFolder ? "📦" : "👼");
         const label = isFolder
-          ? `資料夾 (${item.folderOrderIndex})`
-          : `請洽詢小天使 (${item.angelOrderIndex})`;
+          ? `寶箱卡 (${item.folderOrderIndex})`
+          : `小天使卡 (${item.angelOrderIndex})`;
 
         const btn = document.createElement("button");
         btn.className = `py-2.5 px-2 rounded-2xl font-black text-xs border-2 transition shadow-sm ${
-          isCurrentActive
-            ? (isFolder ? "bg-blue-600 border-blue-700 text-white" : "bg-emerald-600 border-emerald-700 text-white")
+          isCurrentFloating
+            ? (isFolder ? "bg-blue-600 border-blue-700 text-white scale-105 shadow-md" : "bg-emerald-600 border-emerald-700 text-white scale-105 shadow-md")
             : unlocked
               ? "bg-emerald-50 border-emerald-400 text-emerald-700"
               : (isFolder
@@ -1378,22 +1398,53 @@
                   : "bg-white/95 border-emerald-300 text-emerald-700 hover:bg-emerald-50")
         }`;
         btn.textContent = `${icon} ${label}`;
-        btn.onclick = () => {
-          if (team.activeClueId === item.id) clearActiveClue();
-          else saveTeamPatch(team.id, { activeClueId: item.id });
-        };
+        btn.onclick = () => toggleCardFloatingBox(item.id);
         folderBtnsContainer.appendChild(btn);
       });
 
+      // ★ 渲染「寶箱卡 / 小天使卡」浮動說明視窗（再點一下即可收起，絕不直接顯示提示答案）
+      const cardFloatBox = document.getElementById("team-card-floating-box");
+      if (activeCardFloatingClueId) {
+        const selectedCard = myClues.find(c => c.id === activeCardFloatingClueId);
+        if (selectedCard && selectedCard.type === "folder") {
+          cardFloatBox.className = "animate-pop-in cursor-pointer bg-white border-4 border-blue-500 rounded-2xl p-5 text-center shadow-2xl space-y-2.5 mt-2";
+          cardFloatBox.innerHTML = `
+            <div class="inline-block text-xs font-black bg-blue-100 text-blue-700 px-3 py-0.5 rounded-full">📦 寶箱卡 (${selectedCard.folderOrderIndex})</div>
+            <div class="text-base sm:text-lg font-black text-slate-800 leading-relaxed pt-1">
+              這是一張虛擬寶箱卡  首先你要找到鑰匙 怎麼找呢?<br>
+              開啟相機 找到隱藏在各處的QR碼 掃一掃 或許就會找到鑰匙囉~<br>
+              <span class="text-amber-600 text-xl inline-block mt-1">祝~好運</span>
+            </div>
+            <div class="text-[11px] font-bold text-slate-400 pt-1">（再點選一下即可收起）</div>
+          `;
+        } else if (selectedCard && selectedCard.type === "angel") {
+          cardFloatBox.className = "animate-pop-in cursor-pointer bg-white border-4 border-emerald-500 rounded-2xl p-5 text-center shadow-2xl space-y-2.5 mt-2";
+          cardFloatBox.innerHTML = `
+            <div class="inline-block text-xs font-black bg-emerald-100 text-emerald-700 px-3 py-0.5 rounded-full">👼 小天使卡 (${selectedCard.angelOrderIndex})</div>
+            <div class="text-center py-1 space-y-1.5">
+              <div class="text-3xl">👼</div>
+              <h4 class="text-2xl font-black text-emerald-700">請洽詢小天使</h4>
+              <p class="text-sm font-bold text-slate-600">${selectedCard.taskDesc}</p>
+            </div>
+            <div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-2xl text-xs text-emerald-800 font-black text-center">
+              完成小天使的任務後 請務必確認有收到小天使的提示喔~
+            </div>
+            <div class="text-[11px] font-bold text-slate-400 pt-1">（再點選一下即可收起）</div>
+          `;
+        } else {
+          cardFloatBox.classList.add("hidden");
+        }
+      } else {
+        cardFloatBox.classList.add("hidden");
+      }
+
+      // ★ 只有實際透過相機掃描到「寶箱鑰匙 QR 碼 (CLUE01~CLUE03)」時，才會展開 10 小隊資料夾選擇面板！
       const activePanel = document.getElementById("team-active-clue-panel");
       if (team.activeClueId && team.activeClueId > 0) {
         const clue = myClues.find(c => c.id === team.activeClueId);
         if (clue && clue.type === "folder") {
           activePanel.className = "bg-white border-4 border-blue-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2 animate-pop-in";
           renderFolderInteraction(activePanel, clue, team);
-        } else if (clue && clue.type === "angel") {
-          activePanel.className = "bg-white border-4 border-emerald-400 rounded-2xl p-4 space-y-3 shadow-lg mt-2 animate-pop-in";
-          renderAngelClueInteraction(activePanel, clue, team, unlockedIds);
         } else {
           activePanel.classList.add("hidden");
         }
@@ -1435,7 +1486,7 @@
         const cObj = getTeamColorObj(i);
         foldersHtml += `
           <button onclick="clickCloudFolder(${clue.id}, ${i})" style="background-color: ${cObj.hex}; color: ${cObj.textHex};" class="border-2 border-black/15 rounded-2xl p-3 flex flex-col items-center justify-center gap-0.5 shadow active:scale-95 transition">
-            <i class="fa-solid fa-folder-open text-2xl mb-0.5"></i>
+            <i class="fa-solid fa-box-open text-2xl mb-0.5"></i>
             <span class="text-[11px] font-bold opacity-90">第 ${i} 小隊</span>
             <span class="text-sm font-black tracking-wide">${cObj.colorName}</span>
           </button>
@@ -1443,31 +1494,11 @@
       }
       container.innerHTML = `
         <div class="flex items-center justify-between">
-          <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">📁 雲端機密資料夾 (${clue.folderOrderIndex || ""})</span>
+          <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">🔑 已找到寶箱鑰匙！開啟寶箱卡 (${clue.folderOrderIndex || ""})</span>
           <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
         </div>
-        <p class="text-xs text-rose-600 font-black bg-rose-50 p-2.5 rounded-xl border border-rose-200">⚠️ 你們是【${myColorObj.colorName}（第 ${team.id} 小隊）】，請點選自己的資料夾！點錯別隊將受罰！</p>
+        <p class="text-xs text-rose-600 font-black bg-rose-50 p-2.5 rounded-xl border border-rose-200">⚠️ 你們是【${myColorObj.colorName}（第 ${team.id} 小隊）】，請點選自己的寶箱資料夾！點錯別隊將受罰！</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">${foldersHtml}</div>
-      `;
-    }
-
-    function renderAngelClueInteraction(container, clue, team, unlockedIds) {
-      const isUnlocked = unlockedIds.includes(clue.id);
-      container.innerHTML = `
-        <div class="flex items-center justify-between">
-          <span class="bg-emerald-100 text-emerald-700 text-xs font-black px-3 py-1 rounded-full">👼 請洽詢小天使</span>
-          <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
-        </div>
-        <div class="text-center py-2 space-y-1.5">
-          <div class="text-3xl">👼</div>
-          <h4 class="text-2xl font-black text-emerald-700">請洽詢小天使</h4>
-          <p class="text-sm font-bold text-slate-600">${clue.taskDesc}</p>
-        </div>
-        ${
-          isUnlocked
-            ? `<div class="bg-emerald-50 border-2 border-emerald-400 p-3.5 rounded-2xl text-emerald-900 font-black text-sm">✅ 已獲得提示：${clue.hintText}</div>`
-            : `<div class="bg-emerald-50 border-2 border-emerald-300 p-3.5 rounded-2xl text-xs text-emerald-800 font-black text-center">⏳ 等待隨隊小天使在手機上按下「任務完成」發送提示...</div>`
-        }
       `;
     }
 
@@ -1481,16 +1512,15 @@
       if (folderTeamId === team.id) {
         if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
         await saveTeamPatch(team.id, { unlockedClues: [0, ...unlocked], activeClueId: 0 });
-        showFullscreenAlert("success", `📁 ${cObj.colorName} 資料夾正確！`, `成功打開專屬雲端資料夾！`, clue.hintText);
+        showFullscreenAlert("success", `📦 ${cObj.colorName} 寶箱開啟成功！`, `成功打開專屬寶箱並獲得提示！`, clue.hintText);
       } else {
         const randomPenaltyMsg = FOLDER_PEEK_PENALTIES[Math.floor(Math.random() * FOLDER_PEEK_PENALTIES.length)];
         const newPenalty = (team.penaltySec || 0) + FOLDER_PEEK_PENALTY_SEC;
         await saveTeamPatch(team.id, { penaltySec: newPenalty });
-        showFullscreenAlert("fail", `🚨 抓到偷看別隊！(+${FOLDER_PEEK_PENALTY_SEC}秒)`, randomPenaltyMsg, null);
+        showFullscreenAlert("fail", `🚨 抓到偷開別隊寶箱！(+${FOLDER_PEEK_PENALTY_SEC}秒)`, randomPenaltyMsg, null);
       }
     }
 
-    // ★ 最終作答區：未停錶時隱藏（由「我有答案了」色塊與浮動框取代），總關主按下停錶後直接在此展開作答表單
     let lastRenderedAnswerStateKey = "";
     function renderTeamFinalAnswer(team) {
       const panel = document.getElementById("team-final-answer-panel");
@@ -1563,7 +1593,7 @@
       showFullscreenAlert("success", `🎯 答對 ${correctCount} 題 (+${score}分)`, "答案已送出！請等待最終排名揭曉！", null);
     }
 
-    // 核心掃描處理：支援 4 大結果（1.資料夾 2.請洽詢小天使 3.空包彈 4.四款驚喜包）
+    // 核心掃描處理：唯有透過相機掃描 QR 碼，才能找到寶箱鑰匙開啟 10 隊寶箱面板！
     async function triggerClueByCode(rawCode) {
       if (isHandlingQrScan) return;
       isHandlingQrScan = true;
@@ -1594,10 +1624,11 @@
         return;
       }
 
-      // 結果 1：掃描後出現「雲端資料夾（各隊開各隊的）」
+      // 結果 1：掃描到「寶箱鑰匙 QR 碼」➔ 自動展開 10 小隊寶箱資料夾面板！
       if (qrAction.qrType === "folder") {
         const targetFolder = folderClues[qrAction.folderOrder] || folderClues[0];
         if (targetFolder) {
+          activeCardFloatingClueId = null;
           await saveTeamPatch(team.id, { activeClueId: targetFolder.id });
           const panelEl = document.getElementById("team-active-clue-panel");
           if (panelEl) panelEl.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1605,22 +1636,23 @@
         return;
       }
 
-      // 結果 2：掃描後出現「請洽詢小天使」的畫面
+      // 結果 2：掃描到「小天使 QR 碼」➔ 自動展開小天使卡浮動視窗並彈出通知！
       if (qrAction.qrType === "angel") {
         const targetAngel = angelClues[qrAction.angelOrder] || angelClues[0];
         if (targetAngel) {
-          await saveTeamPatch(team.id, { activeClueId: targetAngel.id });
+          activeCardFloatingClueId = targetAngel.id;
+          renderTeamView();
           showFullscreenAlert(
             "success",
             "👼 請洽詢小天使！",
-            "恭喜掃到小天使任務！請立即洽詢你們小隊的【隨隊小天使】完成指定任務，由小天使按下過關即可獲得提示！",
+            "完成小天使的任務後 請務必確認有收到小天使的提示喔~",
             null
           );
         }
         return;
       }
 
-      // 結果 3：掃描後出現「空包彈」文字提示（各隊掃都一樣）
+      // 結果 3：掃描到「空包彈」
       if (qrAction.qrType === "blank") {
         showFullscreenAlert(
           "bonus",
@@ -1631,7 +1663,7 @@
         return;
       }
 
-      // 結果 4：掃描後出現「驚喜包」文字提示（4 款驚喜任務）
+      // 結果 4：掃描到「驚喜包」
       if (qrAction.qrType === "surprise") {
         showFullscreenAlert(
           "bonus",
@@ -1972,9 +2004,9 @@
             const rows = qClues.map(c => {
               const got = unlockedIds.includes(c.id);
               const typeBadge = c.type === "folder"
-                ? `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black">📁資料夾</span>`
+                ? `<span class="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black">📦寶箱卡</span>`
                 : c.type === "angel"
-                  ? `<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-black">👼小天使</span>`
+                  ? `<span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded text-[10px] font-black">👼小天使卡</span>`
                   : `<span class="bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded text-[10px] font-black">⚔️${c.bossName}</span>`;
               return `
                 <div onclick="masterToggleSingleClue(${i}, ${c.id})" class="cursor-pointer flex items-center justify-between gap-2 p-2 rounded-xl border text-xs transition ${
