@@ -177,7 +177,7 @@
           </div>
         </div>
 
-        <!-- ★ 彈窗 6：整合版「重置 / 歸零待機」二合一選單 -->
+        <!-- 彈窗 6：整合版「重置 / 歸零待機」二合一選單 -->
         <div id="login-panel-reset" class="hidden bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-rose-600"><i class="fa-solid fa-rotate-left mr-1.5"></i>重置與歸零待機設定</h3>
@@ -206,28 +206,28 @@
     </div>
 
     <!-- ==========================================
-         ★ 最高權限快速切換面板 (當使用 1123 / 20040521 / 19951004 登入關主或小天使時顯示)
+         ★ 總關主與最高權限萬用切換列 (登入總關主、或用三組總關主密碼登入關主/小天使時皆固定顯示)
     =========================================== -->
     <div id="super-admin-switcher" class="hidden mb-4 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-400 rounded-3xl p-4 space-y-3 shadow-md">
-      <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+      <div class="flex items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
         <div class="flex items-center gap-1.5">
-          <span class="bg-amber-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full shadow-sm">👑 最高權限模式</span>
-          <span class="text-xs font-black text-slate-700">快速切換關主與小天使</span>
+          <span class="bg-amber-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm">👑 總關主萬用切換</span>
+          <span class="text-xs font-black text-slate-700">一鍵切換關主與小天使</span>
         </div>
-        <button onclick="superJumpToMaster()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-black px-2.5 py-1 rounded-xl shadow-sm transition">
-          前往總關主控台
+        <button id="super-master-jump-btn" onclick="superJumpToMaster()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-black px-3 py-1.5 rounded-xl shadow-sm transition shrink-0">
+          👑 返回總關主控台
         </button>
       </div>
 
       <!-- 10 個關主快速切換按鈕 -->
       <div class="space-y-1.5">
-        <div class="text-[11px] font-black text-rose-700">⚔️ 點擊直接切換【關主 B01 ~ B10】：</div>
+        <div class="text-[11px] font-black text-rose-700">⚔️ 點擊直接切換【10 位關主 (B01 ~ B10)】：</div>
         <div id="super-boss-switch-grid" class="grid grid-cols-5 gap-1.5"></div>
       </div>
 
       <!-- 10 個小天使快速切換按鈕 -->
       <div class="space-y-1.5 pt-1">
-        <div class="text-[11px] font-black text-emerald-700">👼 點擊直接切換【各隊隨隊小天使】：</div>
+        <div class="text-[11px] font-black text-emerald-700">👼 點擊直接切換【10 隊隨隊小天使】：</div>
         <div id="super-angel-switch-grid" class="grid grid-cols-5 gap-1.5"></div>
       </div>
     </div>
@@ -439,7 +439,7 @@
     </section>
 
     <!-- ==========================================
-         4. 總關主端 (Master View - 已移除模擬數據、並將重置與歸零待機整合)
+         4. 總關主端 (Master View)
     =========================================== -->
     <section id="view-master" class="hidden space-y-4">
       <div class="bg-white border-2 border-amber-500 rounded-3xl p-4 space-y-3 shadow-md">
@@ -1072,7 +1072,6 @@
       applySessionRole();
     }
 
-    // ★ 修正第 3 點：若輸入 1123 / 20040521 / 19951004 登入關主，自動開啟 isSuperAdmin 最高權限快速切換面板！
     function loginAsBoss() {
       let rawInput = document.getElementById("input-boss-code").value.trim();
       if (!rawInput) {
@@ -1097,14 +1096,13 @@
       applySessionRole();
     }
 
-    // ★ 修正第 3 點：若輸入 1123 / 20040521 / 19951004 登入小天使，同樣自動開啟 isSuperAdmin 最高權限快速切換面板！
     function loginAsAngel() {
       let teamId = parseInt(document.getElementById("select-angel-team").value, 10);
       const code = document.getElementById("input-angel-code").value.trim().toUpperCase();
       const isSuper = isValidMasterOrAdminPin(code);
 
       if (!teamId && isSuper) {
-        teamId = 1; // 最高權限密碼未選小隊時預設先進入第 1 小隊，進去後可任意切換
+        teamId = 1;
       }
       if (!teamId) {
         alert("請先選擇你是第幾小隊的小天使！");
@@ -1146,7 +1144,7 @@
       applySessionRole();
     }
 
-    // ★ 最高權限快速切換函數（在關主 B01~B10、10隊小天使、總關主之間一鍵切換）
+    // ★ 總關主與最高權限快速切換（在總關主控台 ↔ 10位關主 ↔ 10隊小天使之間直接一鍵切換，免登出）
     function superSwitchToBoss(bossCode) {
       saveRoleSession({ role: "boss", bossCode, isSuperAdmin: true });
       applySessionRole();
@@ -1162,14 +1160,28 @@
       applySessionRole();
     }
 
+    // ★ 修正：只要是「總關主 (role === 'master')」或是用總關主密碼登入關主/小天使，就固定顯示萬用切換面板！
     function renderSuperAdminSwitcher() {
       const box = document.getElementById("super-admin-switcher");
       if (!box) return;
-      if (!currentSession || !currentSession.isSuperAdmin || (currentSession.role !== "boss" && currentSession.role !== "angel")) {
+
+      const isMasterOrSuper = currentSession && (currentSession.role === "master" || currentSession.isSuperAdmin);
+      if (!isMasterOrSuper || (currentSession.role !== "master" && currentSession.role !== "boss" && currentSession.role !== "angel")) {
         box.classList.add("hidden");
         return;
       }
       box.classList.remove("hidden");
+
+      const masterBtn = document.getElementById("super-master-jump-btn");
+      if (masterBtn) {
+        if (currentSession.role === "master") {
+          masterBtn.className = "text-xs bg-amber-500 text-slate-950 font-black px-3 py-1.5 rounded-xl shadow transition shrink-0";
+          masterBtn.textContent = "👑 總關主控台 (目前位置)";
+        } else {
+          masterBtn.className = "text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-black px-3 py-1.5 rounded-xl shadow transition shrink-0";
+          masterBtn.textContent = "👑 點此返回總關主控台";
+        }
+      }
 
       const stations = CONFIG.bossStations || BOSS_STATIONS;
       const bossGrid = document.getElementById("super-boss-switch-grid");
@@ -1179,7 +1191,7 @@
         const btn = document.createElement("button");
         btn.className = `py-2 px-1 rounded-xl font-black text-[11px] border transition truncate ${
           isCurrent
-            ? "bg-rose-600 border-rose-700 text-white shadow"
+            ? "bg-rose-600 border-rose-700 text-white shadow scale-105"
             : "bg-white border-rose-200 text-rose-700 hover:bg-rose-50"
         }`;
         btn.textContent = `${st.bossCode} ${st.name}`;
@@ -1195,13 +1207,13 @@
         const btn = document.createElement("button");
         btn.className = `py-2 px-1 rounded-xl font-black text-[11px] border transition truncate ${
           isCurrent
-            ? "bg-emerald-600 border-emerald-700 text-white shadow"
+            ? "bg-emerald-600 border-emerald-700 text-white shadow scale-105"
             : "bg-white border-emerald-200 text-emerald-800 hover:bg-emerald-50"
         }`;
         btn.textContent = `${i}.${cObj.colorName}`;
         btn.onclick = () => superSwitchToAngel(i);
         angelGrid.appendChild(btn);
-      }
+      });
     }
 
     function forceReturnToLobby(msg) {
@@ -1221,7 +1233,6 @@
     }
 
     function openLogoutModal() {
-      // 若為總關主或已用最高權限密碼登入，點右上角切換直接返回大廳免重打密碼
       if (currentSession && (currentSession.role === "master" || currentSession.isSuperAdmin)) {
         forceReturnToLobby();
         return;
@@ -1270,6 +1281,7 @@
         badge.textContent = `${cObj.colorName} 小天使`;
         document.getElementById("view-angel").classList.remove("hidden");
       } else if (currentSession.role === "master") {
+        currentSession.isSuperAdmin = true;
         badge.textContent = `總關主`;
         document.getElementById("view-master").classList.remove("hidden");
       }
@@ -2335,7 +2347,6 @@
       alert("全場已同步從 00:00 正式開始計時！");
     }
 
-    // ★ 整合版選項 1：歸零待機（清空進度並維持 00:00 待機，但保留各隊手機綁定）
     async function masterResetKeepDevices() {
       closeLoginPanels();
       STATE.finishCounter = 0;
@@ -2350,7 +2361,6 @@
       alert("已完成【歸零待機】！全場時間維持在 00:00 且提示已清空，各小隊已綁定的手機無須重新登入。");
     }
 
-    // ★ 整合版選項 2：徹底重置全場（連同手機綁定一併解除）
     async function masterResetGame() {
       closeLoginPanels();
       STATE = createInitialState();
