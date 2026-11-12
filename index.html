@@ -12,8 +12,8 @@
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <!-- 讀取獨立題庫設定檔 config.js -->
-  <script src="config.js"></script>
+  <!-- 讀取獨立題庫設定檔 config.js（若無此檔案，系統會自動啟用內建題庫） -->
+  <script src="config.js" onerror="console.log('未偵測到外部 config.js，已自動啟用內建預設題庫')"></script>
   <style>
     body { font-family: 'Noto Sans TC', sans-serif; overflow-x: hidden; background-color: #F1F5F9; color: #0F172A; }
     @keyframes pop-in {
@@ -43,7 +43,7 @@
     </div>
     <div id="role-status-bar" class="hidden items-center gap-2 shrink-0">
       <span id="current-role-badge" class="text-xs font-black bg-slate-100 text-slate-700 px-3 py-1.5 rounded-full border border-slate-200"></span>
-      <button onclick="openLogoutModal()" class="text-xs bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 transition">
+      <button type="button" onclick="openLogoutModal()" class="text-xs bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-slate-600 font-bold px-2.5 py-1.5 rounded-xl border border-slate-200 transition">
         <i class="fa-solid fa-lock mr-1"></i>切換
       </button>
     </div>
@@ -60,7 +60,7 @@
       </div>
 
       <div class="grid grid-cols-1 gap-3.5">
-        <button onclick="openLoginPanel('team')" class="w-full flex items-center justify-between bg-white hover:bg-blue-50/50 active:scale-[0.98] border-2 border-blue-500 rounded-2xl p-4 sm:p-5 transition shadow-md">
+        <button type="button" onclick="openLoginPanel('team')" class="w-full flex items-center justify-between bg-white hover:bg-blue-50/50 active:scale-[0.98] border-2 border-blue-500 rounded-2xl p-4 sm:p-5 transition shadow-md cursor-pointer">
           <div class="flex items-center gap-3.5">
             <span class="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center text-2xl shrink-0 shadow">🏃</span>
             <span class="text-lg sm:text-xl font-black text-slate-800">1. 我是闖關小隊</span>
@@ -68,7 +68,7 @@
           <span class="text-xs font-black bg-blue-100 text-blue-700 px-3 py-1.5 rounded-full shrink-0">點擊選擇小隊</span>
         </button>
 
-        <button onclick="openLoginPanel('boss')" class="w-full flex items-center justify-between bg-white hover:bg-rose-50/50 active:scale-[0.98] border-2 border-rose-500 rounded-2xl p-4 sm:p-5 transition shadow-md">
+        <button type="button" onclick="openLoginPanel('boss')" class="w-full flex items-center justify-between bg-white hover:bg-rose-50/50 active:scale-[0.98] border-2 border-rose-500 rounded-2xl p-4 sm:p-5 transition shadow-md cursor-pointer">
           <div class="flex items-center gap-3.5">
             <span class="w-12 h-12 rounded-2xl bg-rose-600 text-white flex items-center justify-center text-2xl shrink-0 shadow">⚔️</span>
             <span class="text-lg sm:text-xl font-black text-slate-800">2. 我是關主</span>
@@ -76,7 +76,7 @@
           <span class="text-xs font-black bg-rose-100 text-rose-700 px-3 py-1.5 rounded-full shrink-0">點擊輸入代號</span>
         </button>
 
-        <button onclick="openLoginPanel('angel')" class="w-full flex items-center justify-between bg-white hover:bg-emerald-50/50 active:scale-[0.98] border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 transition shadow-md">
+        <button type="button" onclick="openLoginPanel('angel')" class="w-full flex items-center justify-between bg-white hover:bg-emerald-50/50 active:scale-[0.98] border-2 border-emerald-500 rounded-2xl p-4 sm:p-5 transition shadow-md cursor-pointer">
           <div class="flex items-center gap-3.5">
             <span class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center text-2xl shrink-0 shadow">👼</span>
             <span class="text-lg sm:text-xl font-black text-slate-800">3. 我是隨隊小天使</span>
@@ -84,7 +84,7 @@
           <span class="text-xs font-black bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full shrink-0">點擊輸入代號</span>
         </button>
 
-        <button onclick="openLoginPanel('master')" class="w-full flex items-center justify-between bg-white hover:bg-amber-50/50 active:scale-[0.98] border-2 border-amber-500 rounded-2xl p-4 sm:p-5 transition shadow-md">
+        <button type="button" onclick="openLoginPanel('master')" class="w-full flex items-center justify-between bg-white hover:bg-amber-50/50 active:scale-[0.98] border-2 border-amber-500 rounded-2xl p-4 sm:p-5 transition shadow-md cursor-pointer">
           <div class="flex items-center gap-3.5">
             <span class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-2xl shrink-0 shadow">👑</span>
             <span class="text-lg sm:text-xl font-black text-slate-800">4. 我是總關主</span>
@@ -104,7 +104,7 @@
         <div id="login-panel-team" class="hidden bg-white border-2 border-blue-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-blue-600">點擊選擇小隊（一隊限一機）</h3>
-            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <button type="button" onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
@@ -115,13 +115,13 @@
         <div id="login-panel-boss" class="hidden bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-rose-600">我是關主</h3>
-            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <button type="button" onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
             <input id="input-boss-code" type="text" placeholder="請輸入關主代號 (B01~B10)" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
-            <button onclick="loginAsBoss()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
+            <button type="button" onclick="loginAsBoss()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認進入
             </button>
           </div>
@@ -131,14 +131,14 @@
         <div id="login-panel-angel" class="hidden bg-white border-2 border-emerald-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-emerald-600">我是隨隊小天使</h3>
-            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <button type="button" onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
             <select id="select-angel-team" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-emerald-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black text-center text-base"></select>
             <input id="input-angel-code" type="password" placeholder="請輸入小天使代號" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-emerald-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
-            <button onclick="loginAsAngel()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
+            <button type="button" onclick="loginAsAngel()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認綁定小隊
             </button>
           </div>
@@ -148,13 +148,13 @@
         <div id="login-panel-master" class="hidden bg-white border-2 border-amber-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-amber-600">我是總關主</h3>
-            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <button type="button" onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
             <input id="input-master-pin" type="password" inputmode="numeric" placeholder="請輸入總關主密碼" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-amber-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black tracking-widest text-center text-base">
-            <button onclick="loginAsMaster()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-lg transition">
+            <button type="button" onclick="loginAsMaster()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認進入
             </button>
           </div>
@@ -164,14 +164,14 @@
         <div id="login-panel-logout" class="hidden bg-white border-2 border-slate-300 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-slate-800"><i class="fa-solid fa-lock text-rose-500 mr-1.5"></i>切換身分驗證</h3>
-            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <button type="button" onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <p class="text-xs text-slate-500 font-bold text-center">為防止誤觸或換隊，請由工作人員輸入解鎖碼：</p>
           <div class="space-y-3">
             <input id="input-logout-pin" type="password" inputmode="numeric" placeholder="請輸入工作人員解鎖密碼" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black tracking-widest text-center text-base">
-            <button onclick="confirmLogoutWithPin()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
+            <button type="button" onclick="confirmLogoutWithPin()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認解鎖並切換身分
             </button>
           </div>
@@ -181,22 +181,22 @@
         <div id="login-panel-reset" class="hidden bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-rose-600"><i class="fa-solid fa-rotate-left mr-1.5"></i>重置與歸零待機設定</h3>
-            <button onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
+            <button type="button" onclick="closeLoginPanels()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
           <div class="space-y-3">
-            <button onclick="masterResetKeepDevices()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black p-4 rounded-2xl text-left shadow-md transition space-y-1">
+            <button type="button" onclick="masterResetKeepDevices()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black p-4 rounded-2xl text-left shadow-md transition space-y-1">
               <div class="text-sm text-amber-300">🔄 選項 1：歸零待機（保留手機綁定）</div>
               <div class="text-xs text-slate-300 font-normal leading-relaxed">將全場時間歸零 00:00 並清空已收集提示，但【不踢出】目前已登入的小隊手機。</div>
             </button>
 
-            <button onclick="masterResetGame()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black p-4 rounded-2xl text-left shadow-md transition space-y-1">
+            <button type="button" onclick="masterResetGame()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black p-4 rounded-2xl text-left shadow-md transition space-y-1">
               <div class="text-sm">🚨 選項 2：徹底重置全場（解除所有手機綁定）</div>
               <div class="text-xs text-rose-100 font-normal leading-relaxed">清空所有進度、時間歸零 00:00，並【強制解除】全部 10 小隊的手機綁定鎖。</div>
             </button>
 
-            <button onclick="closeLoginPanels()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-xs">
+            <button type="button" onclick="closeLoginPanels()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-xs">
               取消返回
             </button>
           </div>
@@ -206,7 +206,7 @@
     </div>
 
     <!-- ==========================================
-         ★ 總關主與最高權限萬用切換列 (登入總關主、或用三組總關主密碼登入關主/小天使時皆固定顯示)
+         ★ 總關主與最高權限萬用切換列
     =========================================== -->
     <div id="super-admin-switcher" class="hidden mb-4 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-400 rounded-3xl p-4 space-y-3 shadow-md">
       <div class="flex items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
@@ -214,7 +214,7 @@
           <span class="bg-amber-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm">👑 總關主萬用切換</span>
           <span class="text-xs font-black text-slate-700">一鍵切換關主與小天使</span>
         </div>
-        <button id="super-master-jump-btn" onclick="superJumpToMaster()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-black px-3 py-1.5 rounded-xl shadow-sm transition shrink-0">
+        <button type="button" id="super-master-jump-btn" onclick="superJumpToMaster()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-black px-3 py-1.5 rounded-xl shadow-sm transition shrink-0">
           👑 返回總關主控台
         </button>
       </div>
@@ -236,7 +236,7 @@
          1. 闖關小隊端 (Team View)
     =========================================== -->
     <section id="view-team" class="hidden space-y-4">
-      <!-- 第一區塊：頂部小隊計時資訊卡（放大版隊名＋求救區＋我有答案了色塊與浮動框） -->
+      <!-- 第一區塊：頂部小隊計時資訊卡 -->
       <div id="team-top-card" class="bg-white border-4 rounded-3xl p-4 sm:p-5 shadow-md">
         <div class="flex items-center justify-between gap-2">
           <div>
@@ -276,13 +276,13 @@
               <span class="text-sm">📱 手機搜尋時間倒數：</span>
               <span id="team-phone-countdown-timer" class="text-2xl font-mono bg-white text-rose-600 px-3 py-0.5 rounded-xl shadow-sm">02:00</span>
             </div>
-            <button onclick="stopPhoneLifelineCountdown(currentSession.teamId)" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-black py-2.5 rounded-xl shadow transition">
+            <button type="button" onclick="stopPhoneLifelineCountdown(currentSession.teamId)" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white text-xs font-black py-2.5 rounded-xl shadow transition">
               <i class="fa-solid fa-stop mr-1"></i>已查到答案，提前結束倒數
             </button>
           </div>
 
           <!-- 「我有答案了」色塊按鈕 -->
-          <button onclick="toggleHaveAnswerFloatingBox()" id="team-have-answer-btn" class="w-full p-3 rounded-2xl border-2 border-rose-300 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 active:scale-[0.98] text-white shadow-md flex items-center justify-center gap-2 transition">
+          <button type="button" onclick="toggleHaveAnswerFloatingBox()" id="team-have-answer-btn" class="w-full p-3 rounded-2xl border-2 border-rose-300 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 active:scale-[0.98] text-white shadow-md flex items-center justify-center gap-2 transition">
             <i class="fa-solid fa-flag-checkered text-base"></i>
             <span class="text-base font-black tracking-wider">我有答案了</span>
           </button>
@@ -300,7 +300,7 @@
         </div>
       </div>
 
-      <!-- 獨立區塊：10 個關主挑戰區 (點擊 ⚔️01~⚔️10 彈出浮動文字框，再點一下收起) -->
+      <!-- 獨立區塊：10 個關主挑戰區 -->
       <div id="team-boss-section-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors relative">
         <div class="flex items-center justify-between">
           <div>
@@ -332,7 +332,7 @@
         </div>
 
         <!-- 放大版「開啟相機」按鈕 -->
-        <button onclick="toggleCameraScanner()" id="btn-camera-toggle" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-lg font-black py-4 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2.5 transition">
+        <button type="button" onclick="toggleCameraScanner()" id="btn-camera-toggle" class="w-full bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-lg font-black py-4 px-6 rounded-2xl shadow-md flex items-center justify-center gap-2.5 transition">
           <i class="fa-solid fa-camera text-xl"></i>開啟相機
         </button>
 
@@ -361,7 +361,7 @@
     </section>
 
     <!-- ==========================================
-         2. 關主端 (Boss View - 無加分題)
+         2. 關主端 (Boss View)
     =========================================== -->
     <section id="view-boss" class="hidden space-y-4">
       <div class="bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-2 shadow-md">
@@ -387,12 +387,12 @@
         <div class="space-y-3 pt-2">
           <label class="block text-sm font-black text-slate-700">步驟 3：點擊判定結果（小隊手機將立即跳出視窗）</label>
 
-          <button onclick="bossJudge('pass')" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
+          <button type="button" onclick="bossJudge('pass')" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
             <span class="text-lg">✅ 通過（發送提示）</span>
             <i class="fa-solid fa-circle-check text-2xl"></i>
           </button>
 
-          <button onclick="bossJudge('fail')" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
+          <button type="button" onclick="bossJudge('fail')" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
             <span class="text-lg">❌ 失敗（+<span id="boss-fail-sec-label">60</span>秒 並發送提示）</span>
             <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
           </button>
@@ -420,7 +420,7 @@
         <h3 class="font-black text-base text-emerald-700"><i class="fa-solid fa-calculator mr-1.5"></i>1A2B 終極密碼自動比對機</h3>
         <div class="flex gap-2">
           <input id="angel-1a2b-input" type="text" inputmode="numeric" maxlength="4" placeholder="輸入小隊猜的 4 位數" class="flex-1 min-w-0 bg-slate-50 border-2 border-slate-300 rounded-2xl px-3 py-3 text-xl font-mono font-black text-slate-800 tracking-widest text-center">
-          <button onclick="checkAngel1A2B()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black px-6 py-3 rounded-2xl shadow shrink-0">計算</button>
+          <button type="button" onclick="checkAngel1A2B()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black px-6 py-3 rounded-2xl shadow shrink-0">計算</button>
         </div>
 
         <div id="angel-1a2b-result-box" class="hidden bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3 text-center">
@@ -446,13 +446,13 @@
         <div class="flex flex-wrap items-center justify-between gap-2">
           <h2 class="text-xl font-black text-slate-800">👑 總關主控台</h2>
           <div class="flex flex-wrap gap-1.5">
-            <button onclick="masterStartAllTimers()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black px-3.5 py-2.5 rounded-xl shadow">
+            <button type="button" onclick="masterStartAllTimers()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white text-xs font-black px-3.5 py-2.5 rounded-xl shadow">
               <i class="fa-solid fa-play mr-1"></i>開始計時 (全場 00:00 起跑)
             </button>
-            <button onclick="openPrintModal()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-3 py-2.5 rounded-xl shadow">
+            <button type="button" onclick="openPrintModal()" class="bg-blue-600 hover:bg-blue-500 active:scale-95 text-white text-xs font-black px-3 py-2.5 rounded-xl shadow">
               <i class="fa-solid fa-print mr-1"></i>列印QR碼
             </button>
-            <button onclick="openLoginPanel('reset')" class="bg-rose-100 hover:bg-rose-200 active:scale-95 text-rose-700 text-xs font-black px-3 py-2.5 rounded-xl border border-rose-300">
+            <button type="button" onclick="openLoginPanel('reset')" class="bg-rose-100 hover:bg-rose-200 active:scale-95 text-rose-700 text-xs font-black px-3 py-2.5 rounded-xl border border-rose-300">
               <i class="fa-solid fa-rotate-left mr-1"></i>重置 / 歸零待機
             </button>
           </div>
@@ -461,10 +461,10 @@
 
       <!-- 總關主頁籤切換 -->
       <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1 rounded-2xl">
-        <button onclick="switchMasterTab('monitor')" id="tab-btn-monitor" class="bg-white text-slate-900 shadow font-black py-2.5 rounded-xl text-xs transition">
+        <button type="button" onclick="switchMasterTab('monitor')" id="tab-btn-monitor" class="bg-white text-slate-900 shadow font-black py-2.5 rounded-xl text-xs transition">
           📋 各隊狀態 ＆ 提示明細 ＆ 停錶
         </button>
-        <button onclick="switchMasterTab('kahoot')" id="tab-btn-kahoot" class="text-slate-600 font-black py-2.5 rounded-xl text-xs transition">
+        <button type="button" onclick="switchMasterTab('kahoot')" id="tab-btn-kahoot" class="text-slate-600 font-black py-2.5 rounded-xl text-xs transition">
           🏆 Kahoot 動態排行榜
         </button>
       </div>
@@ -476,7 +476,7 @@
             <div class="text-base">📱 <span id="master-phone-team-label" class="underline">第 1 小隊</span> 手機求救倒數中！</div>
             <div id="master-phone-timer-digits" class="text-2xl font-mono bg-white text-rose-600 px-3 py-1 rounded-xl shadow-sm">02:00</div>
           </div>
-          <button onclick="stopAllPhoneLifelines()" class="w-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-black py-2.5 rounded-xl shadow">
+          <button type="button" onclick="stopAllPhoneLifelines()" class="w-full bg-rose-600 hover:bg-rose-500 text-white text-xs font-black py-2.5 rounded-xl shadow">
             <i class="fa-solid fa-stop mr-1"></i>提前停止倒數
           </button>
         </div>
@@ -487,13 +487,13 @@
       <!-- 頁籤 2：Kahoot 排行榜 -->
       <div id="master-tab-kahoot" class="hidden bg-white border border-slate-200 rounded-3xl p-4 space-y-4 shadow-sm">
         <div class="grid grid-cols-3 gap-2">
-          <button onclick="setKahootStage(1)" id="kahoot-btn-1" class="bg-blue-600 text-white text-xs font-black py-2.5 px-2 rounded-xl shadow">
+          <button type="button" onclick="setKahootStage(1)" id="kahoot-btn-1" class="bg-blue-600 text-white text-xs font-black py-2.5 px-2 rounded-xl shadow">
             1. 順序分
           </button>
-          <button onclick="setKahootStage(2)" id="kahoot-btn-2" class="bg-purple-600 text-white text-xs font-black py-2.5 px-2 rounded-xl shadow">
+          <button type="button" onclick="setKahootStage(2)" id="kahoot-btn-2" class="bg-purple-600 text-white text-xs font-black py-2.5 px-2 rounded-xl shadow">
             2. +答題分
           </button>
-          <button onclick="setKahootStage(3)" id="kahoot-btn-3" class="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xs font-black py-2.5 px-2 rounded-xl shadow">
+          <button type="button" onclick="setKahootStage(3)" id="kahoot-btn-3" class="bg-gradient-to-r from-amber-500 to-rose-500 text-white text-xs font-black py-2.5 px-2 rounded-xl shadow">
             🔥 3. 總時間翻盤
           </button>
         </div>
@@ -511,7 +511,7 @@
       <h3 id="alert-title" class="text-2xl font-black text-slate-800">恭喜過關！</h3>
       <p id="alert-message" class="text-sm text-slate-600 font-bold leading-relaxed"></p>
       <div id="alert-hint-box" class="hidden bg-amber-50 border-2 border-amber-400 rounded-2xl p-4 text-slate-900 font-black text-base shadow-inner leading-relaxed"></div>
-      <button onclick="closeFullscreenAlert()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black py-3.5 rounded-2xl text-base shadow-lg transition">
+      <button type="button" onclick="closeFullscreenAlert()" class="w-full bg-slate-900 hover:bg-slate-800 active:scale-95 text-white font-black py-3.5 rounded-2xl text-base shadow-lg transition">
         收到！繼續闖關
       </button>
     </div>
@@ -526,8 +526,8 @@
           <p class="text-xs text-slate-500 font-bold">相容先前已印出的 CLUE01~CLUE15，底部虛線小字供工作人員辨識，張貼時可摺起或剪下</p>
         </div>
         <div class="flex gap-2 shrink-0">
-          <button onclick="window.print()" class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl text-xs">立即列印</button>
-          <button onclick="closePrintModal()" class="bg-slate-200 text-slate-800 font-bold px-4 py-2 rounded-xl text-xs">關閉</button>
+          <button type="button" onclick="window.print()" class="bg-blue-600 text-white font-black px-4 py-2 rounded-xl text-xs">立即列印</button>
+          <button type="button" onclick="closePrintModal()" class="bg-slate-200 text-slate-800 font-bold px-4 py-2 rounded-xl text-xs">關閉</button>
         </div>
       </div>
       <div id="print-area" class="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-2"></div>
@@ -535,6 +535,28 @@
   </div>
 
   <script>
+    // ==========================================
+    // 安全儲存空間輔助函式（防止 LINE / 無痕模式 / 本機開啟崩潰）
+    // ==========================================
+    const memoryStorageFallback = {};
+    function safeGetStorage(key) {
+      try {
+        return sessionStorage.getItem(key) || localStorage.getItem(key) || memoryStorageFallback[key] || null;
+      } catch (e) {
+        return memoryStorageFallback[key] || null;
+      }
+    }
+    function safeSetStorage(key, val) {
+      memoryStorageFallback[key] = val;
+      try { sessionStorage.setItem(key, val); } catch (e) {}
+      try { localStorage.setItem(key, val); } catch (e) {}
+    }
+    function safeRemoveStorage(key) {
+      delete memoryStorageFallback[key];
+      try { sessionStorage.removeItem(key); } catch (e) {}
+      try { localStorage.removeItem(key); } catch (e) {}
+    }
+
     // 10 小隊名稱與代表色
     const DEFAULT_TEAM_COLORS = [
       { id: 1,  colorName: "DoReMi",     hex: "#E63946", textHex: "#FFFFFF" },
@@ -563,6 +585,25 @@
       { index: 10, bossCode: "B10", name: "八仙過海" }
     ];
 
+    // 內建預設 15 條提示結構（當外部 config.js 未載入時自動作為保底題庫）
+    const DEFAULT_FALLBACK_CLUES = [
+      { id: 1,  qId: 1, type: "boss",   hintText: "第一題提示 1：請找隨隊小天使進行 1A2B 猜密碼" },
+      { id: 2,  qId: 1, type: "boss",   hintText: "第一題提示 2：四個數字皆不重複" },
+      { id: 3,  qId: 1, type: "boss",   hintText: "第一題提示 3：密碼中奇數比偶數多" },
+      { id: 4,  qId: 1, type: "folder", hintText: "第一題提示 4（寶箱卡）：千位數與十位數相加為 11" },
+      { id: 5,  qId: 1, type: "angel",  hintText: "第一題提示 5（小天使卡）：個位數是最小的奇質數" },
+      { id: 6,  qId: 2, type: "boss",   hintText: "第二題提示 1：出自儒家四書之一" },
+      { id: 7,  qId: 2, type: "boss",   hintText: "第二題提示 2：句中包含「君子」二字" },
+      { id: 8,  qId: 2, type: "boss",   hintText: "第二題提示 3：強調莊重與威嚴的關係" },
+      { id: 9,  qId: 2, type: "folder", hintText: "第二題提示 4（寶箱卡）：後半句為「則不威」" },
+      { id: 10, qId: 2, type: "angel",  hintText: "第二題提示 5（小天使卡）：完整句子為「君子不重則不威」＋書名《論語》" },
+      { id: 11, qId: 3, type: "boss",   hintText: "第三題提示 1：位於歐洲的知名國家" },
+      { id: 12, qId: 3, type: "boss",   hintText: "第三題提示 2：國旗由藍、白、紅三色組成" },
+      { id: 13, qId: 3, type: "boss",   hintText: "第三題提示 3：首都擁有著名的鐵塔地標" },
+      { id: 14, qId: 3, type: "boss",   hintText: "第三題提示 4：以羅浮宮與塞納河聞名世界" },
+      { id: 15, qId: 3, type: "folder", hintText: "第三題提示 5（寶箱卡）：兩個字，簡稱「法」" }
+    ];
+
     // 偷點別隊雲端資料夾的 3 種隨機懲罰（固定 +30 秒）
     const FOLDER_PEEK_PENALTY_SEC = 30;
     const FOLDER_PEEK_PENALTIES = [
@@ -573,7 +614,6 @@
 
     // 操場 15 張 QR Code 完整對應表
     const PLAYGROUND_QR_MAP = {
-      // 1. 掃描後出現：各隊寶箱資料夾 (3張)
       "CLUE01":     { qrType: "folder", folderOrder: 0, staffLabel: "📦 寶箱卡鑰匙 (一)" },
       "FOLDER01":   { qrType: "folder", folderOrder: 0, staffLabel: "📦 寶箱卡鑰匙 (一)" },
       "CLUE02":     { qrType: "folder", folderOrder: 1, staffLabel: "📦 寶箱卡鑰匙 (二)" },
@@ -581,13 +621,11 @@
       "CLUE03":     { qrType: "folder", folderOrder: 2, staffLabel: "📦 寶箱卡鑰匙 (三)" },
       "FOLDER03":   { qrType: "folder", folderOrder: 2, staffLabel: "📦 寶箱卡鑰匙 (三)" },
 
-      // 2. 掃描後出現：小天使卡說明 (2張)
       "CLUE04":     { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 小天使卡 (一)" },
       "ANGEL01":    { qrType: "angel",  angelOrder: 0,  staffLabel: "👼 小天使卡 (一)" },
       "CLUE05":     { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 小天使卡 (二)" },
       "ANGEL02":    { qrType: "angel",  angelOrder: 1,  staffLabel: "👼 小天使卡 (二)" },
 
-      // 3. 掃描後出現：4 款驚喜包文字提示 (4張)
       "CLUE06":     { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩隻老虎唱完才可繼續", staffLabel: "🎁 驚喜包1 (兩隻老虎)" },
       "SURPRISE01": { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩隻老虎唱完才可繼續", staffLabel: "🎁 驚喜包1 (兩隻老虎)" },
       "CLUE07":     { qrType: "surprise", text: "我是驚喜包~~請圍著小天使唱兩遍生日快樂歌唱完才可繼續", staffLabel: "🎁 驚喜包2 (生日快樂歌)" },
@@ -597,7 +635,6 @@
       "CLUE09":     { qrType: "surprise", text: "我是驚喜包~~全隊除了隊長以外，所有人閉上眼睛，由隊長牽著走，直到找到下一個QRcode/關卡", staffLabel: "🎁 驚喜包4 (隊長牽著走)" },
       "SURPRISE04": { qrType: "surprise", text: "我是驚喜包~~全隊除了隊長以外，所有人閉上眼睛，由隊長牽著走，直到找到下一個QRcode/關卡", staffLabel: "🎁 驚喜包4 (隊長牽著走)" },
 
-      // 4. 掃描後出現：空包彈文字提示 (6張，各隊掃都一樣)
       "CLUE10":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (一)" },
       "CLUE11":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (二)" },
       "CLUE12":     { qrType: "blank", text: "我是空包彈喔~~請再接再厲喔~", staffLabel: "💣 空包彈 (三)" },
@@ -621,6 +658,7 @@
       bossStations: BOSS_STATIONS,
       bossFailPenaltySec: 60,
       folderPeekPenaltySec: 30,
+      clues: DEFAULT_FALLBACK_CLUES,
       questions: [
         { id: 1, title: "第一題：四位數終極密碼", prompt: "請輸入 4 位數密碼：", answer: "7943" },
         { id: 2, title: "第二題：經典句子重組",   prompt: "請輸入重組後的「完整句子＋經典名稱」（前後順序不拘）：", answer: "君子不重則不威論語" },
@@ -633,7 +671,6 @@
     if (!CONFIG.firebaseUrl) {
       CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
     }
-    const SUPER_PIN = "1123";
     const VALID_MASTER_PINS = ["1123", "20040521", "19951004", String(CONFIG.masterPin || "1123"), String(CONFIG.switchPin || "1123")];
 
     function isValidMasterOrAdminPin(pin) {
@@ -644,14 +681,14 @@
       return false;
     }
 
-    document.getElementById('header-title').textContent = CONFIG.gameTitle;
+    const headerTitleEl = document.getElementById('header-title');
+    if (headerTitleEl) headerTitleEl.textContent = CONFIG.gameTitle;
 
     const DEVICE_ID_KEY = "GOFIGHTING_TAB_DEVICE_ID";
-    let DEVICE_ID = sessionStorage.getItem(DEVICE_ID_KEY) || localStorage.getItem(DEVICE_ID_KEY);
+    let DEVICE_ID = safeGetStorage(DEVICE_ID_KEY);
     if (!DEVICE_ID) {
       DEVICE_ID = "dev_" + Math.random().toString(36).substring(2, 10) + "_" + Date.now().toString(36);
-      sessionStorage.setItem(DEVICE_ID_KEY, DEVICE_ID);
-      localStorage.setItem(DEVICE_ID_KEY, DEVICE_ID);
+      safeSetStorage(DEVICE_ID_KEY, DEVICE_ID);
     }
 
     function getTeamColorObj(teamId) {
@@ -671,9 +708,15 @@
 
     function getCluesForTeam(teamId) {
       let rawList = [];
-      if (CONFIG.teamClues && CONFIG.teamClues[teamId]) rawList = CONFIG.teamClues[teamId];
-      else if (CONFIG.teamClues && CONFIG.teamClues[1]) rawList = CONFIG.teamClues[1];
-      else rawList = CONFIG.clues || [];
+      if (CONFIG.teamClues && Array.isArray(CONFIG.teamClues[teamId]) && CONFIG.teamClues[teamId].length > 0) {
+        rawList = CONFIG.teamClues[teamId];
+      } else if (CONFIG.teamClues && Array.isArray(CONFIG.teamClues[1]) && CONFIG.teamClues[1].length > 0) {
+        rawList = CONFIG.teamClues[1];
+      } else if (Array.isArray(CONFIG.clues) && CONFIG.clues.length > 0) {
+        rawList = CONFIG.clues;
+      } else {
+        rawList = DEFAULT_FALLBACK_CLUES;
+      }
 
       let bossCounter = 0;
       let folderCounter = 0;
@@ -702,6 +745,18 @@
       });
     }
 
+    const TEAM_1A2B_SECRETS = {
+      1: "7943", 2: "2318", 3: "3942", 4: "8372",
+      5: "5721", 6: "4873", 7: "9580", 8: "6478",
+      9: "7245", 10: "5243"
+    };
+
+    function getTeam1A2BSecret(teamId) {
+      const angelKey = `A${String(teamId).padStart(2, "0")}`;
+      const fromConfig = CONFIG.angelCodes && CONFIG.angelCodes[angelKey] && CONFIG.angelCodes[angelKey].secret1A2B;
+      return String(fromConfig || TEAM_1A2B_SECRETS[teamId] || CONFIG.default1A2B);
+    }
+
     function isTeamAnswerCorrect(teamId, qId, userAns) {
       const clean = (str) => String(str || "").replace(/[\s,，。、！!？?「」『』《》〈〉()（）:：；;\/\\\-—_]/g, "").toUpperCase();
       const cleanedUser = clean(userAns);
@@ -712,6 +767,9 @@
         if (qObj && Array.isArray(qObj.answers)) {
           return qObj.answers.some(ans => clean(ans) === cleanedUser);
         }
+      }
+      if (qId === 1) {
+        return clean(getTeam1A2BSecret(teamId)) === cleanedUser;
       }
       const fallbackQ = CONFIG.questions.find(q => q.id === qId);
       return fallbackQ && clean(fallbackQ.answer) === cleanedUser;
@@ -727,17 +785,20 @@
     let showHaveAnswerFloating = false;
     let isHandlingQrScan = false;
 
+    function fetchWithTimeout(url, options = {}, timeoutMs = 2500) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, Object.assign({}, options, { signal: controller.signal }))
+        .finally(() => clearTimeout(timer));
+    }
+
     function toggleMasterTeamDetail(teamId) {
       expandedMasterTeams[teamId] = !expandedMasterTeams[teamId];
       renderMasterView();
     }
 
     function toggleBossFloatingBox(bossIdx) {
-      if (activeBossFloatingIndex === bossIdx) {
-        activeBossFloatingIndex = null;
-      } else {
-        activeBossFloatingIndex = bossIdx;
-      }
+      activeBossFloatingIndex = (activeBossFloatingIndex === bossIdx) ? null : bossIdx;
       renderTeamView();
     }
 
@@ -747,11 +808,7 @@
     }
 
     function toggleCardFloatingBox(clueId) {
-      if (activeCardFloatingClueId === clueId) {
-        activeCardFloatingClueId = null;
-      } else {
-        activeCardFloatingClueId = clueId;
-      }
+      activeCardFloatingClueId = (activeCardFloatingClueId === clueId) ? null : clueId;
       renderTeamView();
     }
 
@@ -761,7 +818,7 @@
     }
 
     function toggleHaveAnswerFloatingBox() {
-      const team = STATE.teams[currentSession.teamId];
+      const team = STATE.teams[currentSession && currentSession.teamId];
       if (team && team.stopTime && team.stopTime > 0) {
         const panel = document.getElementById("team-final-answer-panel");
         if (panel) panel.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -855,21 +912,30 @@
       return st;
     }
 
-    let STATE = loadState();
-    let currentSession = JSON.parse(sessionStorage.getItem(LOCKED_ROLE_KEY) || localStorage.getItem(LOCKED_ROLE_KEY) || "null");
-    let lastSeenEventTs = Date.now();
-    let pausePollingUntil = 0;
-    let html5QrScanner = null;
-
     function loadState() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = safeGetStorage(STORAGE_KEY);
         if (!raw) return createInitialState();
         return ensureTeamsStructure(JSON.parse(raw));
       } catch (e) {
         return createInitialState();
       }
     }
+
+    function loadSavedSession() {
+      try {
+        const raw = safeGetStorage(LOCKED_ROLE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    let STATE = loadState();
+    let currentSession = loadSavedSession();
+    let lastSeenEventTs = Date.now();
+    let pausePollingUntil = 0;
+    let html5QrScanner = null;
 
     async function saveTeamPatch(teamId, partialData) {
       pausePollingUntil = Date.now() + 2500;
@@ -878,18 +944,18 @@
       }
       Object.assign(STATE.teams[teamId], partialData);
       STATE.updatedAt = Date.now();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+      safeSetStorage(STORAGE_KEY, JSON.stringify(STATE));
       renderCurrentView();
       renderLobbyTeamButtons();
 
       if (firebaseUrl) {
         try {
-          await fetch(`${firebaseUrl}/gameState/teams/${teamId}.json`, {
+          await fetchWithTimeout(`${firebaseUrl}/gameState/teams/${teamId}.json`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(partialData)
           });
-          await fetch(`${firebaseUrl}/gameState.json`, {
+          await fetchWithTimeout(`${firebaseUrl}/gameState.json`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ updatedAt: STATE.updatedAt })
@@ -902,13 +968,13 @@
       pausePollingUntil = Date.now() + 3000;
       STATE.updatedAt = Date.now();
       const jsonStr = JSON.stringify(STATE);
-      localStorage.setItem(STORAGE_KEY, jsonStr);
+      safeSetStorage(STORAGE_KEY, jsonStr);
       renderCurrentView();
       renderLobbyTeamButtons();
 
       if (firebaseUrl) {
         try {
-          await fetch(`${firebaseUrl}/gameState.json`, {
+          await fetchWithTimeout(`${firebaseUrl}/gameState.json`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: jsonStr
@@ -920,11 +986,11 @@
     async function pollCloudState() {
       if (!firebaseUrl || Date.now() < pausePollingUntil) return;
       try {
-        const res = await fetch(`${firebaseUrl}/gameState.json?t=${Date.now()}`);
+        const res = await fetchWithTimeout(`${firebaseUrl}/gameState.json?t=${Date.now()}`, {}, 2500);
         const remote = await res.json();
         if (remote && remote.teams) {
           STATE = ensureTeamsStructure(remote);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE));
+          safeSetStorage(STORAGE_KEY, JSON.stringify(STATE));
 
           if (currentSession && currentSession.role === "team") {
             const myTeam = STATE.teams[currentSession.teamId];
@@ -960,6 +1026,7 @@
         const isLockedByMe = t && t.lockedByDevice === DEVICE_ID;
 
         const btn = document.createElement("button");
+        btn.type = "button";
         if (isLockedByOther) {
           btn.disabled = true;
           btn.className = "opacity-50 cursor-not-allowed border-2 border-slate-200 bg-slate-100 text-slate-400 rounded-2xl py-3 px-2 flex flex-col items-center justify-center gap-0.5";
@@ -969,7 +1036,7 @@
             <span class="text-[10px] font-bold text-rose-500">已綁定其他手機</span>
           `;
         } else {
-          btn.className = "active:scale-95 border-2 border-black/10 rounded-2xl py-3 px-2 transition shadow flex flex-col items-center justify-center gap-0.5";
+          btn.className = "active:scale-95 border-2 border-black/10 rounded-2xl py-3 px-2 transition shadow flex flex-col items-center justify-center gap-0.5 cursor-pointer";
           btn.style.backgroundColor = cObj.hex;
           btn.style.color = cObj.textHex;
           btn.innerHTML = `
@@ -1002,16 +1069,18 @@
       renderLobbyTeamButtons();
 
       const angelSelect = document.getElementById("select-angel-team");
-      angelSelect.innerHTML = `<option value="">-- 請選擇你負責的小隊 --</option>`;
-      for (let i = 1; i <= CONFIG.teamCount; i++) {
-        const cObj = getTeamColorObj(i);
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = `${cObj.colorName} (第 ${i} 小隊)`;
-        angelSelect.appendChild(opt);
+      if (angelSelect) {
+        angelSelect.innerHTML = `<option value="">-- 請選擇你負責的小隊 --</option>`;
+        for (let i = 1; i <= CONFIG.teamCount; i++) {
+          const cObj = getTeamColorObj(i);
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `${cObj.colorName} (第 ${i} 小隊)`;
+          angelSelect.appendChild(opt);
+        }
       }
 
-      if (currentSession) {
+      if (currentSession && currentSession.role) {
         applySessionRole();
       }
       pollCloudState();
@@ -1024,28 +1093,34 @@
       }
     }
 
-    async function openLoginPanel(type) {
-      if (type === "team") {
-        await pollCloudState();
-        renderLobbyTeamButtons();
-      }
+    // ★ 關鍵修復：點擊任何按鈕都「立即開啟彈窗」，絕不因為等待雲端而卡死
+    function openLoginPanel(type) {
       ["team", "boss", "angel", "master", "logout", "reset"].forEach(t => {
         const el = document.getElementById(`login-panel-${t}`);
         if (el) el.classList.add("hidden");
       });
-      document.getElementById("login-modal-backdrop").classList.remove("hidden");
-      document.getElementById(`login-panel-${type}`).classList.remove("hidden");
+
+      const backdrop = document.getElementById("login-modal-backdrop");
+      const targetPanel = document.getElementById(`login-panel-${type}`);
+      if (backdrop) backdrop.classList.remove("hidden");
+      if (targetPanel) targetPanel.classList.remove("hidden");
+
+      if (type === "team") {
+        renderLobbyTeamButtons();
+        pollCloudState().then(() => renderLobbyTeamButtons());
+      }
 
       setTimeout(() => {
-        if (type === "boss") document.getElementById("input-boss-code").focus();
-        if (type === "angel") document.getElementById("input-angel-code").focus();
-        if (type === "master") document.getElementById("input-master-pin").focus();
-        if (type === "logout") document.getElementById("input-logout-pin").focus();
-      }, 100);
+        if (type === "boss") document.getElementById("input-boss-code")?.focus();
+        if (type === "angel") document.getElementById("input-angel-code")?.focus();
+        if (type === "master") document.getElementById("input-master-pin")?.focus();
+        if (type === "logout") document.getElementById("input-logout-pin")?.focus();
+      }, 80);
     }
 
     function closeLoginPanels() {
-      document.getElementById("login-modal-backdrop").classList.add("hidden");
+      const backdrop = document.getElementById("login-modal-backdrop");
+      if (backdrop) backdrop.classList.add("hidden");
       ["team", "boss", "angel", "master", "logout", "reset"].forEach(t => {
         const el = document.getElementById(`login-panel-${t}`);
         if (el) el.classList.add("hidden");
@@ -1058,8 +1133,7 @@
 
     function saveRoleSession(sess) {
       currentSession = sess;
-      sessionStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(sess));
-      localStorage.setItem(LOCKED_ROLE_KEY, JSON.stringify(sess));
+      safeSetStorage(LOCKED_ROLE_KEY, JSON.stringify(sess));
     }
 
     function loginAsTeam(teamId) {
@@ -1144,7 +1218,6 @@
       applySessionRole();
     }
 
-    // ★ 總關主與最高權限快速切換（在總關主控台 ↔ 10位關主 ↔ 10隊小天使之間直接一鍵切換，免登出）
     function superSwitchToBoss(bossCode) {
       saveRoleSession({ role: "boss", bossCode, isSuperAdmin: true });
       applySessionRole();
@@ -1160,7 +1233,6 @@
       applySessionRole();
     }
 
-    // ★ 修正：只要是「總關主 (role === 'master')」或是用總關主密碼登入關主/小天使，就固定顯示萬用切換面板！
     function renderSuperAdminSwitcher() {
       const box = document.getElementById("super-admin-switcher");
       if (!box) return;
@@ -1189,6 +1261,7 @@
       stations.forEach(st => {
         const isCurrent = currentSession.role === "boss" && currentSession.bossCode === st.bossCode;
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = `py-2 px-1 rounded-xl font-black text-[11px] border transition truncate ${
           isCurrent
             ? "bg-rose-600 border-rose-700 text-white shadow scale-105"
@@ -1205,6 +1278,7 @@
         const cObj = getTeamColorObj(i);
         const isCurrent = currentSession.role === "angel" && Number(currentSession.teamId) === i;
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = `py-2 px-1 rounded-xl font-black text-[11px] border transition truncate ${
           isCurrent
             ? "bg-emerald-600 border-emerald-700 text-white shadow scale-105"
@@ -1213,21 +1287,20 @@
         btn.textContent = `${i}.${cObj.colorName}`;
         btn.onclick = () => superSwitchToAngel(i);
         angelGrid.appendChild(btn);
-      });
+      }
     }
 
     function forceReturnToLobby(msg) {
       if (msg) alert(msg);
       stopCameraScanner();
-      sessionStorage.removeItem(LOCKED_ROLE_KEY);
-      localStorage.removeItem(LOCKED_ROLE_KEY);
+      safeRemoveStorage(LOCKED_ROLE_KEY);
       currentSession = null;
       ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
-        document.getElementById(id).classList.add("hidden");
+        document.getElementById(id)?.classList.add("hidden");
       });
-      document.getElementById("super-admin-switcher").classList.add("hidden");
-      document.getElementById("role-status-bar").classList.add("hidden");
-      document.getElementById("view-lobby").classList.remove("hidden");
+      document.getElementById("super-admin-switcher")?.classList.add("hidden");
+      document.getElementById("role-status-bar")?.classList.add("hidden");
+      document.getElementById("view-lobby")?.classList.remove("hidden");
       closeLoginPanels();
       renderLobbyTeamButtons();
     }
@@ -1237,7 +1310,8 @@
         forceReturnToLobby();
         return;
       }
-      document.getElementById("input-logout-pin").value = "";
+      const pinInput = document.getElementById("input-logout-pin");
+      if (pinInput) pinInput.value = "";
       openLoginPanel("logout");
     }
 
@@ -1257,33 +1331,35 @@
     }
 
     function applySessionRole() {
-      document.getElementById("view-lobby").classList.add("hidden");
+      document.getElementById("view-lobby")?.classList.add("hidden");
       ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
-        document.getElementById(id).classList.add("hidden");
+        document.getElementById(id)?.classList.add("hidden");
       });
 
       const statusBar = document.getElementById("role-status-bar");
       const badge = document.getElementById("current-role-badge");
-      statusBar.classList.remove("hidden");
-      statusBar.classList.add("flex");
+      if (statusBar) {
+        statusBar.classList.remove("hidden");
+        statusBar.classList.add("flex");
+      }
 
       if (currentSession.role === "team") {
         const cObj = getTeamColorObj(currentSession.teamId);
-        badge.textContent = `${cObj.colorName} (第 ${currentSession.teamId} 小隊)`;
-        document.getElementById("view-team").classList.remove("hidden");
+        if (badge) badge.textContent = `${cObj.colorName} (第 ${currentSession.teamId} 小隊)`;
+        document.getElementById("view-team")?.classList.remove("hidden");
       } else if (currentSession.role === "boss") {
         const stations = CONFIG.bossStations || BOSS_STATIONS;
         const st = stations.find(s => s.bossCode === currentSession.bossCode);
-        badge.textContent = st ? `關主 ${st.bossCode} (${st.name})` : `關主 ${currentSession.bossCode}`;
-        document.getElementById("view-boss").classList.remove("hidden");
+        if (badge) badge.textContent = st ? `關主 ${st.bossCode} (${st.name})` : `關主 ${currentSession.bossCode}`;
+        document.getElementById("view-boss")?.classList.remove("hidden");
       } else if (currentSession.role === "angel") {
         const cObj = getTeamColorObj(currentSession.teamId);
-        badge.textContent = `${cObj.colorName} 小天使`;
-        document.getElementById("view-angel").classList.remove("hidden");
+        if (badge) badge.textContent = `${cObj.colorName} 小天使`;
+        document.getElementById("view-angel")?.classList.remove("hidden");
       } else if (currentSession.role === "master") {
         currentSession.isSuperAdmin = true;
-        badge.textContent = `總關主`;
-        document.getElementById("view-master").classList.remove("hidden");
+        if (badge) badge.textContent = `總關主`;
+        document.getElementById("view-master")?.classList.remove("hidden");
       }
       renderSuperAdminSwitcher();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1450,7 +1526,6 @@
         }
       }
 
-      // 渲染「十個關主挑戰區」按鈕 (⚔️01 ~ ⚔️10) 與浮動文字框
       const bossClues = myClues.filter(c => c.type === "boss");
       const passedBossCount = bossClues.filter(c => unlockedIds.includes(c.id)).length;
       document.getElementById("team-boss-progress").textContent = `已過 ${passedBossCount} / 10 關`;
@@ -1465,6 +1540,7 @@
         const isSelected = activeBossFloatingIndex === bIdx;
 
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = `py-2.5 rounded-2xl font-black text-xs border-2 transition shadow-sm ${
           isSelected
             ? "bg-rose-600 border-rose-700 text-white scale-105 shadow-md"
@@ -1494,7 +1570,6 @@
         floatBox.classList.add("hidden");
       }
 
-      // 渲染「📦 寶箱卡 (1)~(3)」與「👼 小天使卡 (1)~(2)」按鈕
       const folderClues = myClues.filter(c => c.type === "folder");
       const angelClues = myClues.filter(c => c.type === "angel");
       const nonBossClues = [...folderClues, ...angelClues];
@@ -1511,6 +1586,7 @@
           : `小天使卡 (${item.angelOrderIndex})`;
 
         const btn = document.createElement("button");
+        btn.type = "button";
         btn.className = `py-2.5 px-2 rounded-2xl font-black text-xs border-2 transition shadow-sm ${
           isCurrentFloating
             ? (isFolder ? "bg-blue-600 border-blue-700 text-white scale-105 shadow-md" : "bg-emerald-600 border-emerald-700 text-white scale-105 shadow-md")
@@ -1525,7 +1601,6 @@
         folderBtnsContainer.appendChild(btn);
       });
 
-      // 渲染「寶箱卡 / 小天使卡」浮動說明視窗
       const cardFloatBox = document.getElementById("team-card-floating-box");
       if (activeCardFloatingClueId) {
         const selectedCard = myClues.find(c => c.id === activeCardFloatingClueId);
@@ -1561,7 +1636,6 @@
         cardFloatBox.classList.add("hidden");
       }
 
-      // 只有實際透過相機掃描到「寶箱鑰匙 QR 碼 (CLUE01~CLUE03)」時，才會展開 10 小隊資料夾選擇面板
       const activePanel = document.getElementById("team-active-clue-panel");
       if (team.activeClueId && team.activeClueId > 0) {
         const clue = myClues.find(c => c.id === team.activeClueId);
@@ -1608,7 +1682,7 @@
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const cObj = getTeamColorObj(i);
         foldersHtml += `
-          <button onclick="clickCloudFolder(${clue.id}, ${i})" style="background-color: ${cObj.hex}; color: ${cObj.textHex};" class="border-2 border-black/15 rounded-2xl p-3 flex flex-col items-center justify-center gap-0.5 shadow active:scale-95 transition">
+          <button type="button" onclick="clickCloudFolder(${clue.id}, ${i})" style="background-color: ${cObj.hex}; color: ${cObj.textHex};" class="border-2 border-black/15 rounded-2xl p-3 flex flex-col items-center justify-center gap-0.5 shadow active:scale-95 transition">
             <i class="fa-solid fa-box-open text-2xl mb-0.5"></i>
             <span class="text-[11px] font-bold opacity-90">第 ${i} 小隊</span>
             <span class="text-sm font-black tracking-wide">${cObj.colorName}</span>
@@ -1618,7 +1692,7 @@
       container.innerHTML = `
         <div class="flex items-center justify-between">
           <span class="bg-blue-100 text-blue-700 text-xs font-black px-3 py-1 rounded-full">🔑 已找到寶箱鑰匙！開啟寶箱卡 (${clue.folderOrderIndex || ""})</span>
-          <button onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
+          <button type="button" onclick="clearActiveClue()" class="text-xs font-bold text-slate-400 hover:text-slate-600">收起</button>
         </div>
         <p class="text-xs text-rose-600 font-black bg-rose-50 p-2.5 rounded-xl border border-rose-200">⚠️ 你們是【${myColorObj.colorName}（第 ${team.id} 小隊）】，請點選自己的寶箱資料夾！點錯別隊將受罰！</p>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">${foldersHtml}</div>
@@ -1682,7 +1756,7 @@
               <input id="final-ans-${idx}" type="text" placeholder="請輸入答案" class="w-full min-w-0 bg-white border-2 border-slate-300 rounded-xl px-3.5 py-2.5 text-slate-800 font-black text-sm">
             </div>
           `).join("")}
-          <button onclick="submitFinalAnswers()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-md transition">
+          <button type="button" onclick="submitFinalAnswers()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-md transition">
             🚀 確認送出最終答案
           </button>
         </div>
@@ -1746,7 +1820,6 @@
         return;
       }
 
-      // 結果 1：掃描到「寶箱鑰匙 QR 碼」➔ 自動展開 10 小隊寶箱資料夾面板！
       if (qrAction.qrType === "folder") {
         const targetFolder = folderClues[qrAction.folderOrder] || folderClues[0];
         if (targetFolder) {
@@ -1758,7 +1831,6 @@
         return;
       }
 
-      // 結果 2：掃描到「小天使 QR 碼」➔ 自動展開小天使卡浮動視窗並彈出通知！
       if (qrAction.qrType === "angel") {
         const targetAngel = angelClues[qrAction.angelOrder] || angelClues[0];
         if (targetAngel) {
@@ -1774,25 +1846,13 @@
         return;
       }
 
-      // 結果 3：掃描到「空包彈」
       if (qrAction.qrType === "blank") {
-        showFullscreenAlert(
-          "bonus",
-          "💨 哎呀！是空包彈",
-          "請繼續尋找其他 QR Code 喔！",
-          qrAction.text
-        );
+        showFullscreenAlert("bonus", "💨 哎呀！是空包彈", "請繼續尋找其他 QR Code 喔！", qrAction.text);
         return;
       }
 
-      // 結果 4：掃描到「驚喜包」
       if (qrAction.qrType === "surprise") {
-        showFullscreenAlert(
-          "bonus",
-          "🎁 觸發驚喜包任務！",
-          "請全隊立刻完成下方驚喜包指定動作才可繼續前進：",
-          qrAction.text
-        );
+        showFullscreenAlert("bonus", "🎁 觸發驚喜包任務！", "請全隊立刻完成下方驚喜包指定動作才可繼續前進：", qrAction.text);
         return;
       }
     }
@@ -1819,7 +1879,7 @@
         },
         () => {}
       ).catch(() => {
-        alert("無法開啟相機，請確認已允許瀏覽器的相機權限！");
+        alert("無法開啟相機，請確認已允許瀏覽器的相機權限（需透過 HTTPS 網址開啟）！");
         stopCameraScanner();
       });
     }
@@ -1931,18 +1991,6 @@
       }
     }
 
-    const TEAM_1A2B_SECRETS = {
-      1: "7943", 2: "2318", 3: "3942", 4: "8372",
-      5: "5721", 6: "4873", 7: "9580", 8: "6478",
-      9: "7245", 10: "5243"
-    };
-
-    function getTeam1A2BSecret(teamId) {
-      const angelKey = `A${String(teamId).padStart(2, "0")}`;
-      const fromConfig = CONFIG.angelCodes && CONFIG.angelCodes[angelKey] && CONFIG.angelCodes[angelKey].secret1A2B;
-      return String(fromConfig || TEAM_1A2B_SECRETS[teamId] || CONFIG.default1A2B);
-    }
-
     function renderAngelView() {
       const teamId = currentSession.teamId;
       const team = STATE.teams[teamId];
@@ -1974,7 +2022,7 @@
           <div class="text-xs font-black text-emerald-700">#${String(clue.id).padStart(2, "0")} ${clue.bossName}</div>
           <div class="text-xs font-bold text-slate-600">${clue.taskDesc}</div>
           <div class="text-xs text-amber-800 font-black bg-amber-50 p-2 rounded-xl border border-amber-200">將發送：${clue.hintText}</div>
-          <button onclick="angelCompleteTask(${clue.id})" class="w-full ${
+          <button type="button" onclick="angelCompleteTask(${clue.id})" class="w-full ${
             done ? "bg-slate-200 text-slate-700" : "bg-emerald-600 hover:bg-emerald-500 text-white shadow"
           } font-black py-3 rounded-xl text-xs transition active:scale-95">
             ${done ? "✅ 已發送提示 (點此可重發)" : "🎉 任務完成 (立即發送提示)"}
@@ -2166,7 +2214,7 @@
             <div class="pt-2 border-t border-slate-200 space-y-2">
               <div class="flex items-center justify-between text-[11px] text-slate-500 font-bold px-1">
                 <span>💡 點擊任一提示列可直接手動【補發 / 取消】該提示</span>
-                <button onclick="toggleMasterTeamDetail(${i})" class="text-slate-600 underline">收起明細</button>
+                <button type="button" onclick="toggleMasterTeamDetail(${i})" class="text-slate-600 underline">收起明細</button>
               </div>
               ${ansSummary}
               ${qSections}
@@ -2187,7 +2235,7 @@
             <div class="text-right flex items-center gap-2">
               ${
                 isDeviceLocked
-                  ? `<button onclick="masterUnlockTeamDevice(${i})" class="text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg">📱已綁定(解鎖)</button>`
+                  ? `<button type="button" onclick="masterUnlockTeamDevice(${i})" class="text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-300 px-2 py-1 rounded-lg">📱已綁定(解鎖)</button>`
                   : `<span class="text-[11px] font-bold text-slate-400">未登入</span>`
               }
               <div>
@@ -2197,7 +2245,7 @@
             </div>
           </div>
 
-          <button onclick="toggleMasterTeamDetail(${i})" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-2 px-3 rounded-xl text-xs flex items-center justify-between transition">
+          <button type="button" onclick="toggleMasterTeamDetail(${i})" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-black py-2 px-3 rounded-xl text-xs flex items-center justify-between transition">
             <span>🔍 點此查看【${cObj.colorName}（${t.name}）】提示與任務狀況 (${unlockedIds.length}/15)</span>
             <i class="fa-solid ${isExpanded ? "fa-chevron-up" : "fa-chevron-down"}"></i>
           </button>
@@ -2207,10 +2255,10 @@
           <div class="grid grid-cols-2 gap-2">
             ${
               isCountingPhone
-                ? `<button onclick="stopPhoneLifelineCountdown(${i})" class="bg-rose-600 text-white py-2.5 px-2 rounded-xl text-xs font-black animate-pulse shadow">
+                ? `<button type="button" onclick="stopPhoneLifelineCountdown(${i})" class="bg-rose-600 text-white py-2.5 px-2 rounded-xl text-xs font-black animate-pulse shadow">
                      ⏹️ 停止手機倒數
                    </button>`
-                : `<button onclick="masterTriggerLifeline(${i}, 'phone')" class="${
+                : `<button type="button" onclick="masterTriggerLifeline(${i}, 'phone')" class="${
                      t.lifelinePhoneUsed
                        ? "bg-slate-100 text-slate-400 border border-slate-200"
                        : "bg-amber-50 hover:bg-amber-100 text-amber-800 border-2 border-amber-300"
@@ -2218,7 +2266,7 @@
                      📱 ${t.lifelinePhoneUsed ? "手機2分鐘(已用/點此重開)" : "啟用：手機 2 分鐘"}
                    </button>`
             }
-            <button onclick="masterTriggerLifeline(${i}, 'word')" class="${
+            <button type="button" onclick="masterTriggerLifeline(${i}, 'word')" class="${
               t.lifelineWordUsed
                 ? "bg-slate-100 text-slate-400 border border-slate-200"
                 : "bg-purple-50 hover:bg-purple-100 text-purple-800 border-2 border-purple-300"
@@ -2232,9 +2280,9 @@
               (t.stopTime && t.stopTime > 0)
                 ? `<div class="bg-emerald-50 border-2 border-emerald-400 text-emerald-800 text-xs font-black p-2.5 rounded-xl flex items-center justify-between">
                      <span>🏁 第 ${t.finishOrder} 隊停錶 ｜ ${t.answerSubmitted ? `已交卷 (+${t.quizScore}分)` : "手機作答中..."}</span>
-                     <button onclick="masterResumeTeamTimer(${i})" class="text-[11px] underline text-slate-500 ml-2">恢復計時</button>
+                     <button type="button" onclick="masterResumeTeamTimer(${i})" class="text-[11px] underline text-slate-500 ml-2">恢復計時</button>
                    </div>`
-                : `<button onclick="masterStopTeamTimer(${i})" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3 rounded-xl text-xs shadow transition">
+                : `<button type="button" onclick="masterStopTeamTimer(${i})" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3 rounded-xl text-xs shadow transition">
                      🛑 我有答案了!!（停止計時並開放該隊作答）
                    </button>`
             }
@@ -2508,6 +2556,53 @@
     function closePrintModal() {
       document.getElementById("print-modal").classList.add("hidden");
     }
+
+    // 強制將所有 HTML onclick 會呼叫的函式綁定至 window 全域物件
+    Object.assign(window, {
+      openLoginPanel,
+      closeLoginPanels,
+      handleBackdropClick,
+      loginAsTeam,
+      loginAsBoss,
+      loginAsAngel,
+      loginAsMaster,
+      superSwitchToBoss,
+      superSwitchToAngel,
+      superJumpToMaster,
+      openLogoutModal,
+      confirmLogoutWithPin,
+      stopPhoneLifelineCountdown,
+      stopAllPhoneLifelines,
+      toggleHaveAnswerFloatingBox,
+      closeHaveAnswerFloatingBox,
+      toggleBossFloatingBox,
+      closeBossFloatingBox,
+      toggleCardFloatingBox,
+      closeCardFloatingBox,
+      clickCloudFolder,
+      clearActiveClue,
+      submitFinalAnswers,
+      toggleCameraScanner,
+      renderBossClueSelector,
+      updateBossPreviewText,
+      bossJudge,
+      checkAngel1A2B,
+      angelCompleteTask,
+      switchMasterTab,
+      masterUnlockTeamDevice,
+      masterToggleSingleClue,
+      toggleMasterTeamDetail,
+      masterTriggerLifeline,
+      masterStopTeamTimer,
+      masterResumeTeamTimer,
+      masterStartAllTimers,
+      masterResetKeepDevices,
+      masterResetGame,
+      setKahootStage,
+      closeFullscreenAlert,
+      openPrintModal,
+      closePrintModal
+    });
 
     updateCloudBadge();
     initLobby();
