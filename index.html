@@ -111,7 +111,7 @@
           <div id="lobby-team-grid" class="grid grid-cols-2 gap-2.5 max-h-[60vh] overflow-y-auto p-0.5"></div>
         </div>
 
-        <!-- 彈窗 2：關主代號 (B01~B10 或最高權限密碼) -->
+        <!-- 彈窗 2：關主專屬代號 -->
         <div id="login-panel-boss" class="hidden bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-4 shadow-2xl">
           <div class="flex items-center justify-between border-b border-slate-100 pb-3">
             <h3 class="font-black text-lg text-rose-600">我是關主</h3>
@@ -120,9 +120,9 @@
             </button>
           </div>
           <div class="space-y-3">
-            <input id="input-boss-code" type="text" placeholder="請輸入關主代號 (B01~B10)" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
+            <input id="input-boss-code" type="password" placeholder="請輸入本關專屬關主代號" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
             <button type="button" onclick="loginAsBoss()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
-              確認進入
+              確認進入本關
             </button>
           </div>
         </div>
@@ -137,7 +137,7 @@
           </div>
           <div class="space-y-3">
             <select id="select-angel-team" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-emerald-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black text-center text-base"></select>
-            <input id="input-angel-code" type="password" placeholder="請輸入小天使代號" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-emerald-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
+            <input id="input-angel-code" type="password" inputmode="numeric" placeholder="請輸入該隊小天使專屬代號" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-emerald-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black uppercase tracking-widest text-center text-base">
             <button type="button" onclick="loginAsAngel()" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認綁定小隊
             </button>
@@ -153,7 +153,7 @@
             </button>
           </div>
           <div class="space-y-3">
-            <input id="input-master-pin" type="password" inputmode="numeric" placeholder="請輸入總關主密碼" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-amber-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black tracking-widest text-center text-base">
+            <input id="input-master-pin" type="password" inputmode="numeric" placeholder="請輸入最高權限密碼" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-amber-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black tracking-widest text-center text-base">
             <button type="button" onclick="loginAsMaster()" class="w-full bg-amber-500 hover:bg-amber-400 active:scale-95 text-slate-950 font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認進入
             </button>
@@ -168,9 +168,9 @@
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
-          <p class="text-xs text-slate-500 font-bold text-center">為防止誤觸或換隊，請由工作人員輸入解鎖碼：</p>
+          <p class="text-xs text-slate-500 font-bold text-center">本身分已鎖定，如需切換請由總關主輸入最高權限密碼：</p>
           <div class="space-y-3">
-            <input id="input-logout-pin" type="password" inputmode="numeric" placeholder="請輸入工作人員解鎖密碼" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black tracking-widest text-center text-base">
+            <input id="input-logout-pin" type="password" inputmode="numeric" placeholder="請輸入最高權限解鎖密碼" class="w-full min-w-0 box-border bg-slate-50 border-2 border-slate-300 focus:border-rose-500 outline-none rounded-xl px-4 py-3.5 text-slate-800 font-black tracking-widest text-center text-base">
             <button type="button" onclick="confirmLogoutWithPin()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black py-3.5 rounded-xl text-base shadow-lg transition">
               確認解鎖並切換身分
             </button>
@@ -206,13 +206,13 @@
     </div>
 
     <!-- ==========================================
-         ★ 總關主與最高權限萬用切換列
+         ★ 總關主最高權限萬用切換列（僅限輸入 7062 最高權限時顯示，一般關主與小天使完全隱藏）
     =========================================== -->
     <div id="super-admin-switcher" class="hidden mb-4 bg-gradient-to-r from-amber-50 via-orange-50 to-rose-50 border-2 border-amber-400 rounded-3xl p-4 space-y-3 shadow-md">
       <div class="flex items-center justify-between gap-2 border-b border-amber-200 pb-2.5">
         <div class="flex items-center gap-1.5">
-          <span class="bg-amber-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm">👑 總關主萬用切換</span>
-          <span class="text-xs font-black text-slate-700">一鍵切換關主與小天使</span>
+          <span class="bg-amber-500 text-white text-xs font-black px-2.5 py-1 rounded-full shadow-sm">👑 最高權限萬用切換</span>
+          <span class="text-xs font-black text-slate-700">一鍵巡視各關主與小天使</span>
         </div>
         <button type="button" id="super-master-jump-btn" onclick="superJumpToMaster()" class="text-xs bg-slate-800 hover:bg-slate-700 text-amber-300 font-black px-3 py-1.5 rounded-xl shadow-sm transition shrink-0">
           👑 返回總關主控台
@@ -221,7 +221,7 @@
 
       <!-- 10 個關主快速切換按鈕 -->
       <div class="space-y-1.5">
-        <div class="text-[11px] font-black text-rose-700">⚔️ 點擊直接切換【10 位關主 (B01 ~ B10)】：</div>
+        <div class="text-[11px] font-black text-rose-700">⚔️ 點擊直接切換【10 位關主】：</div>
         <div id="super-boss-switch-grid" class="grid grid-cols-5 gap-1.5"></div>
       </div>
 
@@ -361,11 +361,11 @@
     </section>
 
     <!-- ==========================================
-         2. 關主端 (Boss View)
+         2. 關主端 (Boss View - 鎖定單一關卡不可跳關)
     =========================================== -->
     <section id="view-boss" class="hidden space-y-4">
       <div class="bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-2 shadow-md">
-        <span id="boss-badge-code" class="bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-full">關主 B01</span>
+        <span id="boss-badge-code" class="bg-rose-600 text-white text-xs font-black px-3 py-1 rounded-full">本關關主</span>
         <h2 id="boss-header-title" class="text-2xl font-black text-slate-800 pt-1">補給站</h2>
         <p id="boss-task-desc" class="text-xs font-bold text-slate-600 bg-slate-50 p-3 rounded-2xl border border-slate-200"></p>
         <div class="text-xs text-rose-700 font-black bg-rose-50 p-3 rounded-2xl border border-rose-200">
@@ -380,8 +380,8 @@
         </div>
 
         <div>
-          <label class="block text-sm font-black text-slate-700 mb-1.5">步驟 2：確認本關發放的提示</label>
-          <select id="boss-select-clue" onchange="updateBossPreviewText()" class="w-full bg-amber-50 border-2 border-amber-300 rounded-2xl px-4 py-3 text-slate-800 font-black text-sm"></select>
+          <label class="block text-sm font-black text-slate-700 mb-1.5">步驟 2：本關專屬發放提示（已鎖定本關）</label>
+          <select id="boss-select-clue" onchange="updateBossPreviewText()" disabled class="w-full bg-amber-50 border-2 border-amber-300 rounded-2xl px-4 py-3 text-slate-800 font-black text-sm opacity-90 cursor-not-allowed"></select>
         </div>
 
         <div class="space-y-3 pt-2">
@@ -571,19 +571,33 @@
       { id: 10, colorName: "酷洛米",     hex: "#4A4A4A", textHex: "#FFFFFF" }
     ];
 
-    // 10 大關主關卡名稱定義 (B01 ~ B10)
+    // ★ 10 大關主關卡名稱與專屬登入代號定義 (僅限登入該關，不可跳關或切換)
     const BOSS_STATIONS = [
-      { index: 1,  bossCode: "B01", name: "補給站" },
-      { index: 2,  bossCode: "B02", name: "大家來找碴" },
-      { index: 3,  bossCode: "B03", name: "大藝術家" },
-      { index: 4,  bossCode: "B04", name: "動動ABC" },
-      { index: 5,  bossCode: "B05", name: "Emo不Emo" },
-      { index: 6,  bossCode: "B06", name: "明爭暗鬥" },
-      { index: 7,  bossCode: "B07", name: "平了又平" },
-      { index: 8,  bossCode: "B08", name: "數獨海戰棋" },
-      { index: 9,  bossCode: "B09", name: "默契大挑戰" },
-      { index: 10, bossCode: "B10", name: "八仙過海" }
+      { index: 1,  bossCode: "B01", loginPin: "0628",   name: "補給站" },
+      { index: 2,  bossCode: "B02", loginPin: "ABC123", name: "大家來找碴" },
+      { index: 3,  bossCode: "B03", loginPin: "0615",   name: "大藝術家" },
+      { index: 4,  bossCode: "B04", loginPin: "9897",   name: "動動ABC" },
+      { index: 5,  bossCode: "B05", loginPin: "2627",   name: "Emo不Emo" },
+      { index: 6,  bossCode: "B06", loginPin: "1123",   name: "明爭暗鬥" },
+      { index: 7,  bossCode: "B07", loginPin: "1453",   name: "平了又平" },
+      { index: 8,  bossCode: "B08", loginPin: "1718",   name: "數獨海戰棋" },
+      { index: 9,  bossCode: "B09", loginPin: "0312",   name: "默契大挑戰" },
+      { index: 10, bossCode: "B10", loginPin: "0207",   name: "八仙過海" }
     ];
+
+    // ★ 10 隊隨隊小天使專屬登入代號定義
+    const ANGEL_TEAM_PINS = {
+      1:  "301198",
+      2:  "321555",
+      3:  "02120593",
+      4:  "1992041",
+      5:  "230905",
+      6:  "20261213",
+      7:  "103543",
+      8:  "0987654321",
+      9:  "482153",
+      10: "11081357"
+    };
 
     // 內建預設 15 條提示結構（當外部 config.js 未載入時自動作為保底題庫）
     const DEFAULT_FALLBACK_CLUES = [
@@ -649,11 +663,10 @@
       firebaseUrl: "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app",
       gameTitle: "關關難過關關過",
       teamCount: 10,
-      superPin: "1123",
-      masterPin: "1123",
-      masterPins: ["1123", "20040521", "19951004"],
-      angelPin: "8888",
-      switchPin: "1123",
+      superPin: "7062",
+      masterPin: "7062",
+      masterPins: ["7062"],
+      switchPin: "7062",
       teamColors: DEFAULT_TEAM_COLORS,
       bossStations: BOSS_STATIONS,
       bossFailPenaltySec: 60,
@@ -668,17 +681,21 @@
     };
 
     const CONFIG = Object.assign({}, DEFAULT_CONFIG, window.CUSTOM_GAME_CONFIG || {});
+    // 強制覆寫為最新設定之關主代號與最高權限密碼（避免舊版 config.js 覆蓋）
+    CONFIG.bossStations = BOSS_STATIONS;
+    CONFIG.superPin = "7062";
+    CONFIG.masterPin = "7062";
+    CONFIG.switchPin = "7062";
+
     if (!CONFIG.firebaseUrl) {
       CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
     }
-    const VALID_MASTER_PINS = ["1123", "20040521", "19951004", String(CONFIG.masterPin || "1123"), String(CONFIG.switchPin || "1123")];
 
+    // ★ 最高權限密碼嚴格鎖定為 7062（1123 已改為「明爭暗鬥」關主代號，不再擁有最高權限）
+    const SUPER_PIN = "7062";
     function isValidMasterOrAdminPin(pin) {
       const p = String(pin || "").trim();
-      if (!p) return false;
-      if (VALID_MASTER_PINS.includes(p)) return true;
-      if (Array.isArray(CONFIG.masterPins) && CONFIG.masterPins.map(String).includes(p)) return true;
-      return false;
+      return p === SUPER_PIN;
     }
 
     const headerTitleEl = document.getElementById('header-title');
@@ -721,7 +738,7 @@
       let bossCounter = 0;
       let folderCounter = 0;
       let angelCounter = 0;
-      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      const stations = BOSS_STATIONS;
       return rawList.map(c => {
         const copy = Object.assign({}, c);
         if (copy.type === "boss") {
@@ -1075,7 +1092,7 @@
           const cObj = getTeamColorObj(i);
           const opt = document.createElement("option");
           opt.value = i;
-          opt.textContent = `${cObj.colorName} (第 ${i} 小隊)`;
+          opt.textContent = `第 ${i} 隊 — ${cObj.colorName}`;
           angelSelect.appendChild(opt);
         }
       }
@@ -1093,7 +1110,6 @@
       }
     }
 
-    // ★ 關鍵修復：點擊任何按鈕都「立即開啟彈窗」，絕不因為等待雲端而卡死
     function openLoginPanel(type) {
       ["team", "boss", "angel", "master", "logout", "reset"].forEach(t => {
         const el = document.getElementById(`login-panel-${t}`);
@@ -1146,33 +1162,46 @@
       applySessionRole();
     }
 
+    // ★ 關主登入：僅限使用各關指定專屬代號登入該關，不可跳關或切換（7062 除外）
     function loginAsBoss() {
-      let rawInput = document.getElementById("input-boss-code").value.trim();
+      const inputEl = document.getElementById("input-boss-code");
+      const rawInput = (inputEl ? inputEl.value : "").trim();
       if (!rawInput) {
         alert("請輸入關主代號！");
         return;
       }
-      let code = rawInput.toUpperCase();
-      const isSuper = isValidMasterOrAdminPin(code);
-      if (isSuper) code = "B01";
+      const code = rawInput.toUpperCase();
 
-      const stations = CONFIG.bossStations || BOSS_STATIONS;
-      const matchedStation = stations.find(
-        s => s.bossCode.toUpperCase() === code || s.name === rawInput
+      // 若輸入最高權限密碼 7062，才擁有最高權限與萬用切換功能
+      if (isValidMasterOrAdminPin(code)) {
+        if (inputEl) inputEl.value = "";
+        closeLoginPanels();
+        saveRoleSession({ role: "boss", bossCode: "B01", isSuperAdmin: true });
+        applySessionRole();
+        return;
+      }
+
+      // 一般關主必須符合 10 關專屬 loginPin，不可使用 B01~B10 或關名登入
+      const matchedStation = BOSS_STATIONS.find(
+        s => String(s.loginPin).toUpperCase() === code
       );
 
       if (!matchedStation) {
-        alert("關主代號錯誤！請輸入 B01 ~ B10 或關卡名稱");
+        alert("關主代號錯誤！請輸入正確的本關專屬代號。");
         return;
       }
+
+      if (inputEl) inputEl.value = "";
       closeLoginPanels();
-      saveRoleSession({ role: "boss", bossCode: matchedStation.bossCode, isSuperAdmin: isSuper });
+      saveRoleSession({ role: "boss", bossCode: matchedStation.bossCode, isSuperAdmin: false });
       applySessionRole();
     }
 
+    // ★ 小天使登入：第一隊~第十隊嚴格對應專屬代號，不可跨隊（7062 除外）
     function loginAsAngel() {
       let teamId = parseInt(document.getElementById("select-angel-team").value, 10);
-      const code = document.getElementById("input-angel-code").value.trim().toUpperCase();
+      const inputEl = document.getElementById("input-angel-code");
+      const code = (inputEl ? inputEl.value : "").trim();
       const isSuper = isValidMasterOrAdminPin(code);
 
       if (!teamId && isSuper) {
@@ -1183,52 +1212,52 @@
         return;
       }
       if (!code) {
-        alert("請輸入小天使代號！");
+        alert("請輸入小天使專屬代號！");
         return;
       }
 
-      const expectedKey = `A${String(teamId).padStart(2, "0")}`;
-      const customAngel = CONFIG.angelCodes && CONFIG.angelCodes[code];
-      const validPin = CONFIG.angelPin || "8888";
-
-      const isPassValid =
-        isSuper ||
-        code === validPin.toUpperCase() ||
-        code === expectedKey ||
-        (customAngel && customAngel.teamId === teamId);
+      const expectedPin = ANGEL_TEAM_PINS[teamId];
+      const isPassValid = isSuper || (expectedPin && code === expectedPin);
 
       if (!isPassValid) {
-        alert("小天使驗證代號錯誤！");
+        alert(`小天使代號錯誤，或與所選的【第 ${teamId} 隊】不符！`);
         return;
       }
 
+      if (inputEl) inputEl.value = "";
       closeLoginPanels();
       saveRoleSession({ role: "angel", teamId, isSuperAdmin: isSuper });
       applySessionRole();
     }
 
+    // ★ 總關主登入：僅限最高權限密碼 7062
     function loginAsMaster() {
-      const pin = document.getElementById("input-master-pin").value.trim();
+      const inputEl = document.getElementById("input-master-pin");
+      const pin = (inputEl ? inputEl.value : "").trim();
       if (!isValidMasterOrAdminPin(pin)) {
-        alert("密碼錯誤！");
+        alert("最高權限密碼錯誤！");
         return;
       }
+      if (inputEl) inputEl.value = "";
       closeLoginPanels();
       saveRoleSession({ role: "master", isSuperAdmin: true });
       applySessionRole();
     }
 
     function superSwitchToBoss(bossCode) {
+      if (!currentSession || (!currentSession.isSuperAdmin && currentSession.role !== "master")) return;
       saveRoleSession({ role: "boss", bossCode, isSuperAdmin: true });
       applySessionRole();
     }
 
     function superSwitchToAngel(teamId) {
+      if (!currentSession || (!currentSession.isSuperAdmin && currentSession.role !== "master")) return;
       saveRoleSession({ role: "angel", teamId, isSuperAdmin: true });
       applySessionRole();
     }
 
     function superJumpToMaster() {
+      if (!currentSession || (!currentSession.isSuperAdmin && currentSession.role !== "master")) return;
       saveRoleSession({ role: "master", isSuperAdmin: true });
       applySessionRole();
     }
@@ -1237,7 +1266,8 @@
       const box = document.getElementById("super-admin-switcher");
       if (!box) return;
 
-      const isMasterOrSuper = currentSession && (currentSession.role === "master" || currentSession.isSuperAdmin);
+      // 只有透過最高權限 7062 登入時才顯示萬用切換列，一般關主與小天使完全隱藏
+      const isMasterOrSuper = currentSession && (currentSession.role === "master" || currentSession.isSuperAdmin === true);
       if (!isMasterOrSuper || (currentSession.role !== "master" && currentSession.role !== "boss" && currentSession.role !== "angel")) {
         box.classList.add("hidden");
         return;
@@ -1255,7 +1285,7 @@
         }
       }
 
-      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      const stations = BOSS_STATIONS;
       const bossGrid = document.getElementById("super-boss-switch-grid");
       bossGrid.innerHTML = "";
       stations.forEach(st => {
@@ -1267,7 +1297,7 @@
             ? "bg-rose-600 border-rose-700 text-white shadow scale-105"
             : "bg-white border-rose-200 text-rose-700 hover:bg-rose-50"
         }`;
-        btn.textContent = `${st.bossCode} ${st.name}`;
+        btn.textContent = `${st.index}.${st.name}`;
         btn.onclick = () => superSwitchToBoss(st.bossCode);
         bossGrid.appendChild(btn);
       });
@@ -1306,7 +1336,7 @@
     }
 
     function openLogoutModal() {
-      if (currentSession && (currentSession.role === "master" || currentSession.isSuperAdmin)) {
+      if (currentSession && (currentSession.role === "master" || currentSession.isSuperAdmin === true)) {
         forceReturnToLobby();
         return;
       }
@@ -1318,7 +1348,7 @@
     async function confirmLogoutWithPin() {
       const cleanPin = document.getElementById("input-logout-pin").value.trim();
       if (!isValidMasterOrAdminPin(cleanPin)) {
-        alert("解鎖密碼錯誤！身分已鎖定無法切換。");
+        alert("最高權限解鎖密碼錯誤！本關／本隊身分已鎖定，無法自行切換。");
         return;
       }
       if (currentSession && currentSession.role === "team") {
@@ -1348,13 +1378,12 @@
         if (badge) badge.textContent = `${cObj.colorName} (第 ${currentSession.teamId} 小隊)`;
         document.getElementById("view-team")?.classList.remove("hidden");
       } else if (currentSession.role === "boss") {
-        const stations = CONFIG.bossStations || BOSS_STATIONS;
-        const st = stations.find(s => s.bossCode === currentSession.bossCode);
-        if (badge) badge.textContent = st ? `關主 ${st.bossCode} (${st.name})` : `關主 ${currentSession.bossCode}`;
+        const st = BOSS_STATIONS.find(s => s.bossCode === currentSession.bossCode);
+        if (badge) badge.textContent = st ? `關主：${st.name}` : `關主`;
         document.getElementById("view-boss")?.classList.remove("hidden");
       } else if (currentSession.role === "angel") {
         const cObj = getTeamColorObj(currentSession.teamId);
-        if (badge) badge.textContent = `${cObj.colorName} 小天使`;
+        if (badge) badge.textContent = `第 ${currentSession.teamId} 隊小天使 (${cObj.colorName})`;
         document.getElementById("view-angel")?.classList.remove("hidden");
       } else if (currentSession.role === "master") {
         currentSession.isSuperAdmin = true;
@@ -1532,7 +1561,7 @@
 
       const bossGrid = document.getElementById("team-boss-grid");
       bossGrid.innerHTML = "";
-      const stations = CONFIG.bossStations || BOSS_STATIONS;
+      const stations = BOSS_STATIONS;
       stations.forEach((st, idx) => {
         const bIdx = idx + 1;
         const correspondingClue = bossClues[idx];
@@ -1900,9 +1929,8 @@
     }
 
     function renderBossView() {
-      const stations = CONFIG.bossStations || BOSS_STATIONS;
-      const st = stations.find(s => s.bossCode === currentSession.bossCode);
-      document.getElementById("boss-badge-code").textContent = `關主代號：${currentSession.bossCode}`;
+      const st = BOSS_STATIONS.find(s => s.bossCode === currentSession.bossCode);
+      document.getElementById("boss-badge-code").textContent = st ? `關卡 #${String(st.index).padStart(2, "0")} 關主` : "關主專區";
       document.getElementById("boss-header-title").textContent = st ? st.name : "關主審核專區";
       document.getElementById("boss-fail-sec-label").textContent = CONFIG.bossFailPenaltySec;
 
@@ -1925,8 +1953,9 @@
       const team = STATE.teams[teamId];
       const unlockedIds = getValidUnlockedClues(team);
       const teamClues = getCluesForTeam(teamId);
+      // 嚴格鎖定只顯示該關主自己關卡的提示
       const bossClues = teamClues.filter(c => c.type === "boss" && c.bossCode.toUpperCase() === currentSession.bossCode.toUpperCase());
-      const listToUse = bossClues.length > 0 ? bossClues : teamClues.filter(c => c.type === "boss");
+      const listToUse = bossClues.length > 0 ? bossClues : [teamClues.filter(c => c.type === "boss")[0]].filter(Boolean);
 
       const clueSelect = document.getElementById("boss-select-clue");
       clueSelect.innerHTML = "";
@@ -1934,9 +1963,10 @@
         const hasClue = unlockedIds.includes(c.id);
         const opt = document.createElement("option");
         opt.value = c.id;
-        opt.textContent = `提示 #${String(c.id).padStart(2, "0")} — ${c.bossName} ${hasClue ? "✅(已發過)" : ""}`;
+        opt.textContent = `【${c.bossName}】專屬提示 ${hasClue ? "✅(已發送過)" : ""}`;
         clueSelect.appendChild(opt);
       });
+      clueSelect.disabled = true;
       updateBossPreviewText();
     }
 
@@ -1972,7 +2002,7 @@
             hint: clue.hintText
           }
         });
-        alert(`已發送【通過＋提示 #${clue.id}】給 ${cObj.colorName}（第 ${teamId} 小隊）！`);
+        alert(`已發送【通過＋本關提示】給 ${cObj.colorName}（第 ${teamId} 小隊）！`);
       } else if (action === "fail") {
         if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
         const newPenalty = (team.penaltySec || 0) + CONFIG.bossFailPenaltySec;
@@ -1987,7 +2017,7 @@
             hint: clue.hintText
           }
         });
-        alert(`已對 ${cObj.colorName}（第 ${teamId} 小隊）發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與提示 #${clue.id}！`);
+        alert(`已對 ${cObj.colorName}（第 ${teamId} 小隊）發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與本關提示！`);
       }
     }
 
