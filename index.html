@@ -188,12 +188,12 @@
           <div class="space-y-3">
             <button type="button" onclick="masterResetKeepDevices()" class="w-full bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-black p-4 rounded-2xl text-left shadow-md transition space-y-1">
               <div class="text-sm text-amber-300">🔄 選項 1：歸零待機（保留手機綁定）</div>
-              <div class="text-xs text-slate-300 font-normal leading-relaxed">將全場時間歸零 00:00 並清空已收集提示，但【不踢出】目前已登入的小隊手機。</div>
+              <div class="text-xs text-slate-300 font-normal leading-relaxed">將全場時間歸零 00:00 並清空已收集提示，但【不踢出】目前已登入的小隊、關主與小天使手機。</div>
             </button>
 
             <button type="button" onclick="masterResetGame()" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-95 text-white font-black p-4 rounded-2xl text-left shadow-md transition space-y-1">
               <div class="text-sm">🚨 選項 2：徹底重置全場（解除所有手機綁定）</div>
-              <div class="text-xs text-rose-100 font-normal leading-relaxed">清空所有進度、時間歸零 00:00，並【強制解除】全部 10 小隊的手機綁定鎖。</div>
+              <div class="text-xs text-rose-100 font-normal leading-relaxed">清空所有進度、時間歸零 00:00，並【強制解除】全部小隊、關主與小天使的手機綁定，退回選擇身分首頁。</div>
             </button>
 
             <button type="button" onclick="closeLoginPanels()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl text-xs">
@@ -300,6 +300,17 @@
         </div>
       </div>
 
+      <!-- ★ 新增區塊：1A2B 終極密碼即時紀錄卡（與隨隊小天使同步） -->
+      <div id="team-1a2b-card" class="bg-white border-2 border-emerald-400 rounded-3xl p-4 space-y-2.5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-slate-800 text-base"><i class="fa-solid fa-hashtag text-emerald-600 mr-1.5"></i>1A2B 終極密碼紀錄</h3>
+          <span id="team-1a2b-count-badge" class="text-xs font-black bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">已猜 0 次</span>
+        </div>
+        <div id="team-1a2b-history-list" class="space-y-1.5 max-h-40 overflow-y-auto">
+          <p class="text-xs text-slate-400 font-bold">向隨隊小天使猜 4 位數密碼後，幾 A 幾 B 紀錄會自動顯示在這裡！</p>
+        </div>
+      </div>
+
       <!-- 獨立區塊：10 個關主挑戰區 -->
       <div id="team-boss-section-card" class="border-2 rounded-3xl p-4 space-y-3 shadow-sm transition-colors relative">
         <div class="flex items-center justify-between">
@@ -338,6 +349,9 @@
 
         <div id="qr-reader-container" class="hidden bg-black rounded-2xl overflow-hidden border-2 border-blue-500">
           <div id="qr-reader" class="w-full"></div>
+          <div class="bg-slate-900 text-amber-300 text-[11px] font-bold text-center py-2 px-3">
+            💡 蘋果手機若較難對焦，請將手機拿遠約 15~20 公分並避免反光
+          </div>
         </div>
 
         <!-- 寶箱卡 與 小天使卡 按鈕列 -->
@@ -361,7 +375,7 @@
     </section>
 
     <!-- ==========================================
-         2. 關主端 (Boss View - 鎖定單一關卡不可跳關)
+         2. 關主端 (Boss View - 鎖定單一關卡不可跳關 + 選單防閃動 + 發送前二次確認)
     =========================================== -->
     <section id="view-boss" class="hidden space-y-4">
       <div class="bg-white border-2 border-rose-500 rounded-3xl p-5 space-y-2 shadow-md">
@@ -376,7 +390,7 @@
       <div class="bg-white border border-slate-200 rounded-3xl p-5 space-y-4 shadow-sm">
         <div>
           <label class="block text-sm font-black text-slate-700 mb-1.5">步驟 1：選擇站在你面前的小隊</label>
-          <select id="boss-select-team" onchange="renderBossClueSelector()" class="w-full bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 py-3.5 text-slate-800 font-black text-base"></select>
+          <select id="boss-select-team" onchange="renderBossClueSelector(true)" class="w-full bg-slate-50 border-2 border-slate-300 rounded-2xl px-4 py-3.5 text-slate-800 font-black text-base"></select>
         </div>
 
         <div>
@@ -385,7 +399,7 @@
         </div>
 
         <div class="space-y-3 pt-2">
-          <label class="block text-sm font-black text-slate-700">步驟 3：點擊判定結果（小隊手機將立即跳出視窗）</label>
+          <label class="block text-sm font-black text-slate-700">步驟 3：點擊判定結果（點擊後將跳出確認視窗）</label>
 
           <button type="button" onclick="bossJudge('pass')" class="w-full bg-emerald-600 hover:bg-emerald-500 active:scale-[0.98] text-white font-black py-4 px-5 rounded-2xl shadow-md flex items-center justify-between transition">
             <span class="text-lg">✅ 通過（發送提示）</span>
@@ -401,30 +415,42 @@
     </section>
 
     <!-- ==========================================
-         3. 小天使端 (Angel View)
+         3. 小天使端 (Angel View - 新增 +10秒 違規扣分按鈕)
     =========================================== -->
     <section id="view-angel" class="hidden space-y-4">
-      <div class="bg-white border-2 border-emerald-500 rounded-3xl p-4 flex items-center justify-between shadow-md">
-        <div>
-          <span id="angel-badge-code" class="bg-emerald-600 text-white text-xs font-black px-3 py-1 rounded-full">隨隊小天使</span>
-          <h2 id="angel-header-title" class="text-xl font-black text-slate-800 mt-1.5">DoReMi (第 1 小隊)</h2>
+      <div class="bg-white border-2 border-emerald-500 rounded-3xl p-4 space-y-3 shadow-md">
+        <div class="flex items-center justify-between">
+          <div>
+            <span id="angel-badge-code" class="bg-emerald-600 text-white text-xs font-black px-3 py-1 rounded-full">隨隊小天使</span>
+            <h2 id="angel-header-title" class="text-xl font-black text-slate-800 mt-1.5">DoReMi (第 1 小隊)</h2>
+            <div id="angel-team-penalty-badge" class="text-xs font-black text-rose-600 mt-0.5">目前累計獎懲：+0 秒</div>
+          </div>
+          <div class="text-right bg-amber-50 px-3.5 py-2 rounded-2xl border-2 border-amber-300">
+            <div class="text-[11px] font-bold text-amber-800">本隊第一題密碼</div>
+            <div id="angel-secret-display" class="text-xl font-mono font-black text-rose-600 tracking-widest">7943</div>
+          </div>
         </div>
-        <div class="text-right bg-amber-50 px-3.5 py-2 rounded-2xl border-2 border-amber-300">
-          <div class="text-[11px] font-bold text-amber-800">本隊第一題密碼</div>
-          <div id="angel-secret-display" class="text-xl font-mono font-black text-rose-600 tracking-widest">7943</div>
-        </div>
+
+        <!-- ★ 新增：小天使違規扣分 (+10秒) 按鈕 -->
+        <button type="button" onclick="addTeamPenalty10Sec(currentSession.teamId, '隨隊小天使')" class="w-full bg-rose-600 hover:bg-rose-500 active:scale-[0.98] text-white font-black py-3 px-4 rounded-2xl text-sm shadow flex items-center justify-center gap-2 transition">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>⚠️ 違規扣分：時間 +10 秒（同步顯示於小隊畫面）</span>
+        </button>
       </div>
 
       <!-- 1A2B 防呆自動計算機 -->
       <div class="bg-white border border-slate-200 rounded-3xl p-5 space-y-3 shadow-sm">
-        <h3 class="font-black text-base text-emerald-700"><i class="fa-solid fa-calculator mr-1.5"></i>1A2B 終極密碼自動比對機</h3>
+        <div class="flex items-center justify-between">
+          <h3 class="font-black text-base text-emerald-700"><i class="fa-solid fa-calculator mr-1.5"></i>1A2B 終極密碼自動比對機</h3>
+          <span class="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">計算後自動同步給小隊</span>
+        </div>
         <div class="flex gap-2">
           <input id="angel-1a2b-input" type="text" inputmode="numeric" maxlength="4" placeholder="輸入小隊猜的 4 位數" class="flex-1 min-w-0 bg-slate-50 border-2 border-slate-300 rounded-2xl px-3 py-3 text-xl font-mono font-black text-slate-800 tracking-widest text-center">
           <button type="button" onclick="checkAngel1A2B()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black px-6 py-3 rounded-2xl shadow shrink-0">計算</button>
         </div>
 
-        <div id="angel-1a2b-result-box" class="hidden bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3 text-center">
-          <div class="text-xs font-bold text-emerald-700">請回答小隊：</div>
+        <div id="angel-1a2b-result-box" class="hidden bg-emerald-50 border-2 border-emerald-400 rounded-2xl p-3 text-center space-y-0.5">
+          <div class="text-xs font-bold text-emerald-700">請回答小隊（已同步至小隊手機）：</div>
           <div id="angel-1a2b-big-text" class="text-4xl font-black text-emerald-600 font-mono tracking-wider">2A1B</div>
         </div>
 
@@ -682,7 +708,6 @@
     };
 
     const CONFIG = Object.assign({}, DEFAULT_CONFIG, window.CUSTOM_GAME_CONFIG || {});
-    // 強制套用最新關主代號、小天使代號與三組最高權限密碼
     CONFIG.bossStations = BOSS_STATIONS;
     CONFIG.angelTeamPins = ANGEL_TEAM_PINS;
     CONFIG.superPin = "7062";
@@ -694,7 +719,7 @@
       CONFIG.firebaseUrl = "https://gofighting-4d19f-default-rtdb.asia-southeast1.firebasedatabase.app";
     }
 
-    // ★ 總關主與最高權限密碼（共 3 組：7062、20040521、19951004；1123 為「明爭暗鬥」關主專屬代號）
+    // ★ 總關主與最高權限密碼（共 3 組：7062、20040521、19951004）
     const SUPER_PINS = ["7062", "20040521", "19951004"];
     function isValidMasterOrAdminPin(pin) {
       const p = String(pin || "").trim();
@@ -804,6 +829,7 @@
     let activeCardFloatingClueId = null;
     let showHaveAnswerFloating = false;
     let isHandlingQrScan = false;
+    let lastBossRenderKey = "";
 
     function fetchWithTimeout(url, options = {}, timeoutMs = 2500) {
       const controller = new AbortController();
@@ -884,7 +910,7 @@
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         teams[i] = createSingleTeamObj(i);
       }
-      return { updatedAt: now, finishCounter: 0, kahootStage: 1, teams };
+      return { updatedAt: now, resetEpoch: now, finishCounter: 0, kahootStage: 1, teams };
     }
 
     function getValidUnlockedClues(team) {
@@ -904,6 +930,7 @@
 
     function ensureTeamsStructure(st) {
       if (!st || !st.teams) return createInitialState();
+      if (typeof st.resetEpoch !== "number") st.resetEpoch = 0;
       const cleanTeams = {};
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const cObj = getTeamColorObj(i);
@@ -1011,6 +1038,16 @@
         if (remote && remote.teams) {
           STATE = ensureTeamsStructure(remote);
           safeSetStorage(STORAGE_KEY, JSON.stringify(STATE));
+
+          // ★ 若總關主按下「徹底重置全場」，同步強制登出所有小隊、關主與小天使手機
+          if (currentSession && currentSession.role !== "master" && !currentSession.isSuperAdmin) {
+            const localEpoch = currentSession.resetEpoch || 0;
+            const remoteEpoch = STATE.resetEpoch || 0;
+            if (remoteEpoch > localEpoch) {
+              forceReturnToLobby("總關主已徹底重置全場，所有手機綁定已解除，請重新選擇身分登入！");
+              return;
+            }
+          }
 
           if (currentSession && currentSession.role === "team") {
             const myTeam = STATE.teams[currentSession.teamId];
@@ -1151,6 +1188,7 @@
     }
 
     function saveRoleSession(sess) {
+      sess.resetEpoch = STATE.resetEpoch || 0;
       currentSession = sess;
       safeSetStorage(LOCKED_ROLE_KEY, JSON.stringify(sess));
     }
@@ -1175,16 +1213,15 @@
       }
       const code = rawInput.toUpperCase();
 
-      // 若輸入 7062 / 20040521 / 19951004 最高權限密碼，才擁有最高權限與萬用切換功能
       if (isValidMasterOrAdminPin(code)) {
         if (inputEl) inputEl.value = "";
         closeLoginPanels();
+        lastBossRenderKey = "";
         saveRoleSession({ role: "boss", bossCode: "B01", isSuperAdmin: true });
         applySessionRole();
         return;
       }
 
-      // 一般關主必須符合 10 關專屬 loginPin，不可使用 B01~B10 或關名登入
       const matchedStation = BOSS_STATIONS.find(
         s => String(s.loginPin).toUpperCase() === code
       );
@@ -1196,6 +1233,7 @@
 
       if (inputEl) inputEl.value = "";
       closeLoginPanels();
+      lastBossRenderKey = "";
       saveRoleSession({ role: "boss", bossCode: matchedStation.bossCode, isSuperAdmin: false });
       applySessionRole();
     }
@@ -1249,6 +1287,7 @@
 
     function superSwitchToBoss(bossCode) {
       if (!currentSession || (!currentSession.isSuperAdmin && currentSession.role !== "master")) return;
+      lastBossRenderKey = "";
       saveRoleSession({ role: "boss", bossCode, isSuperAdmin: true });
       applySessionRole();
     }
@@ -1327,6 +1366,7 @@
       stopCameraScanner();
       safeRemoveStorage(LOCKED_ROLE_KEY);
       currentSession = null;
+      lastBossRenderKey = "";
       ["view-team", "view-boss", "view-angel", "view-master"].forEach(id => {
         document.getElementById(id)?.classList.add("hidden");
       });
@@ -1412,6 +1452,28 @@
       const end = (team.stopTime && team.stopTime > 0) ? team.stopTime : Date.now();
       const rawSec = Math.floor((end - team.startTime) / 1000);
       return Math.max(0, rawSec + (team.penaltySec || 0));
+    }
+
+    // ★ 新增：總關主與小天使共用的「違規扣分 (+10秒)」函式，同步彈窗通知小隊
+    async function addTeamPenalty10Sec(teamId, operatorLabel) {
+      const team = STATE.teams[teamId];
+      if (!team) return;
+      const cObj = getTeamColorObj(teamId);
+      if (!confirm(`確定要對【第 ${teamId} 小隊（${cObj.colorName}）】執行違規扣分（時間 +10 秒）嗎？\n\n按下確定後，小隊手機畫面將同步跳出扣分通知！`)) {
+        return;
+      }
+      const newPenalty = (team.penaltySec || 0) + 10;
+      await saveTeamPatch(teamId, {
+        penaltySec: newPenalty,
+        lastEvent: {
+          ts: Date.now(),
+          type: "fail",
+          title: "⚠️ 違規扣分！(+10秒)",
+          message: `由【${operatorLabel}】判定違規加時 10 秒！\n目前累計獎懲：${newPenalty >= 0 ? "+" + newPenalty : newPenalty} 秒`,
+          hint: ""
+        }
+      });
+      alert(`已完成扣分！已對【第 ${teamId} 小隊（${cObj.colorName}）】增加 10 秒懲罰時間，並同步顯示於小隊畫面。`);
     }
 
     async function stopPhoneLifelineCountdown(teamId) {
@@ -1554,6 +1616,41 @@
           haveAnsFloat.classList.remove("hidden");
         } else {
           haveAnsFloat.classList.add("hidden");
+        }
+      }
+
+      // ★ 渲染小隊端「1A2B 終極密碼紀錄」同步列表
+      const guesses = (team.angelGuesses || []).filter(g => g && g.guess !== "----");
+      const countBadge = document.getElementById("team-1a2b-count-badge");
+      if (countBadge) countBadge.textContent = `已猜 ${guesses.length} 次`;
+
+      const team1A2BList = document.getElementById("team-1a2b-history-list");
+      if (team1A2BList) {
+        if (guesses.length === 0) {
+          team1A2BList.innerHTML = `<p class="text-xs text-slate-400 font-bold">向隨隊小天使猜 4 位數密碼後，幾 A 幾 B 紀錄會自動顯示在這裡！</p>`;
+        } else {
+          team1A2BList.innerHTML = guesses.map((g, idx) => {
+            const roundNum = guesses.length - idx;
+            const isLatest = idx === 0;
+            const isWin = g.result === "4A0B";
+            return `
+              <div class="flex items-center justify-between px-3.5 py-2 rounded-xl border ${
+                isWin
+                  ? "bg-amber-50 border-amber-400"
+                  : isLatest
+                    ? "bg-emerald-50 border-emerald-400"
+                    : "bg-slate-50 border-slate-200"
+              }">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-black px-2 py-0.5 rounded-full ${
+                    isLatest ? "bg-emerald-600 text-white" : "bg-slate-200 text-slate-600"
+                  }">第 ${roundNum} 次</span>
+                  <span class="font-mono font-black text-base text-slate-800 tracking-widest">${g.guess}</span>
+                </div>
+                <span class="font-mono font-black text-base ${isWin ? "text-rose-600" : "text-emerald-700"}">${g.result}</span>
+              </div>
+            `;
+          }).join("");
         }
       }
 
@@ -1892,6 +1989,7 @@
       await saveTeamPatch(currentSession.teamId, { activeClueId: 0 });
     }
 
+    // ★ 相機掃描強化（針對 iPhone / iOS Safari 對焦與條碼辨識優化）
     function toggleCameraScanner() {
       const container = document.getElementById("qr-reader-container");
       if (!container.classList.contains("hidden")) {
@@ -1901,17 +1999,50 @@
       container.classList.remove("hidden");
       document.getElementById("btn-camera-toggle").innerHTML = `<i class="fa-solid fa-xmark text-xl"></i>關閉相機`;
 
-      html5QrScanner = new Html5Qrcode("qr-reader");
+      html5QrScanner = new Html5Qrcode("qr-reader", {
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        verbose: false
+      });
+
+      const qrBoxFunc = (viewfinderWidth, viewfinderHeight) => {
+        const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+        const boxSize = Math.max(220, Math.floor(minEdge * 0.75));
+        return { width: boxSize, height: boxSize };
+      };
+
+      const hdConfig = {
+        fps: 15,
+        qrbox: qrBoxFunc,
+        aspectRatio: 1.0,
+        videoConstraints: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          advanced: [{ focusMode: "continuous" }]
+        }
+      };
+
       html5QrScanner.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 220, height: 220 } },
+        hdConfig,
         (decodedText) => {
           triggerClueByCode(decodedText);
         },
         () => {}
       ).catch(() => {
-        alert("無法開啟相機，請確認已允許瀏覽器的相機權限（需透過 HTTPS 網址開啟）！");
-        stopCameraScanner();
+        // 若部分舊版 iOS 不支援 HD videoConstraints，自動降級為相容模式啟動
+        if (!html5QrScanner) return;
+        html5QrScanner.start(
+          { facingMode: "environment" },
+          { fps: 12, qrbox: qrBoxFunc },
+          (decodedText) => {
+            triggerClueByCode(decodedText);
+          },
+          () => {}
+        ).catch(() => {
+          alert("無法開啟相機，請確認已允許瀏覽器的相機權限（需透過 HTTPS 網址開啟）！");
+          stopCameraScanner();
+        });
       });
     }
 
@@ -1930,33 +2061,45 @@
       }
     }
 
+    // ★ 修復關主畫面閃動：下拉選單只初始化一次，不隨每秒輪詢重建 DOM
     function renderBossView() {
       const st = BOSS_STATIONS.find(s => s.bossCode === currentSession.bossCode);
       document.getElementById("boss-badge-code").textContent = st ? `關卡 #${String(st.index).padStart(2, "0")} 關主` : "關主專區";
-      document.getElementById("boss-header-title").textContent = st ? st.name : "關主審核專區";
       document.getElementById("boss-fail-sec-label").textContent = CONFIG.bossFailPenaltySec;
 
       const select = document.getElementById("boss-select-team");
-      const currentVal = select.value || "1";
-      select.innerHTML = "";
-      for (let i = 1; i <= CONFIG.teamCount; i++) {
-        const cObj = getTeamColorObj(i);
-        const opt = document.createElement("option");
-        opt.value = i;
-        opt.textContent = `${cObj.colorName} (第 ${i} 小隊)`;
-        select.appendChild(opt);
+      if (select.options.length !== CONFIG.teamCount) {
+        const currentVal = select.value || "1";
+        select.innerHTML = "";
+        for (let i = 1; i <= CONFIG.teamCount; i++) {
+          const cObj = getTeamColorObj(i);
+          const opt = document.createElement("option");
+          opt.value = i;
+          opt.textContent = `第 ${i} 小隊 — ${cObj.colorName}`;
+          select.appendChild(opt);
+        }
+        select.value = currentVal;
       }
-      select.value = currentVal;
-      renderBossClueSelector();
+      renderBossClueSelector(false);
     }
 
-    function renderBossClueSelector() {
+    function renderBossClueSelector(forceUpdate = false) {
       const teamId = parseInt(document.getElementById("boss-select-team").value || "1", 10);
       const team = STATE.teams[teamId];
       const unlockedIds = getValidUnlockedClues(team);
       const teamClues = getCluesForTeam(teamId);
       const bossClues = teamClues.filter(c => c.type === "boss" && c.bossCode.toUpperCase() === currentSession.bossCode.toUpperCase());
       const listToUse = bossClues.length > 0 ? bossClues : [teamClues.filter(c => c.type === "boss")[0]].filter(Boolean);
+
+      const firstClue = listToUse[0];
+      const hasClueFlag = firstClue ? unlockedIds.includes(firstClue.id) : false;
+      const renderKey = `${currentSession.bossCode}_${teamId}_${firstClue ? firstClue.id : 0}_${hasClueFlag}`;
+
+      // 若選取的小隊與發送狀態皆無變化，不重刷 DOM，徹底杜絕手機畫面跳動
+      if (!forceUpdate && renderKey === lastBossRenderKey) {
+        return;
+      }
+      lastBossRenderKey = renderKey;
 
       const clueSelect = document.getElementById("boss-select-clue");
       clueSelect.innerHTML = "";
@@ -1982,6 +2125,7 @@
       document.getElementById("boss-hint-preview").textContent = clue.hintText;
     }
 
+    // ★ 關主發送前二次確認視窗（防止誤觸送錯隊伍）
     async function bossJudge(action) {
       const teamId = parseInt(document.getElementById("boss-select-team").value, 10);
       const clueId = parseInt(document.getElementById("boss-select-clue").value, 10);
@@ -1990,6 +2134,17 @@
       const unlocked = getValidUnlockedClues(team);
       const teamClues = getCluesForTeam(teamId);
       const clue = teamClues.find(c => c.id === clueId) || teamClues[0];
+
+      const actionDesc = action === "pass"
+        ? "✅ 通過（發送提示）"
+        : `❌ 失敗（+${CONFIG.bossFailPenaltySec}秒 並發送提示）`;
+
+      const isConfirmed = confirm(
+        `請再次確認發送對象：\n\n🎯 關卡：【${clue.bossName}】\n🏃 小隊：【第 ${teamId} 小隊 — ${cObj.colorName}】\n📋 判定：${actionDesc}\n\n確定要發送給這支小隊嗎？`
+      );
+      if (!isConfirmed) return;
+
+      lastBossRenderKey = "";
 
       if (action === "pass") {
         if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
@@ -2003,7 +2158,7 @@
             hint: clue.hintText
           }
         });
-        alert(`已發送【通過＋本關提示】給 ${cObj.colorName}（第 ${teamId} 小隊）！`);
+        alert(`已發送【通過＋本關提示】給 第 ${teamId} 小隊（${cObj.colorName}）！`);
       } else if (action === "fail") {
         if (!unlocked.includes(clue.id)) unlocked.push(clue.id);
         const newPenalty = (team.penaltySec || 0) + CONFIG.bossFailPenaltySec;
@@ -2018,7 +2173,7 @@
             hint: clue.hintText
           }
         });
-        alert(`已對 ${cObj.colorName}（第 ${teamId} 小隊）發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與本關提示！`);
+        alert(`已對 第 ${teamId} 小隊（${cObj.colorName}）發送【失敗 +${CONFIG.bossFailPenaltySec}秒】與本關提示！`);
       }
     }
 
@@ -2029,16 +2184,19 @@
       const cObj = getTeamColorObj(teamId);
       const secret = getTeam1A2BSecret(teamId);
       const myClues = getCluesForTeam(teamId);
+      const p = team.penaltySec || 0;
 
       document.getElementById("angel-badge-code").textContent = `隨隊小天使 (${team.name})`;
       document.getElementById("angel-header-title").textContent = `${cObj.colorName} 專區`;
       document.getElementById("angel-secret-display").textContent = secret;
+      const penaltyBadge = document.getElementById("angel-team-penalty-badge");
+      if (penaltyBadge) penaltyBadge.textContent = `目前累計獎懲：${p >= 0 ? "+" + p : p} 秒`;
 
       const histEl = document.getElementById("angel-1a2b-history");
       const guesses = (team.angelGuesses || []).filter(g => g && g.guess !== "----");
-      histEl.innerHTML = guesses.map(g => `
+      histEl.innerHTML = guesses.map((g, idx) => `
         <div class="flex items-center justify-between bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
-          <span class="font-mono font-black text-slate-700">小隊猜：${g.guess}</span>
+          <span class="font-mono font-black text-slate-700">#${guesses.length - idx} 小隊猜：${g.guess}</span>
           <span class="font-mono font-black text-emerald-600 text-sm">${g.result}</span>
         </div>
       `).join("");
@@ -2103,7 +2261,8 @@
       document.getElementById("angel-1a2b-big-text").textContent = resultStr;
 
       const team = STATE.teams[teamId];
-      const newGuesses = [{ guess, result: resultStr }, ...(team.angelGuesses || [])];
+      const existingGuesses = (team.angelGuesses || []).filter(g => g && g.guess !== "----");
+      const newGuesses = [{ guess, result: resultStr }, ...existingGuesses];
       await saveTeamPatch(teamId, { angelGuesses: newGuesses });
       input.value = "";
     }
@@ -2306,6 +2465,11 @@
             </button>
           </div>
 
+          <!-- ★ 新增：總關主違規扣分 (+10秒) 按鈕 -->
+          <button type="button" onclick="addTeamPenalty10Sec(${i}, '總關主')" class="w-full bg-rose-50 hover:bg-rose-100 border-2 border-rose-300 text-rose-700 font-black py-2.5 px-3 rounded-xl text-xs active:scale-95 transition">
+            ⚠️ 違規扣分：時間 +10 秒（同步顯示於小隊畫面）
+          </button>
+
           <div>
             ${
               (t.stopTime && t.stopTime > 0)
@@ -2428,8 +2592,10 @@
 
     async function masterResetKeepDevices() {
       closeLoginPanels();
+      const prevEpoch = STATE.resetEpoch || 0;
       STATE.finishCounter = 0;
       STATE.kahootStage = 1;
+      STATE.resetEpoch = prevEpoch;
       for (let i = 1; i <= CONFIG.teamCount; i++) {
         const prevLock = (STATE.teams[i] && STATE.teams[i].lockedByDevice) ? STATE.teams[i].lockedByDevice : "";
         STATE.teams[i] = createSingleTeamObj(i);
@@ -2437,15 +2603,20 @@
       }
       await saveFullState();
       updateLiveTimers();
-      alert("已完成【歸零待機】！全場時間維持在 00:00 且提示已清空，各小隊已綁定的手機無須重新登入。");
+      alert("已完成【歸零待機】！全場時間維持在 00:00 且提示已清空，各小隊、關主與小天使已綁定的手機無須重新登入。");
     }
 
+    // ★ 徹底重置全場：更新 resetEpoch，強制登出全部小隊、關主與小天使手機
     async function masterResetGame() {
       closeLoginPanels();
       STATE = createInitialState();
+      STATE.resetEpoch = Date.now();
+      if (currentSession) {
+        saveRoleSession(currentSession);
+      }
       await saveFullState();
       updateLiveTimers();
-      alert("已完成【徹底重置全場】！所有進度與手機綁定皆已清空，時間維持在 00:00 等待開賽。");
+      alert("已完成【徹底重置全場】！所有進度與手機綁定（含小隊、關主、小天使）皆已清空並退回首頁，時間維持在 00:00 等待開賽。");
     }
 
     async function setKahootStage(stage) {
@@ -2602,6 +2773,7 @@
       superJumpToMaster,
       openLogoutModal,
       confirmLogoutWithPin,
+      addTeamPenalty10Sec,
       stopPhoneLifelineCountdown,
       stopAllPhoneLifelines,
       toggleHaveAnswerFloatingBox,
